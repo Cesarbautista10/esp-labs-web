@@ -1,0 +1,25 @@
+/* Phone: the lesson first, the pinout after it (it is long). Wide: pinout left, sticky. */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.grid > :first-child {
+  order: 2;
+}
+@media (min-width: 880px) {
+  .grid {
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    gap: 20px;
+  }
+  .grid > :first-child {
+    order: 0;
+  }
+}
+.lesson {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}

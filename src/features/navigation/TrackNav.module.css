@@ -1,0 +1,80 @@
+/* Mobile: a horizontal strip you swipe; wider screens: a wrapping grid of cards. */
+.tracks {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(158px, 46%);
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 4px;
+}
+@media (min-width: 720px) {
+  .tracks {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    overflow: visible;
+  }
+}
+.track {
+  --track: var(--copper);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 12px 14px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+.track::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--track);
+}
+.track[aria-current="true"] {
+  border-color: var(--track);
+  background: var(--copper-soft);
+}
+.track[aria-disabled="true"] {
+  opacity: 0.5;
+}
+.title {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 750;
+  font-size: 16px;
+}
+.blurb {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.progress {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+.progress i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line);
+}
+.progress i:first-of-type {
+  margin-left: 4px;
+}
+.progress i.on {
+  background: var(--track);
+}

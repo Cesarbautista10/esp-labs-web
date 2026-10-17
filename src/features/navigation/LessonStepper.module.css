@@ -1,0 +1,70 @@
+.steps {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+}
+.steps ol {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.steps li {
+  flex: 1 0 auto;
+  border-right: 1px solid var(--line);
+  scroll-snap-align: start;
+}
+.steps li:last-child {
+  border-right: 0;
+}
+.step {
+  min-width: 128px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 14px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.step[aria-current="page"] {
+  background: var(--copper-soft);
+  box-shadow: inset 0 -3px 0 var(--copper);
+}
+.step[aria-disabled="true"] {
+  opacity: 0.55;
+}
+.step:focus-visible {
+  outline-offset: -2px;
+}
+.n {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.t {
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 15px;
+}
+.st {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.st::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line);
+}
+.st[data-done="true"]::before {
+  background: var(--ok);
+}
