@@ -1,0 +1,77 @@
+import { useEffect, useRef, useState } from "react";
+import { useFrameLoop } from "@/lib/animation";
+import { context2d, SCREEN_H, SCREEN_W } from "@/lib/canvas";
+import { useReducedMotion } from "@/lib/media";
+import { Caption } from "@/ui/Caption";
+import { ScreenFrame } from "@/ui/ScreenFrame";
+import { Terminal, useTerminalLog } from "@/ui/terminal/Terminal";
+import type { WidgetProps } from "@/widgets/types";
+import styles from "../display.module.css";
+import { COLOUR_CHECK_MS, displayPalette, drawColourCheck, drawScope } from "./display-scope";
+
+const FPS_LOG_MS = 5000;
+
+const CAPTIONS = {
+  check: "Step 1: colour check (2.5 s). Left to right must read red, green, blue.",
+  scope: "Step 2: the bench scope. Your real screen runs it at 22 fps.",
+} as const;
+
+/** Lesson 03 preview: the ST7789's colour check, then the bench scope, plus its serial output. */
+export function DisplayPreview(_: WidgetProps) {
+  const term = useTerminalLog();
+  const reduce = useReducedMotion();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [phase, setPhase] = useState<keyof typeof CAPTIONS>("check");
+  // Frame-loop bookkeeping: when the board "powered on", a smoothed fps, the last fps log line.
+  const clock = useRef({ t0: 0, fps: 0, lastLog: 0, scope: false });
+
+  useEffect(() => {
+    clock.current = { t0: performance.now(), fps: 0, lastLog: 0, scope: false };
+    term.line("[I][main.cpp:116] setup(): Display ready: 320x170 over SPI at 40 MHz", "info");
+    term.line(
+      "[I][main.cpp:76] colourCheck(): Colour check on screen. Left->right should read red, green, blue.",
+      "info",
+    );
+    return () => term.clear();
+  }, [term]);
+
+  useFrameLoop(canvasRef, ({ now, dt }) => {
+    const canvas = canvasRef.current;
+    const c = clock.current;
+    if (!canvas || !c.t0) return;
+    const g = context2d(canvas);
+    const C = displayPalette();
+    const elapsed = now - c.t0;
+    if (dt > 0) c.fps = c.fps * 0.9 + Math.min(60, 1 / dt) * 0.1;
+    if (elapsed < COLOUR_CHECK_MS) {
+      drawColourCheck(g, C);
+      return;
+    }
+    if (!c.scope) {
+      c.scope = true;
+      term.line("[I][main.cpp:127] setup(): Frame buffer: 106 KB, PSRAM free: 8085 KB", "info");
+      setPhase("scope");
+    }
+    drawScope(g, C, reduce ? 0 : elapsed / 1000, elapsed, c.fps);
+    if (now - c.lastLog > FPS_LOG_MS) {
+      c.lastLog = now;
+      term.line(`[I][main.cpp:156] loop(): ${(21.6 + Math.random() * 0.8).toFixed(1)} fps`, "info");
+    }
+  });
+
+  return (
+    <div className={styles.sim}>
+      <ScreenFrame>
+        <canvas
+          ref={canvasRef}
+          width={SCREEN_W}
+          height={SCREEN_H}
+          role="img"
+          aria-label="Simulated 320 by 170 display: colour check, then a moving sine wave"
+        />
+      </ScreenFrame>
+      <Caption live>{CAPTIONS[phase]}</Caption>
+      <Terminal log={term} title="$ uv run pio device monitor" />
+    </div>
+  );
+}
