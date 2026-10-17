@@ -1,0 +1,307 @@
+// R2-R5 step-by-step flows: the ESP32's SPI writes, the chip, and the card's answers.
+import type { LegendItem, SeqFlow, SeqFlows } from "@/ui/sequence/types";
+import { bccOf, crcA, hx, hxs, RF, withCrc } from "../protocol/bytes";
+
+const u = RF.card.uid;
+const b = bccOf(u);
+const sel = withCrc([0x93, 0x70, ...u, b]);
+const sak = withCrc([0x08]);
+const lanes: SeqFlow["lanes"] = [
+  ["reader task", "ESP32 core 0"],
+  ["MFRC522", "the reader chip"],
+  ["card", "no battery"],
+];
+
+export const RFID_LEGEND: readonly LegendItem[] = [
+  { kind: "msg", label: "SPI access or radio frame (orange: this step)" },
+  { kind: "wait", label: "reader task waiting (IRQ wire or polling)" },
+];
+
+export const RFID_FLOWS: SeqFlows = {
+  wake: {
+    label: "Wake (WUPA → ATQA)",
+    wait: [1, 5],
+    lanes,
+    steps: [
+      {
+        f: 0,
+        t: 1,
+        msg: "FIFO ← 52 · 7 bits",
+        ms: 0.05,
+        title: "Load the frame into the chip",
+        text: "Over SPI the reader task writes WUPA (52h) into the chip's 64-byte FIFO and tells it to send only 7 bits: a short frame.",
+        code: "SPI  12 52   FIFODataReg ← 52   (09h, write: 09 << 1 = 12)\nSPI  1A 07   BitFramingReg ← 7 bits in the last byte",
+      },
+      {
+        f: 0,
+        t: 1,
+        msg: "Transceive + StartSend",
+        ms: 0.02,
+        title: "Send, then listen",
+        text: "One command makes the chip send the FIFO and then switch to receiving. From here the reader task waits: on the IRQ wire, or by reading ComIrqReg again and again.",
+        code: "SPI  02 0C   CommandReg ← Transceive\nSPI  1A 87   BitFramingReg ← StartSend | 7 bits",
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: "WUPA 52 · 7 bits",
+        ms: 0.085,
+        net: true,
+        title: "100 % ASK: the field pauses",
+        text: "The chip modulates its own 13.56 MHz field: a pause of about 3 µs at the start (Z) or the middle (X) of a bit, or none (Y). The card is powered by this same field, through the pauses.",
+        code: "air  52h, least significant bit first: 0 1 0 0 1 0 1\n     symbols Z (start) · Z X Y Z X Y X (7 bits) · Y Y (end)\n     9.44 µs per bit = 128 carrier cycles → 106 kbit/s",
+      },
+      {
+        f: 2,
+        t: 2,
+        msg: "wake · wait 86 µs",
+        ms: 0.086,
+        title: "The card wakes and waits its turn",
+        text: "The card's chip powers up from the field, decodes WUPA, then waits a fixed time before answering. Every card waits exactly the same, so they all answer at the same instant: that is what makes collisions possible.",
+        code: "frame delay time = 1172 / fc ≈ 86.4 µs  (last bit 0)\n                   1236 / fc ≈ 91.2 µs  (last bit 1)",
+      },
+      {
+        f: 2,
+        t: 1,
+        msg: "ATQA 04 00",
+        ms: 0.19,
+        net: true,
+        title: "Load modulation: the card answers",
+        text: "The card can't transmit. It switches a load on its coil on and off at 847 kHz (fc/16), and the reader's antenna feels its own field wobble. Manchester-coded, 2 bytes.",
+        code: "air  04 00   ATQA, low byte first\n     bits 7-6 of 04h = 00 → UID is 4 bytes\n     bit 2 → bit-frame anticollision supported",
+      },
+      {
+        f: 1,
+        t: 0,
+        msg: "IRQ ↓ (RxIRq)",
+        ms: 0.01,
+        title: "The chip says “done”",
+        text: "The chip sets RxIRq and IdleIRq in ComIrqReg. With the IRQ wire the pin drops low and wakes the reader task at once; without it the task has been polling ComIrqReg over SPI (R6 counts the cost).",
+        code: "IRQ pin   high → low\nor poll   SPI 88 → 30   ComIrqReg = RxIRq | IdleIRq",
+      },
+      {
+        f: 0,
+        t: 1,
+        msg: "read FIFO",
+        ms: 0.05,
+        title: "Collect the answer",
+        text: "No errors, 2 bytes waiting, last byte complete. The driver hands ATQA up to the protocol layer.",
+        code: "SPI  8C → 00        ErrorReg: no error\nSPI  94 → 02        FIFOLevelReg: 2 bytes\nSPI  92 92 00 → 04 00   FIFODataReg, burst\nSPI  98 → 00        ControlReg: 0 = all 8 bits valid",
+      },
+    ],
+  },
+  select: {
+    label: "Select (UID → SAK)",
+    lanes,
+    steps: [
+      {
+        f: 1,
+        t: 2,
+        msg: "93 20 · ANTICOLL",
+        ms: 0.2,
+        net: true,
+        title: "Who are you?",
+        text: "SEL 93h = cascade level 1. NVB 20h = 2 bytes sent, no extra bits: “tell me all 32 bits of your UID”.",
+        code: "air  93 20",
+      },
+      {
+        f: 2,
+        t: 1,
+        msg: `${hxs(u)} ${hx(b)}`,
+        ms: 0.47,
+        net: true,
+        title: "UID + BCC",
+        text: "The card sends its 4 UID bytes and a check byte, the XOR of all four. With two cards, this is where their bits collide (R3).",
+        code: `air  ${hxs(u)} ${hx(b)}\n     BCC = ${u.map(hx).join(" ^ ")} = ${hx(b)}`,
+      },
+      {
+        f: 1,
+        t: 1,
+        msg: "check BCC · CRC_A",
+        ms: 0.1,
+        title: "Check, then add a CRC",
+        text: "The driver checks the BCC, then adds a 2-byte CRC_A to the SELECT frame (R6 races the chip's CRC unit against the ESP32 doing the same maths).",
+        code: `BCC ${hx(b)} ✓\nCRC_A(93 70 ${hxs(u)} ${hx(b)}) = ${hxs(sel.slice(7))}`,
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: "93 70 … SELECT",
+        ms: 0.78,
+        net: true,
+        title: "SELECT this one",
+        text: "NVB 70h: 7 whole bytes follow. Only the card with exactly this UID answers; any other goes quiet.",
+        code: `air  ${hxs(sel)}`,
+      },
+      {
+        f: 2,
+        t: 1,
+        msg: `SAK ${hxs(sak)}`,
+        ms: 0.27,
+        net: true,
+        title: "SAK: what kind of card",
+        text: "08h: MIFARE Classic 1K, and bit 2 is clear, so the UID is complete. If bit 2 were set, the UID would continue at cascade level 2 (95h).",
+        code: `air  ${hxs(sak)}\n     08h → MIFARE Classic 1K · UID complete`,
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: "50 00 · HLTA",
+        ms: 0.36,
+        net: true,
+        title: "HLTA: go to sleep",
+        text: "Our poll halts the card at once. A halted card ignores REQA but wakes on WUPA, so the next poll (80 ms later) finds it again: that is how the card view knows it is still there.",
+        code: `air  ${hxs(withCrc([0x50, 0x00]))}\n     no answer within 1 ms = halted`,
+      },
+    ],
+  },
+  read: {
+    label: "Authenticate + read block 4",
+    lanes,
+    steps: [
+      {
+        f: 0,
+        t: 1,
+        msg: "FIFO ← 60 04 key UID",
+        ms: 0.05,
+        title: "Hand the key to the chip",
+        text: "12 bytes into the FIFO: AUTH with key A (60h), block 4, the 6-byte key, the last 4 UID bytes. Then the MFAuthent command: the chip does the rest by itself.",
+        code: `FIFO 60 04 FF FF FF FF FF FF ${hxs(u)}\nSPI  02 0E   CommandReg ← MFAuthent\n(the key never goes into the sniffer)`,
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: `60 04 ${hxs(crcA([0x60, 0x04]))}`,
+        ms: 0.36,
+        net: true,
+        title: "Pass 1: which sector, which key",
+        text: "The chip asks the card to open the sector of block 4 (sector 1) with key A.",
+        code: "",
+      },
+      {
+        f: 2,
+        t: 1,
+        msg: "challenge nT",
+        ms: 0.36,
+        net: true,
+        title: "Pass 2: the card's challenge",
+        text: "The card answers with a 4-byte random number.",
+        code: "",
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: "nR + answer",
+        ms: 0.7,
+        net: true,
+        title: "Pass 3: the reader proves it has the key",
+        text: "The chip sends its own random number and an answer to the card's challenge, both computed with the key. From here on, Crypto1 encrypts every frame.",
+        code: "",
+      },
+      {
+        f: 2,
+        t: 1,
+        msg: "card's answer",
+        ms: 0.36,
+        net: true,
+        title: "The card proves it too",
+        text: "The card's answer shows that it knows the same key. The chip sets MFCrypto1On in Status2Reg; the driver checks it.",
+        code: "SPI  90 → 08   Status2Reg: MFCrypto1On",
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: "30 04 + CRC (encrypted)",
+        ms: 0.36,
+        net: true,
+        title: "READ block 4",
+        text: "The FIFO holds plain bytes; the chip encrypts them on the way out. The sniffer marks these frames “encrypted on air”.",
+        code: "",
+      },
+      {
+        f: 2,
+        t: 1,
+        msg: "16 bytes + CRC",
+        ms: 1.55,
+        net: true,
+        title: "The block",
+        text: "18 bytes come back, decrypted by the chip.",
+        code: "68 65 6C 6C 6F 20 62 65 6E 63 68 00 00 00 00 00  |hello bench.....|  + CRC_A",
+      },
+      {
+        f: 1,
+        t: 0,
+        msg: "18 bytes → ESP32",
+        ms: 0.06,
+        title: "Check the CRC ourselves",
+        text: "The driver reads 18 bytes from the FIFO and checks CRC_A over the first 16. A wrong CRC means a disturbed frame: the stress test in R6 counts how often.",
+        code: "",
+      },
+    ],
+  },
+  credits: {
+    label: "credits use 3",
+    lanes,
+    steps: [
+      {
+        f: 1,
+        t: 2,
+        msg: "C2 08 · RESTORE",
+        ms: 0.36,
+        net: true,
+        title: "Load the value",
+        text: "The card checks that block 8 is a valid value block (value, inverted value, value, address ×4) and loads it into its internal register. NAK if the format is broken.",
+        code: "air  C2 08 + CRC → ACK (4 bits: A)\n     00 00 00 00 + CRC → silence = ok",
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: "B0 09 · TRANSFER",
+        ms: 0.36,
+        net: true,
+        title: "Store it in the backup",
+        text: "TRANSFER writes the register into block 9. The backup now holds the value from before the change.",
+        code: "air  B0 09 + CRC → ACK\nblock 9 ← 50",
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: "C0 08 · DECREMENT 3",
+        ms: 0.4,
+        net: true,
+        title: "Subtract, on the card",
+        text: "The card loads block 8 and subtracts the operand in its register. Block 8 itself doesn't change yet.",
+        code: "air  C0 08 + CRC → ACK\n     03 00 00 00 + CRC → silence = ok\nregister = 50 − 3 = 47",
+      },
+      {
+        f: 1,
+        t: 2,
+        msg: "B0 08 · TRANSFER",
+        ms: 0.36,
+        net: true,
+        title: "Commit",
+        text: "Until this TRANSFER, block 8 still says 50. The card writes the whole 16-byte block or nothing, so a card pulled away mid-way leaves 50 or 47, never a broken number.",
+        code: "air  B0 08 + CRC → ACK\nblock 8 ← 47",
+      },
+      {
+        f: 1,
+        t: 0,
+        msg: "read 8 and 9",
+        ms: 3,
+        title: "Check what the card says now",
+        text: "The firmware reads both blocks back and decodes them.",
+        code: "credits 47 (block 8) · backup 50 (block 9)",
+      },
+    ],
+  },
+};
+
+/** The flows a panel asks for, in its order (all of them when it names none). */
+export function pickFlows(all: SeqFlows, keys: readonly string[] | undefined): SeqFlows {
+  const picked: Record<string, SeqFlow> = {};
+  for (const k of keys ?? Object.keys(all)) {
+    const flow = all[k];
+    if (flow) picked[k] = flow;
+  }
+  return picked;
+}
