@@ -9,7 +9,7 @@ import { ScreenFrame } from "@/ui/ScreenFrame";
 import { Terminal, useTerminalLog } from "@/ui/terminal/Terminal";
 import type { WidgetProps } from "@/widgets/types";
 import { useSimulation } from "../shared/simulation";
-import type { LogLine } from "./log";
+import { type LogLine, printLog } from "./log";
 import { type Press, PushButton } from "@/ui/board-button/BoardButton";
 import { drawWeather, weatherPalette } from "./weather-draw";
 import {
@@ -37,18 +37,15 @@ export function WeatherPreview(_: WidgetProps) {
   const answerTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const reduce = useReducedMotion();
 
-  const print = (lines: readonly LogLine[]) =>
-    lines.forEach(([text, tone]) => term.line(text, tone));
+  const print = (lines: readonly LogLine[]) => printLog(term, lines);
 
   useEffect(() => {
-    print(BOOT_LINES);
-    print(setWeatherView(sim.state, 0));
+    printLog(term, BOOT_LINES);
+    printLog(term, setWeatherView(sim.state, 0));
     return () => {
       clearTimeout(answerTimer.current);
       term.clear();
     };
-    // Once per mounted board.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim, term]);
 
   useFrameLoop(canvasRef, ({ now }) => {

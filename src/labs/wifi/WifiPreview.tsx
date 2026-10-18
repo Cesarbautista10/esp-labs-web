@@ -9,7 +9,7 @@ import { ScreenFrame } from "@/ui/ScreenFrame";
 import { Terminal, useTerminalLog } from "@/ui/terminal/Terminal";
 import type { WidgetProps } from "@/widgets/types";
 import { useSimulation } from "../shared/simulation";
-import type { LogLine } from "./log";
+import { type LogLine, printLog } from "./log";
 import { PushButton, type Press } from "@/ui/board-button/BoardButton";
 import { drawScanner } from "./scanner-draw";
 import {
@@ -33,14 +33,11 @@ export function WifiPreview(_: WidgetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reduce = useReducedMotion();
 
-  const print = (lines: readonly LogLine[]) =>
-    lines.forEach(([text, tone]) => term.line(text, tone));
+  const print = (lines: readonly LogLine[]) => printLog(term, lines);
 
   useEffect(() => {
-    print(bootScanner(sim.state, performance.now()));
+    printLog(term, bootScanner(sim.state, performance.now()));
     return () => term.clear();
-    // Once per mounted board.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim, term]);
 
   useFrameLoop(canvasRef, ({ now }) => {
