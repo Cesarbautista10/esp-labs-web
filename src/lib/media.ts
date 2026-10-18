@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { motionStore, useMotionChoice } from "./motion";
 
 // One subscribe function per query, so useSyncExternalStore never resubscribes on re-render.
 const subscribers = new Map<string, (listener: () => void) => () => void>();
@@ -27,7 +28,12 @@ export function useMediaQuery(query: string): boolean {
 
 export const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
-/** For code outside render (animation loops, event handlers). */
-export const prefersReducedMotion = () => matchMedia(REDUCED_MOTION).matches;
+/** For code outside render (animation loops, event handlers). Honours the "Calm" setting too. */
+export const prefersReducedMotion = () =>
+  motionStore.get() === "calm" || matchMedia(REDUCED_MOTION).matches;
 
-export const useReducedMotion = () => useMediaQuery(REDUCED_MOTION);
+/** True when the device asks for less motion or the reader chose "Calm" in Settings. */
+export function useReducedMotion(): boolean {
+  const device = useMediaQuery(REDUCED_MOTION);
+  return useMotionChoice() === "calm" || device;
+}

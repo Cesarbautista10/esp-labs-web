@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "@/app/App";
 import { createLogger, errorData } from "@/lib/logger";
+import { initMotion } from "@/lib/motion";
 import { initTheme } from "@/lib/theme";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
@@ -17,6 +18,7 @@ window.addEventListener("unhandledrejection", (e) =>
 );
 
 initTheme();
+initMotion();
 
 const container = document.getElementById("root");
 if (!container) throw new Error("index.html is missing #root");
