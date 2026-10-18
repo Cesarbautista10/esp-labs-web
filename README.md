@@ -28,24 +28,30 @@ pnpm preview          # serve dist/ locally (browsers will not run module script
 
 Copy `.env.example` to `.env` to override:
 
-| Variable              | Default   | Meaning                                                 |
-| --------------------- | --------- | ------------------------------------------------------- |
-| `VITE_BENCH_DATA_URL` | `./data/` | Where `bench-status.json` and `bench-log.json` are read |
-| `VITE_LOG_LEVEL`      | `info`    | `debug`, `info`, `warn`, `error` or `silent`            |
+| Variable              | Default       | Meaning                                                       |
+| --------------------- | ------------- | ------------------------------------------------------------- |
+| `VITE_BENCH_DATA_URL` | `./data/`     | Where `bench-status.json` and `bench-log.json` are read       |
+| `VITE_FIRMWARE_URL`   | `./firmware/` | Where the bundled lab code is read                            |
+| `VITE_LOG_LEVEL`      | `info`        | `debug`, `info`, `warn`, `error` or `silent`                  |
+| `FIRMWARE_DIR`        | `../test-esp` | Build time only: the PlatformIO project the code reader shows |
 
 ## Where things live
 
-| Path                    | What                                                                      |
-| ----------------------- | ------------------------------------------------------------------------- |
-| `src/content/`          | Tracks (table of contents) and lessons, one file per track                |
-| `src/labs/<track>/`     | That track's simulators and explainers, registered in `widgets.ts`        |
-| `src/labs/shared/`      | `Simulation` and the lab-screen engine (screen + buttons + serial)        |
-| `src/features/`         | App screens: lesson page, navigation, board pinout, bench log, progress   |
-| `src/ui/`               | Design-system pieces: Panel, Button, Terminal, SequenceDiagram, RichText… |
-| `src/lib/`              | Logger, storage, theme, palette, animation loop, http, clipboard          |
-| `src/styles/tokens.css` | Every colour, font and radius; light and dark themes                      |
-| `public/data/`          | Bench status and log (validated with zod when fetched)                    |
-| `docs-llm/`             | Offline React, React Router and TanStack Query docs used to build this    |
+| Path                     | What                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `src/content/`           | Tracks (table of contents) and lessons, one file per track; `code/` holds the phrasebook and hand-written code tours |
+| `src/domain/code/`       | C++ tokenizer, analyser, line explainer and tour builder (pure, tested)                                              |
+| `src/features/code/`     | The code reader: tour, explore, map, words                                                                           |
+| `src/features/settings/` | Settings page and its store (level, hints, code display, motion)                                                     |
+| `tools/firmware/`        | Reads `test-esp` and ships each env's code as JSON (Vite plugin)                                                     |
+| `src/labs/<track>/`      | That track's simulators and explainers, registered in `widgets.ts`                                                   |
+| `src/labs/shared/`       | `Simulation` and the lab-screen engine (screen + buttons + serial)                                                   |
+| `src/features/`          | App screens: lesson page, navigation, board pinout, bench log, progress                                              |
+| `src/ui/`                | Design-system pieces: Panel, Button, Terminal, SequenceDiagram, RichText…                                            |
+| `src/lib/`               | Logger, storage, theme, palette, animation loop, http, clipboard                                                     |
+| `src/styles/tokens.css`  | Every colour, font and radius; light and dark themes                                                                 |
+| `public/data/`           | Bench status and log (validated with zod when fetched)                                                               |
+| `docs-llm/`              | Offline React, React Router and TanStack Query docs used to build this                                               |
 
 ## Versions
 

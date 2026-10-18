@@ -132,6 +132,40 @@ A track writes one `LabKit` (its status bar, its shared hardware model, its comm
 
 Other shared pieces: `PushButton` / `HoldButton` / `BoardButton` (the board's push button: click, double-click, hold, by pointer or keyboard), `ScrollBox` (wide drawings and tables scroll inside themselves on phones), `Terminal` + `TerminalLog` (a serial monitor any code can print to), `SequenceDiagram` (steppable message flows), `useBoardRgb()` (light the RGB LED on the board drawing), `scopePalette()` / `definePalette()` (canvas colours from CSS tokens, re-read after a theme change), `useInterval`, `useReducedMotion`.
 
+## Reading the code
+
+Every lesson with a firmware has a second tab, **Read the code** (`#/lessons/02/code`), so a learner can understand what runs on the board, not only follow the steps. The design goal is "never intimidating": the reader fills the viewport (only its panes scroll), shows a few lines at a time, asks before it tells, and introduces at most three new C++ words per stop.
+
+```mermaid
+flowchart LR
+  pio["test-esp/platformio.ini<br/>+ src/, lib/, include/"] -->|"build time<br/>tools/firmware"| json["firmware/index.json<br/>firmware/&lt;env&gt;.json"]
+  json -->|"Query + zod"| lab["buildLabCode()<br/>analyse · tours · definitions"]
+  tours["content/code/tours.ts<br/>(hand-written, labs 01–03)"] --> lab
+  words["content/code/glossary.ts<br/>(196 words)"] --> lab
+  lab --> reader["CodeReader<br/>tour · explore · map · words"]
+  settings["Settings<br/>level, guess first, hints, display"] --> reader
+```
+
+- **Where the code comes from.** `tools/firmware/vite-plugin.ts` reads the PlatformIO project at `FIRMWARE_DIR` (default `../test-esp`): each env's `build_src_filter` plus every local header reached through `#include`, lab files first in reading order. Dev serves it from memory (edits under `test-esp` reload the page); build emits static JSON, so the reader always shows what is actually flashed. A lesson finds its env from its command (`-e 02-led`), so variants (03b, W2) show their own code.
+- **The analyser** (`src/domain/code/`, pure TypeScript, unit-tested): `tokenize` (C++ tokens per line, raw strings and block comments included), `analyze` (statements, blocks with their calls, chapters drawn as `// ---- x ----`, folds for long data and embedded web pages), `explain` (a plain sentence for every line, rule by rule from specific to general, with "go to definition" across files), `tour` (stops: hand-written ones resolved by text anchors, or automatic ones built from the code's own comments and structure; closing braces are absorbed so no line is left out).
+- **Three ways to read**, each a module in `features/code/reader/modes/` registered in `READER_MODES` (`reader/modes.ts`):
+  - **Tour**: file by file, a few lines at a time (hand-written or automatic stops).
+  - **Story**: the program as it runs. `domain/code/symbols.ts` indexes every function with its class and namespace and every variable with its type, so `lab.begin()` in `main.cpp` resolves to `Lab::begin()` in `lab.h` and `rv::card()` to the views file; `domain/code/story.ts` walks the call graph depth first from `setup()`, then `loop()`, then the lab's functions nobody calls by name (views, commands, handlers). Short leaf helpers are mentioned instead of visited; depth and length grow with the level. Each scene shows the call path that led there (`setup() › Lab::begin() › Display::begin()`), the file it moved into, the comment above the function, and where the story can go next; the Storyline (in the Map tab) is the whole table of contents.
+  - **Explore**: tap any line or word.
+- **The shell** (`reader/CodeReader.tsx`) owns what the modes share (URL state `mode`, `file`, `stop`, `scene`; the line lens; the word card; the panel; focus) and hands it to the current mode through `ReaderContext`. Every mode renders a `ReaderFrame` (toolbar, code, explanation panel, bottom bar) with its own card and navigation, so modes never depend on each other. Shared pieces: `StepBar`, `LinePlayerControls` + `useLinePlayer`, `useArrowKeys`. Adding a mode = one component + one registry entry.
+
+```mermaid
+flowchart TB
+  shell["CodeReader (shell)<br/>URL state · lens · words · panel · focus"] -->|ReaderContext| mode{"current mode"}
+  mode --> tour["TourMode<br/>stops · guess first"] & story["StoryMode<br/>scenes · storyline"] & explore["ExploreMode"]
+  tour & story & explore --> frame["ReaderFrame<br/>Toolbar · CodeView · SidePanel · bar"]
+  story --> engine["symbols.ts → story.ts<br/>(pure, tested)"]
+```
+
+- **Levels and views** (`features/settings`): Beginner tours only essential stops (file header, `setup`, `loop`, commented code, and what `setup`/`loop` call) and tells a short story; Explorer tours every stop; Deep dive shows the precise story inline and follows calls down into the drivers. The **Simple view** (Settings, or the toolbar) keeps one card and one main button: no file picker, map, phrasebook tab, progress ring or pop-ups; only the lit lines' words are underlined; notes fold away. The Full view keeps every tool. A "Back to the lab" link is always the toolbar's first control.
+- **Learning aids**: guess first (a quiz or "what do you think?"), line-by-line player, line lens, new-word cards and the phrasebook (words you met are remembered), the map ("setup once, loop forever" and their calls), and an understanding ring (share of the lab's own code lines you read through stops, scenes or the lens).
+- **Checks**: `src/content/code/code-content.test.ts` fails when a lesson's env disappears or a hand-written tour anchor no longer matches the firmware.
+
 ## State
 
 | State                               | Where                                                                               | Why                                                      |
@@ -139,12 +173,14 @@ Other shared pieces: `PushButton` / `HoldButton` / `BoardButton` (the board's pu
 | Lesson content                      | Query cache, `staleTime: "static"`                                                  | Bundled, never changes while the page is open            |
 | Bench status + log                  | Query cache, fresh for 60 s, refetched on focus                                     | Changes when Claude records a command; no rebuild needed |
 | Ticks, last lesson, variants, theme | `createPersistentStore` (localStorage + `useSyncExternalStore`, synced across tabs) | Yours, in this browser only                              |
+| Code settings, motion, code read, words met | Same stores; settings are re-validated (`normalizeSettings`) on every read | Yours; a stale value falls back to defaults |
+| Lab code + phrasebook | Query cache, `staleTime: "static"`; analysis cached per document | Bundled at build time |
 | Variant, log filter                 | URL search params                                                                   | Shareable                                                |
 | Simulator internals                 | refs / `Simulation`                                                                 | 60 fps, not rendering state                              |
 
 ## Configuration, logging, errors
 
-- `src/config/env.ts` parses `import.meta.env` with zod at start-up. `VITE_BENCH_DATA_URL` points at the bench JSON (default `./data/`), `VITE_LOG_LEVEL` filters logs. See `.env.example`.
+- `src/config/env.ts` parses `import.meta.env` with zod at start-up. `VITE_BENCH_DATA_URL` points at the bench JSON (default `./data/`), `VITE_FIRMWARE_URL` at the bundled lab code (default `./firmware/`), `VITE_LOG_LEVEL` filters logs. `FIRMWARE_DIR` (build time only) is the PlatformIO project to read. See `.env.example`.
 - `src/lib/logger.ts` emits structured events (`level, scope, message, data, at`) to pluggable sinks (console by default). Query failures, route errors, render errors (`createRoot` hooks), widget crashes, uncaught errors and unhandled rejections are all logged once, centrally.
 - Errors are contained at three levels: route `ErrorBoundary` (404, failed loaders), per-widget `ErrorBoundary`, and a simulator's own draw guard (a failing view draws its error on the simulated screen).
 
@@ -158,3 +194,5 @@ Append an entry to `public/data/bench-log.json` (shape: `LogEntrySchema` in `src
 - **A track**: an entry in `TRACKS`, a lessons file, a loader in `content/queries.ts`, a `labs/<track>/widgets.ts` spread into `widgets/registry.ts`, and a colour token.
 - **A widget**: a component taking `WidgetProps` in `labs/<track>/`, one line in that track's `widgets.ts`, then reference its id from a lesson.
 - **A theme**: a token block in `tokens.css` and an entry in `THEMES` (`src/lib/theme.ts`).
+- **A hand-written code tour**: a `LabTourSpec` in `src/content/code/tours.ts` (stops anchored by text, `essential` for the Beginner tour, optional `quiz`); the content test checks its anchors.
+- **A phrasebook word**: an entry in `src/content/code/glossary.ts` (`match` by word, call, operator or directive; first entry wins a key).
