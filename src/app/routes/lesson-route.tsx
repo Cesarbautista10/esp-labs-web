@@ -13,6 +13,7 @@ import { isActive, resolveLesson } from "@/domain/lesson";
 import { entryLesson } from "@/domain/progress";
 import { BoardSignalsProvider } from "@/features/board/board-signals";
 import { LessonPage } from "@/features/lesson/LessonPage";
+import { LessonTabs } from "@/features/lesson/LessonTabs";
 import { LessonStepper } from "@/features/navigation/LessonStepper";
 import { TrackNav } from "@/features/navigation/TrackNav";
 import { progress, useVariants } from "@/features/progress/progress-store";
@@ -50,7 +51,8 @@ export const lessonLoader =
     return { lessonId, trackId };
   };
 
-export function LessonRoute() {
+/** The lesson of the current route, with its variant applied (URL first, then your last choice). */
+export function useRouteLesson() {
   const { lessonId, trackId } =
     useLoaderData<Awaited<ReturnType<ReturnType<typeof lessonLoader>>>>();
   const { data: lessons } = useSuspenseQuery(trackLessonsQuery(trackId));
@@ -58,20 +60,29 @@ export function LessonRoute() {
   const [params, setParams] = useSearchParams();
   const base = lessons.find((l) => l.id === lessonId);
   if (!base || !isActive(base)) throw new Error(`Lesson ${lessonId} vanished from the cache`);
-
-  // The URL wins (shareable links), then your last choice for this lesson.
   const lesson = resolveLesson(base, params.get("variant") ?? variants[lessonId]);
 
   function chooseVariant(key: string) {
     progress.setVariant(lessonId, key);
-    setParams({ variant: key }, { replace: true, preventScrollReset: true });
+    setParams(
+      (p) => {
+        p.set("variant", key);
+        return p;
+      },
+      { replace: true, preventScrollReset: true },
+    );
   }
+  return { lesson, lessons, trackId, chooseVariant };
+}
 
+export function LessonRoute() {
+  const { lesson, lessons, trackId, chooseVariant } = useRouteLesson();
   return (
     <BoardSignalsProvider>
       <title>{`${lesson.id} · ${lesson.title} · ESP32-S3 Bench Guide`}</title>
       <TrackNav activeTrack={trackId} />
-      <LessonStepper lessons={lessons} currentId={lessonId} />
+      <LessonStepper lessons={lessons} currentId={lesson.id} />
+      <LessonTabs lesson={lesson} current="lab" />
       <LessonPage lesson={lesson} onVariant={chooseVariant} />
     </BoardSignalsProvider>
   );

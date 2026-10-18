@@ -23,6 +23,16 @@ export const router = createHashRouter([
           { path: "tracks/:trackId", loader: trackLoader(queryClient) },
           { path: "lessons/:lessonId", loader: lessonLoader(queryClient), Component: LessonRoute },
           {
+            // Reading a lab's code: same loader, its own lazily loaded screen.
+            path: "lessons/:lessonId/code",
+            loader: lessonLoader(queryClient),
+            lazy: async () => ({ Component: (await import("./routes/code-route")).Component }),
+          },
+          {
+            path: "settings",
+            lazy: async () => ({ Component: (await import("./routes/settings-route")).Component }),
+          },
+          {
             path: "log",
             lazy: async () => {
               const route = await import("./routes/log-route");

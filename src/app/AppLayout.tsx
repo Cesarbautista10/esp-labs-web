@@ -51,6 +51,7 @@ export function AppLayout() {
             <nav aria-label="Sections" className={styles.sections}>
               <NavLink to="/lessons">Lessons</NavLink>
               <NavLink to="/log">Bench log</NavLink>
+              <NavLink to="/settings">Settings</NavLink>
             </nav>
             <ThemeSwitch />
           </div>

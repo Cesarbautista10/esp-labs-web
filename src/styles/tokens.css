@@ -77,6 +77,23 @@
   --snd-mic: #0d6b63;
   --snd-amp: #6b3fc0;
 
+  /* Code reader: syntax colours (AA on --code-bg) and the tour spotlight */
+  --code-bg: #fbfcfb;
+  --code-gutter: #5f6e69;
+  --syn-keyword: #7a3fb8;
+  --syn-type: #0b6b84;
+  --syn-string: #2b7319;
+  --syn-number: #a14700;
+  --syn-comment: #5d6c66;
+  --syn-fn: #1d55a6;
+  --syn-const: #a0257a;
+  --syn-preproc: #95501a;
+  --spot: #f6e6d6;
+  --spot-edge: #d08a4c;
+  --lens: #e3eefc;
+  --lens-edge: #4f7fd0;
+  --term-line: #b0601f;
+
   /* Type */
   --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -126,6 +143,21 @@
     --sound: #ff8fcf;
     --snd-mic: #5fd3c3;
     --snd-amp: #c4a5ff;
+    --code-bg: #111816;
+    --code-gutter: #8a9c95;
+    --syn-keyword: #c9a2ff;
+    --syn-type: #6fd3e0;
+    --syn-string: #9ad97a;
+    --syn-number: #ffb26b;
+    --syn-comment: #8fa39a;
+    --syn-fn: #8ab8ff;
+    --syn-const: #ff94cf;
+    --syn-preproc: #e8a86f;
+    --spot: #2e2419;
+    --spot-edge: #b8783f;
+    --lens: #172540;
+    --lens-edge: #6a9be8;
+    --term-line: #e39a5c;
   }
 }
 :root[data-theme="dark"] {
@@ -162,4 +194,19 @@
   --sound: #ff8fcf;
   --snd-mic: #5fd3c3;
   --snd-amp: #c4a5ff;
+  --code-bg: #111816;
+  --code-gutter: #8a9c95;
+  --syn-keyword: #c9a2ff;
+  --syn-type: #6fd3e0;
+  --syn-string: #9ad97a;
+  --syn-number: #ffb26b;
+  --syn-comment: #8fa39a;
+  --syn-fn: #8ab8ff;
+  --syn-const: #ff94cf;
+  --syn-preproc: #e8a86f;
+  --spot: #2e2419;
+  --spot-edge: #b8783f;
+  --lens: #172540;
+  --lens-edge: #6a9be8;
+  --term-line: #e39a5c;
 }
