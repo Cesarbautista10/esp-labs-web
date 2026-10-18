@@ -29,7 +29,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["src/lib/logger.ts", "vite.config.ts", "eslint.config.ts"],
+    files: ["src/lib/logger.ts", "vite.config.ts", "eslint.config.ts", "tools/**"],
     rules: { "no-console": "off" },
   },
 );

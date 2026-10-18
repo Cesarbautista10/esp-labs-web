@@ -1,14 +1,25 @@
 import { fileURLToPath } from "node:url";
 import babel from "@rolldown/plugin-babel";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
+import { firmwarePlugin } from "./tools/firmware/vite-plugin.ts";
 
 // React Compiler memoizes components and hooks at build time, so the code stays free of
 // hand-written useMemo/useCallback. `base: "./"` keeps every asset URL relative: the build
 // works from any static host, in any subfolder, or a claude.ai artifact, with no rewrite rules.
-export default defineConfig({
+// FIRMWARE_DIR: the PlatformIO project whose sources the code reader shows (build-time only).
+export default defineConfig(({ mode }) => ({
   base: "./",
-  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
+  plugins: [
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+    firmwarePlugin({
+      root: fileURLToPath(
+        new URL(loadEnv(mode, process.cwd(), "").FIRMWARE_DIR || "../test-esp", import.meta.url),
+      ),
+    }),
+  ],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   build: {
     target: "es2023",
@@ -32,4 +43,4 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     css: { modules: { classNameStrategy: "non-scoped" } },
   },
-});
+}));

@@ -15,5 +15,5 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["vite.config.ts", "eslint.config.ts"]
+  "include": ["vite.config.ts", "eslint.config.ts", "tools"]
 }

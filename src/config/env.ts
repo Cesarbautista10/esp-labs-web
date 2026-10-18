@@ -5,6 +5,7 @@ import * as z from "zod/mini";
 // zod/mini: the tree-shakable build, so validation adds a few kB, not the whole library.
 const EnvSchema = z.object({
   VITE_BENCH_DATA_URL: z._default(z.string().check(z.minLength(1)), "./data/"),
+  VITE_FIRMWARE_URL: z._default(z.string().check(z.minLength(1)), "./firmware/"),
   VITE_LOG_LEVEL: z._default(z.enum(["debug", "info", "warn", "error", "silent"]), "info"),
   DEV: z.boolean(),
   MODE: z.string(),
@@ -17,6 +18,10 @@ export const env = {
   benchDataUrl: parsed.VITE_BENCH_DATA_URL.endsWith("/")
     ? parsed.VITE_BENCH_DATA_URL
     : `${parsed.VITE_BENCH_DATA_URL}/`,
+  /** Base URL of the bundled lab code (firmware/index.json + one JSON per environment). */
+  firmwareUrl: parsed.VITE_FIRMWARE_URL.endsWith("/")
+    ? parsed.VITE_FIRMWARE_URL
+    : `${parsed.VITE_FIRMWARE_URL}/`,
   logLevel: parsed.VITE_LOG_LEVEL,
   isDev: parsed.DEV,
   mode: parsed.MODE,
