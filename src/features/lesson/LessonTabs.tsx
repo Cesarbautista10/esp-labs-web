@@ -9,9 +9,9 @@ import { useScrollChrome } from "@/lib/use-scroll-chrome";
 import { Icon } from "@/ui/Icon";
 import styles from "./LessonTabs.module.css";
 
-// Past the top the dock shrinks to one button for the other view; on pages that ask for it, it then
-// slides away while you read down and returns the moment you scroll up.
-const DOCK_SCROLL = { compactAfter: 72, hideAfter: 240, travel: 12 } as const;
+// Once the dock sticks (its slot reaches the top gap) it shrinks to one button for the other view;
+// on pages that ask for it, it then slides away while you read down and returns on scrolling up.
+const STICK_TOP = 8;
 
 /**
  * The lesson's dock, sticky while you scroll: two ways into a lesson (do it on the bench, or read
@@ -33,9 +33,11 @@ export function LessonTabs({
   children?: ReactNode;
 }) {
   const [params] = useSearchParams();
-  const { compact, hidden } = useScrollChrome(DOCK_SCROLL);
   const slotRef = useRef<HTMLDivElement>(null);
   const dockRef = useRef<HTMLDivElement>(null);
+  const { away: stuck, hidden } = useScrollChrome(
+    () => (slotRef.current?.getBoundingClientRect().top ?? Infinity) <= STICK_TOP + 0.5,
+  );
 
   // The slot keeps the full dock's height, so the page below never jumps when the dock shrinks.
   useEffect(() => {
@@ -69,7 +71,7 @@ export function LessonTabs({
       className={styles.dock}
       style={style}
       data-view={current}
-      data-compact={compact || undefined}
+      data-compact={stuck || undefined}
       data-hidden={(hideOnScroll && hidden) || undefined}
       data-extras={children ? "" : undefined}
     >

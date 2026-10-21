@@ -6,6 +6,10 @@ import * as z from "zod/mini";
 const EnvSchema = z.object({
   VITE_BENCH_DATA_URL: z._default(z.string().check(z.minLength(1)), "./data/"),
   VITE_FIRMWARE_URL: z._default(z.string().check(z.minLength(1)), "./firmware/"),
+  VITE_LABS_SOURCE_URL: z._default(
+    z.string().check(z.minLength(1)),
+    "https://github.com/agharsallah/esp-labs/tree/main/labs/",
+  ),
   VITE_LOG_LEVEL: z._default(z.enum(["debug", "info", "warn", "error", "silent"]), "info"),
   DEV: z.boolean(),
   MODE: z.string(),
@@ -22,6 +26,10 @@ export const env = {
   firmwareUrl: parsed.VITE_FIRMWARE_URL.endsWith("/")
     ? parsed.VITE_FIRMWARE_URL
     : `${parsed.VITE_FIRMWARE_URL}/`,
+  /** Where each lab's PlatformIO project lives online, always ending in "/" (append the lab folder). */
+  labsSourceUrl: parsed.VITE_LABS_SOURCE_URL.endsWith("/")
+    ? parsed.VITE_LABS_SOURCE_URL
+    : `${parsed.VITE_LABS_SOURCE_URL}/`,
   logLevel: parsed.VITE_LOG_LEVEL,
   isDev: parsed.DEV,
   mode: parsed.MODE,

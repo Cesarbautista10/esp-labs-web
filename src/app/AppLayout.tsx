@@ -1,5 +1,6 @@
 import { Link, Outlet, ScrollRestoration, useLocation, useNavigation } from "react-router";
 import { BenchPill } from "@/features/bench/BenchPill";
+import { BackToTop } from "@/ui/BackToTop";
 import { Icon, type IconName } from "@/ui/Icon";
 import styles from "./AppLayout.module.css";
 
@@ -66,6 +67,7 @@ export function AppLayout() {
         printed on your board always win. Your ticks are saved in this browser only.{" "}
         <Link to="/parts">The parts library</Link>
       </p>
+      <BackToTop />
       <ScrollRestoration />
     </div>
   );
