@@ -20,7 +20,6 @@ const PATHS = {
   rotateRight: "M20 4v5h-5M19.4 13a8 8 0 1 1-1.8-7.4L20 9",
   zoomIn: `${o(11, 11, 7)}M21 21l-5-5M8 11h6M11 8v6`,
   zoomOut: `${o(11, 11, 7)}M21 21l-5-5M8 11h6`,
-  branch: `M6 3v12${o(6, 18, 3)}${o(18, 6, 3)}M18 9a9 9 0 0 1-9 9`,
   recenter: `${o(12, 12, 3)}M12 2v4M12 18v4M2 12h4M18 12h4`,
 
   // Sections of a lesson
