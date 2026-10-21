@@ -24,7 +24,7 @@ export function AppLayout() {
       ) : null}
       <header className={styles.top}>
         <div>
-          <p className={styles.eyebrow}>hardware-diary / test-esp</p>
+          <p className={styles.eyebrow}>esp-labs</p>
           <h1>
             ESP32-S3 <span className={styles.part}>N16R8</span> bench guide
           </h1>

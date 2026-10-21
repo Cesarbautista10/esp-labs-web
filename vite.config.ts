@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     babel({ presets: [reactCompilerPreset()] }),
     firmwarePlugin({
       root: fileURLToPath(
-        new URL(loadEnv(mode, process.cwd(), "").FIRMWARE_DIR || "../../esp-labs", import.meta.url),
+        new URL(loadEnv(mode, process.cwd(), "").FIRMWARE_DIR || "../esp-labs", import.meta.url),
       ),
     }),
   ],

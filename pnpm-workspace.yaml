@@ -1,5 +1,4 @@
-# Its own pnpm project: this file stops pnpm from treating the guide as part of the
-# hardware-diary monorepo workspace one level up.
+# A single-package pnpm project; this file holds its pnpm settings.
 packages: []
 # Deterministic installs: `pnpm add` writes exact versions.
 savePrefix: ""

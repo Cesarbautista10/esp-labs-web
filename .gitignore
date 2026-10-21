@@ -5,3 +5,5 @@ dist/
 .env.*
 !.env.example
 .DS_Store
+# Vendored framework docs (React, React Router, TanStack Query) for agents; fetched, not authored.
+docs-llm/

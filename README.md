@@ -1,8 +1,8 @@
-# test-esp-web: the bench guide as a React app
+# esp-labs-web: the bench guide as a React app
 
-The ESP32-S3 bench guide (`test-esp/guide/bench-guide.html`, one 11k-line HTML file) rebuilt as a modular React app: a live pinout, the lessons of every track with their simulators, and the bench log. Same content and look; lessons are data, simulators are lazily loaded widgets, and the bench log is JSON you can update without a rebuild.
+The ESP32-S3 bench guide (once `hardware-diary/test-esp/guide/bench-guide.html`, one 11k-line HTML file) rebuilt as a modular React app: a live pinout, the lessons of every track with their simulators, and the bench log. Same content and look; lessons are data, simulators are lazily loaded widgets, and the bench log is JSON you can update without a rebuild.
 
-It is a standalone pnpm project, like the apps in esp-labs: not part of the monorepo workspace, with its own lint and test setup. Architecture, data flow and how to extend it: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+It is its own repo and pnpm project, next to [esp-labs](https://github.com/agharsallah/esp-labs) (the firmware it explains), with its own lint and test setup. Clone both side by side: `~/…/esp-labs` and `~/…/esp-labs-web`. Architecture, data flow and how to extend it: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 ```mermaid
 flowchart LR
@@ -33,7 +33,7 @@ Copy `.env.example` to `.env` to override:
 | `VITE_BENCH_DATA_URL` | `./data/`        | Where `bench-status.json` and `bench-log.json` are read      |
 | `VITE_FIRMWARE_URL`   | `./firmware/`    | Where the bundled lab code is read                           |
 | `VITE_LOG_LEVEL`      | `info`           | `debug`, `info`, `warn`, `error` or `silent`                 |
-| `FIRMWARE_DIR`        | `../../esp-labs` | Build time only: the firmware checkout the code reader shows |
+| `FIRMWARE_DIR`        | `../esp-labs` | Build time only: the firmware checkout the code reader shows |
 
 ## Where things live
 
