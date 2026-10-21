@@ -1,6 +1,7 @@
 import { classifyPin, HEADER, pinIndex, pinLabel, type PinClass } from "@/domain/board";
-import type { PinKind, PinSide, PinUse } from "@/domain/lesson";
+import type { PinSide, PinUse } from "@/domain/lesson";
 import { useRgbState } from "./board-signals";
+import { roleFill } from "./pin-colour";
 import styles from "./BoardPinout.module.css";
 
 // Geometry of the DevKitC drawing (viewBox 440×640): board body, pin rows, role tags.
@@ -23,9 +24,6 @@ const PAD_FILL: Record<PinClass, string> = {
   power: "var(--power)",
   gnd: "var(--gnd)",
 };
-
-const roleFill = (kind?: PinKind) =>
-  !kind ? "var(--copper)" : kind === "btn" ? "var(--w-btn)" : `var(--${kind})`;
 
 interface BoardPinoutProps {
   pins: readonly PinUse[];

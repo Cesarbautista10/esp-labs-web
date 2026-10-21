@@ -1,80 +1,102 @@
-/* Mobile: a horizontal strip you swipe; wider screens: a wrapping grid of cards. */
+/* One row of pills; on narrow screens it scrolls sideways inside itself. */
 .tracks {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(158px, 46%);
-  gap: 8px;
   overflow-x: auto;
   scroll-snap-type: x proximity;
-  padding-bottom: 4px;
+  scrollbar-width: none;
+  margin-inline: calc(var(--gutter) * -1);
+  padding: 2px var(--gutter) 4px;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--ink) 12px,
+    var(--ink) calc(100% - 24px),
+    transparent
+  );
 }
-@media (min-width: 720px) {
+.tracks::-webkit-scrollbar {
+  display: none;
+}
+/* Wide: no sideways scrolling, the pills wrap if they must. */
+@media (min-width: 880px) {
   .tracks {
-    grid-auto-flow: row;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+    mask-image: none;
   }
+  .tracks ul {
+    flex-wrap: wrap;
+    width: auto;
+  }
+}
+.tracks ul {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: max-content;
 }
 .track {
   --track: var(--copper);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  padding: 12px 14px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 5px 11px 5px 9px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-m);
+  border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
   text-decoration: none;
-  overflow: hidden;
+  white-space: nowrap;
   scroll-snap-align: start;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
-.track::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: var(--track);
+.icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: -6px -2px -6px -4px;
+}
+a.track:hover {
+  border-color: var(--track);
 }
 .track[aria-current="true"] {
   border-color: var(--track);
-  background: var(--copper-soft);
+  background: color-mix(in oklab, var(--track) 13%, var(--surface));
+  box-shadow: inset 0 0 0 1px var(--track);
 }
 .track[aria-disabled="true"] {
-  opacity: 0.5;
+  border-style: dashed;
+  color: var(--muted);
+}
+.track[aria-disabled="true"] .icon {
+  filter: grayscale(1);
+  opacity: 0.6;
 }
 .title {
-  font-family: var(--font-display);
-  font-stretch: 112%;
-  font-weight: 750;
-  font-size: 16px;
+  font: 700 13.5px var(--font-display);
+  font-stretch: 108%;
 }
-.blurb {
-  font-size: 12.5px;
-  color: var(--muted);
-  line-height: 1.35;
+.meter {
+  display: inline-flex;
+  gap: 2px;
 }
-.progress {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--muted);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  margin-top: 4px;
-}
-.progress i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+.meter i {
+  width: 4px;
+  height: 12px;
+  border-radius: 1px;
   background: var(--line);
 }
-.progress i:first-of-type {
-  margin-left: 4px;
-}
-.progress i.on {
+.meter i[data-state="works"],
+.meter i[data-state="done"] {
   background: var(--track);
+}
+.count {
+  font: 600 11px var(--font-mono);
+  color: var(--muted);
 }

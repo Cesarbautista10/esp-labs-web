@@ -22,6 +22,28 @@
   --silk-dim: #8fa39a;
   --pad: #d4a24a;
 
+  /* 3D models: drawn like an illustration, ink outlines and a soft shadow, the same in both themes */
+  --model-ink: #0d1714;
+  --model-shadow: #0b1310;
+  --metal: #c9d1d4;
+  --metal-dark: #7f8a8e;
+  --plastic: #2b3331;
+  --hotspot: #0d8a86;
+
+  /* The parts library (src/ui/parts): physical colours, the same in both themes */
+  --part-light: #ffffff;
+  --part-red: #e5484d;
+  --part-green: #2f9e6a;
+  --part-blue: #3e63dd;
+  --part-sky: #3aa8e8;
+  --part-yellow: #f2bc2e;
+  --part-orange: #f07a2a;
+  --part-purple: #8e4ec6;
+  --part-pink: #e0508f;
+  --part-teal: #13a39a;
+  --part-glass: #1c2733;
+  --part-screen: #2fd5c4;
+
   /* Status */
   --ok: #1f7a4a;
   --warn: #a05a00;
@@ -158,6 +180,7 @@
     --lens: #172540;
     --lens-edge: #6a9be8;
     --term-line: #e39a5c;
+    --hotspot: #4fd1c5;
   }
 }
 :root[data-theme="dark"] {
@@ -209,4 +232,5 @@
   --lens: #172540;
   --lens-edge: #6a9be8;
   --term-line: #e39a5c;
+  --hotspot: #4fd1c5;
 }

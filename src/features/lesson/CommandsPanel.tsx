@@ -1,5 +1,4 @@
 import type { CommandPlace, CommandState, CommandStep } from "@/domain/lesson";
-import { Panel } from "@/ui/Panel";
 import { RichText } from "@/ui/RichText";
 import styles from "./CommandsPanel.module.css";
 
@@ -32,44 +31,43 @@ const PLACE_LABEL: Record<CommandPlace, string> = {
   serial: "serial monitor",
 };
 
+/** Shown under the section title. */
+export const COMMANDS_INTRO =
+  "Type these in the serial monitor (<code>uv run pio device monitor</code>) unless the grey tag says otherwise. The coloured tag says what should be near the board while it runs.";
+
 /** "Commands, in order": what to type, where, and what you should see. */
 export function CommandsPanel({ commands }: { commands: readonly CommandStep[] }) {
   return (
-    <Panel
-      title="Commands, in order"
-      intro="Type these in the serial monitor (<code>uv run pio device monitor</code>) unless the grey tag says otherwise. The coloured tag says what should be near the board while it runs."
-    >
-      <ol className={styles.cmds}>
-        {commands.map((c, i) => (
-          <li key={`${i}-${c.command}`}>
-            <div className={styles.head}>
-              <code>{c.command}</code>
-              <span className={styles.where}>{PLACE_LABEL[c.where ?? "serial"]}</span>
-              <span className={styles.state} data-state={c.card}>
-                {STATE_LABEL[c.card]}
-              </span>
-            </div>
-            <dl>
-              <dt>Does</dt>
-              <dd>
-                <RichText text={c.does} />
-              </dd>
-              <dt>You should see</dt>
-              <dd>
-                <RichText text={c.see} />
-              </dd>
-              {c.fix ? (
-                <>
-                  <dt>If not</dt>
-                  <dd>
-                    <RichText text={c.fix} />
-                  </dd>
-                </>
-              ) : null}
-            </dl>
-          </li>
-        ))}
-      </ol>
-    </Panel>
+    <ol className={styles.cmds}>
+      {commands.map((c, i) => (
+        <li key={`${i}-${c.command}`}>
+          <div className={styles.head}>
+            <code className={styles.prompt}>{c.command}</code>
+            <span className={styles.where}>{PLACE_LABEL[c.where ?? "serial"]}</span>
+            <span className={styles.state} data-state={c.card}>
+              {STATE_LABEL[c.card]}
+            </span>
+          </div>
+          <dl>
+            <dt>Does</dt>
+            <dd>
+              <RichText text={c.does} />
+            </dd>
+            <dt>You should see</dt>
+            <dd>
+              <RichText text={c.see} />
+            </dd>
+            {c.fix ? (
+              <>
+                <dt>If not</dt>
+                <dd>
+                  <RichText text={c.fix} />
+                </dd>
+              </>
+            ) : null}
+          </dl>
+        </li>
+      ))}
+    </ol>
   );
 }

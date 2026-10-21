@@ -10,30 +10,30 @@ import {
 import { trackLessonsQuery } from "@/content/queries";
 import { DEFAULT_LESSON_ID, findTrack, trackOfLesson } from "@/content/tracks";
 import { isActive, resolveLesson } from "@/domain/lesson";
-import { entryLesson } from "@/domain/progress";
+import { lessonSections } from "@/domain/lesson-sections";
+import { entryLesson, stepsTicked } from "@/domain/progress";
 import { BoardSignalsProvider } from "@/features/board/board-signals";
 import { LessonPage } from "@/features/lesson/LessonPage";
 import { LessonTabs } from "@/features/lesson/LessonTabs";
+import { SectionNav } from "@/features/lesson/SectionNav";
 import { LessonStepper } from "@/features/navigation/LessonStepper";
 import { TrackNav } from "@/features/navigation/TrackNav";
-import { progress, useVariants } from "@/features/progress/progress-store";
+import { progress, useTicks, useVariants } from "@/features/progress/progress-store";
+import { useActiveSection } from "@/lib/active-section";
 
 // Loaders make sure a lesson's content is in the query cache before the page renders (no
 // spinner, no waterfall); components then read it from the cache with useSuspenseQuery.
 
-/** "/": back to the lesson you were on. */
-export const homeLoader = () =>
-  redirect(`/lessons/${progress.lastLesson.get() ?? DEFAULT_LESSON_ID}`);
-
-/** "/tracks/:trackId": the first lesson of that theme that isn't working yet. */
+/** "/tracks/:trackId": the first lesson of that theme that isn't working yet (its code with ?view=code). */
 export const trackLoader =
   (queryClient: QueryClient) =>
-  async ({ params }: LoaderFunctionArgs) => {
+  async ({ params, request }: LoaderFunctionArgs) => {
     const track = findTrack(params.trackId ?? "");
     if (!track || track.planned) throw data(`No theme called “${params.trackId}”`, { status: 404 });
     const lessons = await queryClient.query(trackLessonsQuery(track.id));
     const entry = entryLesson(lessons, progress.ticks.get());
-    return redirect(`/lessons/${entry?.id ?? DEFAULT_LESSON_ID}`);
+    const code = new URL(request.url).searchParams.get("view") === "code";
+    return redirect(`/lessons/${entry?.id ?? DEFAULT_LESSON_ID}${code ? "/code" : ""}`);
   };
 
 /** "/lessons/:lessonId" */
@@ -77,13 +77,30 @@ export function useRouteLesson() {
 
 export function LessonRoute() {
   const { lesson, lessons, trackId, chooseVariant } = useRouteLesson();
+  const ticks = useTicks();
+  const track = findTrack(trackId);
+  const sections = lessonSections(lesson);
+  // The pinout is its own section on phones (it comes after the lesson there).
+  const active = useActiveSection([...sections.map((s) => s.id), "sec-board"]);
   return (
     <BoardSignalsProvider>
       <title>{`${lesson.id} · ${lesson.title} · ESP32-S3 Bench Guide`}</title>
       <TrackNav activeTrack={trackId} />
-      <LessonStepper lessons={lessons} currentId={lesson.id} />
-      <LessonTabs lesson={lesson} current="lab" />
-      <LessonPage lesson={lesson} onVariant={chooseVariant} />
+      <LessonStepper lessons={lessons} currentId={lesson.id} color={track?.color ?? "--copper"} />
+      <LessonTabs lesson={lesson} current="lab">
+        <SectionNav
+          sections={sections}
+          active={active}
+          steps={{ ticked: stepsTicked(lesson, ticks), total: lesson.steps.length }}
+        />
+      </LessonTabs>
+      <LessonPage
+        lesson={lesson}
+        lessons={lessons}
+        sections={sections}
+        active={active}
+        onVariant={chooseVariant}
+      />
     </BoardSignalsProvider>
   );
 }

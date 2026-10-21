@@ -1,42 +1,61 @@
-import { useEffect, useRef } from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
 import { Link } from "react-router";
+import { lessonPart } from "@/content/icons";
 import type { LessonEntry } from "@/domain/lesson";
-import { isLessonDone } from "@/domain/progress";
+import { lessonState } from "@/domain/progress";
+import { StateGlyph } from "@/features/progress/LessonState";
+import { STATE_INFO } from "@/features/progress/state-info";
 import { useTicks } from "@/features/progress/progress-store";
+import { PartIcon } from "@/ui/parts/PartIcon";
 import styles from "./LessonStepper.module.css";
 
-/** The lessons of one theme, in order: numbering carries meaning. */
+/**
+ * The lessons of one theme as stations on a copper trace: the trace is lit up to the open lesson,
+ * each pad wears its state, so "where am I, what's left" reads in one glance.
+ */
 export function LessonStepper({
   lessons,
   currentId,
+  color,
+  view = "lab",
 }: {
   lessons: readonly LessonEntry[];
   currentId: string;
+  /** The track's colour token, e.g. "--rfid". */
+  color: `--${string}`;
+  /** Which tab the pads open: reading the code stays reading the code. */
+  view?: "lab" | "code";
 }) {
   const ticks = useTicks();
   const currentRef = useRef<HTMLAnchorElement>(null);
+  const at = lessons.findIndex((l) => l.id === currentId);
+  const style = { "--track": `var(${color})` } as CSSProperties;
 
-  // On a phone the stepper scrolls sideways: keep the open lesson visible.
+  // On a phone the trace scrolls sideways: keep the open lesson in view.
   useEffect(() => {
-    currentRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    currentRef.current?.scrollIntoView({ block: "nearest", inline: "center" });
   }, [currentId]);
 
   return (
-    <nav className={styles.steps} aria-label="Lessons in this theme">
+    <nav className={styles.steps} aria-label="Lessons in this theme" style={style}>
       <ol>
-        {lessons.map((l) => {
-          const done = isLessonDone(l, ticks);
+        {lessons.map((l, i) => {
+          const state = lessonState(l, ticks);
           const body = (
             <>
+              <span className={styles.pad}>
+                <PartIcon name={lessonPart(l.id, l.track)} size={38} />
+                <span className={styles.mark}>
+                  <StateGlyph state={state} />
+                </span>
+              </span>
               <span className={styles.n}>{l.id}</span>
               <span className={styles.t}>{l.title}</span>
-              <span className={styles.st} data-done={done}>
-                {done ? "done" : l.status}
-              </span>
+              <span className="visually-hidden">, {STATE_INFO[state].label}</span>
             </>
           );
           return (
-            <li key={l.id}>
+            <li key={l.id} data-before={i < at || undefined}>
               {l.kind === "planned" ? (
                 <span className={styles.step} aria-disabled="true">
                   {body}
@@ -44,7 +63,7 @@ export function LessonStepper({
               ) : (
                 <Link
                   ref={l.id === currentId ? currentRef : undefined}
-                  to={`/lessons/${l.id}`}
+                  to={`/lessons/${l.id}${view === "code" ? "/code" : ""}`}
                   preventScrollReset
                   className={styles.step}
                   aria-current={l.id === currentId ? "page" : undefined}

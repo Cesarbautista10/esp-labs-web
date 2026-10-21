@@ -42,4 +42,16 @@ describe("App", () => {
     render(<App />);
     expect(await screen.findByText("Nothing on this pin.", undefined, LOAD)).toBeTruthy();
   });
+
+  it("opens on the labs map, with the last lesson one click away", async () => {
+    localStorage.setItem("esp-lesson", '"02"');
+    window.location.hash = "#/";
+    const { App } = await import("./App");
+    render(<App />);
+    expect(await screen.findByRole("heading", { name: "All labs" }, LOAD)).toBeTruthy();
+    expect(screen.getByText("Pick up where you left off")).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Continue the lab/ }).getAttribute("href")).toBe(
+      "#/lessons/02",
+    );
+  });
 });

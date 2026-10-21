@@ -3,7 +3,7 @@ import type * as Three from "three";
 import type { Simulation } from "../../shared/simulation";
 import { type Block, blockKind, type BlockKind, exampleCard } from "../protocol/card-memory";
 import { palette3d, type Palette3d } from "./palette3d";
-import type { Stage3d, ThreeModule } from "./stage3d";
+import type { Stage3d, ThreeModule } from "@/ui/stage3d/stage3d";
 
 export interface MemoryState {
   sector: number;

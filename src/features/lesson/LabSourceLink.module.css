@@ -1,0 +1,21 @@
+/* The same pill as the reader's "Back to the lab". */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 600 13px var(--font-mono);
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+.link:hover {
+  border-color: var(--copper);
+  color: var(--copper);
+}

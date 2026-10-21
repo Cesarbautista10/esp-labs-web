@@ -2,7 +2,9 @@
   --code-font: 14px;
   position: relative;
   overflow: auto;
-  overscroll-behavior: contain;
+  /* Sideways stays inside (no browser back-swipe); at the top or bottom the page takes over. */
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
   background: var(--code-bg);
   border: 1px solid var(--line);
   border-radius: var(--radius-m);

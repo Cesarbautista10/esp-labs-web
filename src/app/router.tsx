@@ -2,7 +2,8 @@ import { createHashRouter, data } from "react-router";
 import { AppLayout } from "./AppLayout";
 import { queryClient } from "./query-client";
 import { RouteError } from "./RouteError";
-import { homeLoader, LessonRoute, lessonLoader, trackLoader } from "./routes/lesson-route";
+import { HomeRoute, homeLoader } from "./routes/home-route";
+import { LessonRoute, lessonLoader, trackLoader } from "./routes/lesson-route";
 
 // A hash router: the guide is a static bundle that must work on any static host (any subfolder) and a
 // claude.ai artifact, none of which can rewrite deep paths to index.html. URLs look like
@@ -18,8 +19,8 @@ export const router = createHashRouter([
       {
         ErrorBoundary: RouteError,
         children: [
-          { index: true, loader: homeLoader },
-          { path: "lessons", loader: homeLoader },
+          { index: true, loader: homeLoader(queryClient), Component: HomeRoute },
+          { path: "lessons", loader: homeLoader(queryClient), Component: HomeRoute },
           { path: "tracks/:trackId", loader: trackLoader(queryClient) },
           { path: "lessons/:lessonId", loader: lessonLoader(queryClient), Component: LessonRoute },
           {
@@ -31,6 +32,10 @@ export const router = createHashRouter([
           {
             path: "settings",
             lazy: async () => ({ Component: (await import("./routes/settings-route")).Component }),
+          },
+          {
+            path: "parts",
+            lazy: async () => ({ Component: (await import("./routes/parts-route")).Component }),
           },
           {
             path: "log",

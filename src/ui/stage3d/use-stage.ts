@@ -4,7 +4,7 @@ import { createLogger, errorData } from "@/lib/logger";
 import { prefersReducedMotion } from "@/lib/media";
 import { Stage3d, type StageOptions, type ThreeModule } from "./stage3d";
 
-const log = createLogger("rfid-3d");
+const log = createLogger("stage-3d");
 
 export type StageStatus = "loading" | "ready" | "failed";
 
@@ -32,6 +32,7 @@ export function useStage3d(
       reduce: prefersReducedMotion(),
     });
     build(T, stage);
+    stage.outline();
     return stage;
   });
 

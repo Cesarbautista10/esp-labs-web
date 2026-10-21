@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
 import { CopyCommand } from "@/ui/CopyCommand";
 import { Panel } from "@/ui/Panel";
+import { BenchOverview } from "./BenchOverview";
 import { benchLogQuery, benchStatusQuery } from "./queries";
 import { LOG_TYPES, type LogEntry, type LogType } from "./schema";
 import styles from "./LogPage.module.css";
@@ -20,78 +21,81 @@ export function LogPage() {
   const shown = filter === "all" ? entries : entries.filter((e) => e.types.includes(filter));
 
   return (
-    <section className={styles.log} aria-labelledby="log-title">
-      <div className={styles.head}>
-        <div>
-          <h2 id="log-title">Bench log</h2>
-          <p>
-            Every command that installed software, talked to the board or flashed it, with its
-            response. Claude announces each command first. Anything that touches the board or
-            installs waits for your go.
-          </p>
+    <>
+      <BenchOverview />
+      <section className={styles.log} aria-labelledby="log-title">
+        <div className={styles.head}>
+          <div>
+            <h2 id="log-title">Bench log</h2>
+            <p>
+              Every command that installed software, talked to the board or flashed it, with its
+              response. Claude announces each command first. Anything that touches the board or
+              installs waits for your go.
+            </p>
+          </div>
+          <div className={styles.filters} role="group" aria-label="Filter by type">
+            {FILTERS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={filter === t}
+                onClick={() =>
+                  setParams(t === "all" ? {} : { type: t }, {
+                    preventScrollReset: true,
+                    replace: true,
+                  })
+                }
+              >
+                {t}{" "}
+                <span>
+                  {t === "all" ? entries.length : entries.filter((e) => e.types.includes(t)).length}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className={styles.filters} role="group" aria-label="Filter by type">
-          {FILTERS.map((t) => (
-            <button
-              key={t}
-              type="button"
-              aria-pressed={filter === t}
-              onClick={() =>
-                setParams(t === "all" ? {} : { type: t }, {
-                  preventScrollReset: true,
-                  replace: true,
-                })
-              }
-            >
-              {t}{" "}
-              <span>
-                {t === "all" ? entries.length : entries.filter((e) => e.types.includes(t)).length}
-              </span>
-            </button>
+
+        <Timeline entries={entries} filter={filter} />
+
+        <ol className={styles.entries}>
+          {shown.map((e) => (
+            <LogItem key={e.n} entry={e} />
           ))}
-        </div>
-      </div>
+        </ol>
 
-      <Timeline entries={entries} filter={filter} />
-
-      <ol className={styles.entries}>
-        {shown.map((e) => (
-          <LogItem key={e.n} entry={e} />
-        ))}
-      </ol>
-
-      <div className={styles.facts}>
-        {status.facts.map((table) => (
-          <Panel key={table.title} title={table.title}>
-            <div className={styles.scroll}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    {table.head.map((h) => (
-                      <th key={h} scope="col">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {table.rows.map((row) => (
-                    <tr key={row.join("|")}>
-                      {row.map((cell, i) => (
-                        <td key={i} className={table.mono.includes(i) ? styles.mono : undefined}>
-                          {cell}
-                        </td>
+        <div className={styles.facts}>
+          {status.facts.map((table) => (
+            <Panel key={table.title} title={table.title}>
+              <div className={styles.scroll}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      {table.head.map((h) => (
+                        <th key={h} scope="col">
+                          {h}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {table.note ? <p className={styles.note}>{table.note}</p> : null}
-          </Panel>
-        ))}
-      </div>
-    </section>
+                  </thead>
+                  <tbody>
+                    {table.rows.map((row) => (
+                      <tr key={row.join("|")}>
+                        {row.map((cell, i) => (
+                          <td key={i} className={table.mono.includes(i) ? styles.mono : undefined}>
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {table.note ? <p className={styles.note}>{table.note}</p> : null}
+            </Panel>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }
 

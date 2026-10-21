@@ -1,5 +1,4 @@
 import type { WiringTable as Wiring } from "@/domain/lesson";
-import { Panel } from "@/ui/Panel";
 import { RichText } from "@/ui/RichText";
 import styles from "./tables.module.css";
 
@@ -13,38 +12,37 @@ function PinChip({ text }: { text: string }) {
   return <RichText text={text} />;
 }
 
+/** From where to where, one row per wire. The section around it carries the title. */
 export function WiringTable({ wiring }: { wiring: Wiring }) {
   const head = wiring.head ?? ["From", "To", "Notes"];
   return (
-    <Panel title={wiring.title ?? "Wiring"}>
-      <div className={styles.scroll}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              {head.map((h) => (
-                <th key={h} scope="col">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {wiring.rows.map(([from, to, note]) => (
-              <tr key={`${from}-${to}`}>
-                <td className={styles.mono}>
-                  <RichText text={from} />
-                </td>
-                <td>
-                  <PinChip text={to} />
-                </td>
-                <td>
-                  <RichText text={note} />
-                </td>
-              </tr>
+    <div className={styles.scroll}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            {head.map((h) => (
+              <th key={h} scope="col">
+                {h}
+              </th>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </Panel>
+          </tr>
+        </thead>
+        <tbody>
+          {wiring.rows.map(([from, to, note]) => (
+            <tr key={`${from}-${to}`}>
+              <td className={styles.mono}>
+                <RichText text={from} />
+              </td>
+              <td>
+                <PinChip text={to} />
+              </td>
+              <td>
+                <RichText text={note} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

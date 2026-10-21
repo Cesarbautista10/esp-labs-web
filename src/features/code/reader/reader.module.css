@@ -219,7 +219,9 @@
 }
 .sideBody {
   overflow: auto;
-  overscroll-behavior: contain;
+  /* Sideways stays inside (no browser back-swipe); at the top or bottom the page takes over. */
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
   padding: 14px;
   min-height: 0;
 }

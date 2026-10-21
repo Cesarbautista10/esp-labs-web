@@ -8,8 +8,8 @@ import { StepCaption } from "../panels/StepCaption";
 import styles from "./f3d.module.css";
 import { buildFieldScene, initialField, sendWupa } from "./field-scene";
 import { FieldChart } from "./FieldChart";
-import { StageBox } from "./StageBox";
-import { useStage3d } from "./use-stage";
+import { StageBox } from "@/ui/stage3d/StageBox";
+import { useStage3d } from "@/ui/stage3d/use-stage";
 
 /** R2 panel: the reader's field in 3D, a card at a chosen height and gain, and one wake-up. */
 export function RfidField3d(_: WidgetProps) {
@@ -17,7 +17,13 @@ export function RfidField3d(_: WidgetProps) {
   const [spinning, setSpinning] = useState(() => !prefersReducedMotion());
   const ids = useId();
   const { boxRef, canvasRef, labelsRef, stageRef, status } = useStage3d(
-    { target: { x: 0.6, y: 1.4, z: 0 }, radius: 13, az: 0.9, el: 0.5 },
+    {
+      target: { x: 0.6, y: 1.4, z: 0 },
+      radius: 13,
+      az: 0.9,
+      el: 0.5,
+      ground: { w: 11, d: 8, y: -0.17 },
+    },
     (T, stage) => buildFieldScene(T, stage, sim),
   );
   const st = snapshot.state;
@@ -32,6 +38,7 @@ export function RfidField3d(_: WidgetProps) {
         boxRef={boxRef}
         canvasRef={canvasRef}
         labelsRef={labelsRef}
+        stageRef={stageRef}
         status={status}
         label="3D view: the RC522 board with its antenna coil, the magnetic field lines around it, and a card held above it. Drag to turn."
         fallback="The chart and controls below still work."

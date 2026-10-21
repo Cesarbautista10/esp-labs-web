@@ -49,75 +49,103 @@
 .top {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px 24px;
+  gap: 10px 16px;
 }
-.top h1 {
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
+  margin-inline-end: auto;
+}
+.mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--pcb);
+  color: var(--pad);
+  box-shadow: inset 0 0 0 2px var(--pcb-edge);
+}
+.eyebrow {
+  display: block;
+  font: 600 10.5px var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.name {
+  display: block;
   font-family: var(--font-display);
   font-stretch: 125%;
   font-weight: 800;
-  font-size: clamp(26px, 4.4vw, 40px);
-  line-height: 1.05;
-  margin: 4px 0 0;
+  font-size: 19px;
+  line-height: 1.1;
   letter-spacing: -0.01em;
-}
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin: 0;
 }
 .part {
   color: var(--copper);
 }
-.side {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: flex-start;
-}
-@media (min-width: 720px) {
-  .side {
-    align-items: flex-end;
-  }
-}
-.spec {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin: 0;
-}
-.spec b {
-  color: var(--ink);
-  font-weight: 600;
-}
-.tools {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 14px;
-}
 .sections {
   display: flex;
-  gap: 4px;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
 }
 .sections a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
   font: 600 13px var(--font-mono);
-  color: var(--ink);
+  color: var(--muted);
   text-decoration: none;
-  padding: 6px 10px;
-  border-radius: var(--radius-s);
-  border: 1px solid transparent;
+  border-radius: 999px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
-.sections a[aria-current="page"] {
-  border-color: var(--copper);
-  background: var(--copper-soft);
+.sections a:hover {
+  color: var(--ink);
+}
+.sections a[aria-current] {
+  background: var(--ink);
+  color: var(--surface);
+}
+/* Phones: the bar is brand + icons on one line, the bench pill on its own line under it. */
+@media (max-width: 559px) {
+  .top > :nth-child(2) {
+    order: 3;
+    flex: 1 1 100%;
+  }
+  /* Icons only, but the label stays for screen readers. */
+  .navLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .sections a {
+    padding: 0 10px;
+  }
+  .eyebrow {
+    display: none;
+  }
+  .name {
+    font-size: 16px;
+  }
+  .part {
+    display: block;
+  }
 }
 .main {
   display: flex;

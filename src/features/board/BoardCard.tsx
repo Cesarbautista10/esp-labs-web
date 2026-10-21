@@ -15,7 +15,7 @@ const LEGEND = [
 /** The left column: live pinout, legend and the between-lessons routine. */
 export function BoardCard({ lesson }: { lesson: ResolvedLesson | null }) {
   return (
-    <section className={styles.card} aria-label="Board pinout">
+    <section id="sec-board" tabIndex={-1} className={styles.card} aria-label="Board pinout">
       <BoardPinout
         pins={lesson?.pins ?? []}
         usb={Boolean(lesson?.usb || lesson?.preview)}

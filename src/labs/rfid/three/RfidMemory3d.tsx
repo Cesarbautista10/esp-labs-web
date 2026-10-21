@@ -15,8 +15,8 @@ import {
   type MemoryState,
   type SectorPicker,
 } from "./memory-scene";
-import { StageBox } from "./StageBox";
-import { useStage3d } from "./use-stage";
+import { StageBox } from "@/ui/stage3d/StageBox";
+import { useStage3d } from "@/ui/stage3d/use-stage";
 
 const OPEN_LEGEND = [
   ["--danger", "key A (reads as 00)"],
@@ -60,7 +60,13 @@ export function RfidMemory3d(_: WidgetProps) {
   const [spinning, setSpinning] = useState(() => !prefersReducedMotion());
   const pick = useRef<SectorPicker | null>(null);
   const { boxRef, canvasRef, labelsRef, stageRef, status } = useStage3d(
-    { target: { x: 0, y: 1.0, z: 0 }, radius: 17, az: 0.75, el: 0.55 },
+    {
+      target: { x: 0, y: 1.0, z: 0 },
+      radius: 17,
+      az: 0.75,
+      el: 0.55,
+      ground: { w: 18, d: 9, y: -0.05 },
+    },
     (T, stage) => {
       pick.current = buildMemoryScene(T, stage, sim);
     },
@@ -102,6 +108,7 @@ export function RfidMemory3d(_: WidgetProps) {
         boxRef={boxRef}
         canvasRef={canvasRef}
         labelsRef={labelsRef}
+        stageRef={stageRef}
         status={status}
         label="3D view: the card's 16 sectors as cabinets of 4 blocks each, the top block of each being the sector trailer with a lock. Click a sector to open it."
         fallback="The byte table below still works."

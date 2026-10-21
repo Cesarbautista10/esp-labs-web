@@ -1,15 +1,18 @@
 import { type ResolvedLesson, stepKey } from "@/domain/lesson";
+import { stepsTicked } from "@/domain/progress";
 import { progress, useTicks } from "@/features/progress/progress-store";
-import { Panel } from "@/ui/Panel";
 import { RichText } from "@/ui/RichText";
 import styles from "./StepsChecklist.module.css";
 
 /** The steps to do with your hands, ticked off as you go (saved in this browser). */
 export function StepsChecklist({ lesson }: { lesson: ResolvedLesson }) {
   const ticks = useTicks();
+  const ticked = stepsTicked(lesson, ticks);
+  const total = lesson.steps.length;
+  const complete = total > 0 && ticked === total;
   return (
-    <Panel title="Steps">
-      <ol className={styles.check}>
+    <>
+      <ol className={styles.check} data-complete={complete || undefined}>
         {lesson.steps.map((step, i) => {
           const key = stepKey(lesson, i);
           return (
@@ -28,11 +31,16 @@ export function StepsChecklist({ lesson }: { lesson: ResolvedLesson }) {
           );
         })}
       </ol>
+      <p className={styles.status} role="status" data-complete={complete || undefined}>
+        {complete
+          ? "Every step ticked: this lesson is done. It now counts as working on your board."
+          : `${ticked} of ${total} ticked. Ticks are saved in this browser.`}
+      </p>
       {lesson.note ? (
         <p className={styles.note}>
           <RichText text={lesson.note} />
         </p>
       ) : null}
-    </Panel>
+    </>
   );
 }

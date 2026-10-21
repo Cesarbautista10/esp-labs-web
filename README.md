@@ -1,6 +1,6 @@
 # esp-labs-web: the bench guide as a React app
 
-The ESP32-S3 bench guide (once `hardware-diary/test-esp/guide/bench-guide.html`, one 11k-line HTML file) rebuilt as a modular React app: a live pinout, the lessons of every track with their simulators, and the bench log. Same content and look; lessons are data, simulators are lazily loaded widgets, and the bench log is JSON you can update without a rebuild.
+The ESP32-S3 bench guide (once `hardware-diary/test-esp/guide/bench-guide.html`, one 11k-line HTML file) rebuilt as a modular React app: a labs map, a live pinout, the lessons of every track with their simulators, and the bench log. Same content, a PCB-flavoured look; lessons are data, simulators are lazily loaded widgets, and the bench log is JSON you can update without a rebuild.
 
 It is its own repo and pnpm project, next to [esp-labs](https://github.com/agharsallah/esp-labs) (the firmware it explains), with its own lint and test setup. Clone both side by side: `~/…/esp-labs` and `~/…/esp-labs-web`. Architecture, data flow and how to extend it: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
@@ -46,8 +46,11 @@ Copy `.env.example` to `.env` to override:
 | `tools/firmware/`        | Reads `esp-labs` (or an old `test-esp`) and ships each env's code as JSON (Vite plugin)                              |
 | `src/labs/<track>/`      | That track's simulators and explainers, registered in `widgets.ts`                                                   |
 | `src/labs/shared/`       | `Simulation` and the lab-screen engine (screen + buttons + serial)                                                   |
-| `src/features/`          | App screens: lesson page, navigation, board pinout, bench log, progress                                              |
+| `src/features/home/`     | The labs map: continue card, every lab at a glance, one card per theme                                               |
+| `src/features/`          | App screens: lesson sheet and dock, navigation, board pinout, bench log, progress                                    |
 | `src/ui/`                | Design-system pieces: Panel, Button, Terminal, SequenceDiagram, RichText…                                            |
+| `src/ui/parts/`          | The parts library: isometric illustrations of every component (`<PartIcon name="led" />`), gallery at `#/parts`      |
+| `src/ui/stage3d/`        | The shared 3D stage (three.js): orbit camera, toolbar, leaders, ink outlines, toon materials                         |
 | `src/lib/`               | Logger, storage, theme, palette, animation loop, http, clipboard                                                     |
 | `src/styles/tokens.css`  | Every colour, font and radius; light and dark themes                                                                 |
 | `public/data/`           | Bench status and log (validated with zod when fetched)                                                               |

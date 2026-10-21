@@ -3,7 +3,7 @@ import type * as Three from "three";
 import type { Simulation } from "../../shared/simulation";
 import { FIELD, isHeard, isPowered, WUPA_SYMBOLS } from "../protocol/field";
 import { palette3d } from "./palette3d";
-import { roundedRect, type Stage3d, type ThreeModule } from "./stage3d";
+import { roundedRect, type Stage3d, type ThreeModule } from "@/ui/stage3d/stage3d";
 
 export interface Talk {
   readonly t0: number;

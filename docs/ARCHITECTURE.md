@@ -23,7 +23,8 @@ flowchart TB
     qc["query-client.ts"]
   end
   subgraph features["features/ (app screens)"]
-    lesson["lesson/<br/>LessonPage, panels, steps"]
+    home["home/<br/>labs map, continue card"]
+    lesson["lesson/<br/>LessonPage sheet, sections, dock"]
     nav["navigation/<br/>TrackNav, LessonStepper"]
     board["board/<br/>BoardPinout + board signals"]
     bench["bench/<br/>status + log (Query)"]
@@ -71,6 +72,20 @@ sequenceDiagram
   P->>W: one slot per panel + the preview
   W->>W: lazy(import widget) inside Suspense + ErrorBoundary
 ```
+
+## Screens and visual language
+
+The guide is about the labs, so every screen puts them first and everything else one tap away.
+
+- **Top bar** (`app/AppLayout.tsx`): brand, a `BenchPill` (what is flashed on the board now, linking to the Bench page), and three sections: **Labs**, **Bench**, **Settings**. Board specs and the full bench status live on the Bench page; the colour theme and motion live in Settings.
+- **Labs** (`#/`, `features/home/`), on drafting paper with PCB traces in the margins: the title, a progress readout (one tick per lab), the "continue" card (the lesson you last opened, else the first one), **Meet the board**, then one row per theme with a progress ring and one icon tile per lesson.
+- **Meet the board** (`features/home/board3d/`): the DevKitC-1 in 3D (`esp32-scene.ts`: module and can, meander antenna, USB-C ports, BOOT/RST, the RGB LED walking the colour wheel, 44 header pins, silkscreen drawn from `domain/board`'s pin list). Six callouts (`parts.ts`) are tied to the model by leader lines; each lists the labs that use its part, found from the content (`partLessons`: pins, `usb`, `boot`, firmware, theme). Hover or pick a callout to light its part.
+- **A lesson** (`#/lessons/:id`): the theme pills (`TrackNav`, each with a one-segment-per-lesson meter), the lesson trace (`LessonStepper`, pads on a copper trace lit up to the open lesson), the sticky **dock** (`LessonTabs`: Do the lab / Read the code, plus the lab page's `SectionNav`, plus a scroll-driven reading line), then the lesson as **one sheet** and a `NextUp` card (next lesson, or the next theme).
+- **The sheet** (`LessonPage`): `domain/lesson-sections.ts` lists the parts a lesson actually has (goal, each explainer, wiring, commands, steps, preview); the page and the section nav both render from that list. Each `LessonSection` hangs a numbered via on a trace down the sheet's left edge; `useActiveSection` (`lib/active-section.ts`, an IntersectionObserver) lights the via and the dock chip of the part you are reading. Simulators sit on an inset "bench" (`.stage`).
+- **Lesson state** (`domain/progress.ts` `lessonState`): `done` (you ticked every step), `works` (confirmed on the board), `built` (compiles, not flashed), `planned`. `StateGlyph` draws each as a different shape (tick, solid pad, ring, dashed ring), so state never depends on colour alone; `StateLegend` is the key.
+- **Parts library** (`ui/parts/`, gallery at `#/parts`): every component of the bench drawn once as a small isometric illustration, `<PartIcon name="led" size={64} />` (42 parts: the DevKitC, module, USB-C, LED, RGB LED, button, header, TFT, RC522, cards, fobs, mic, speaker, cassette…). `iso.ts` is a pure isometric engine (3D points to SVG paths: boxes, cylinders, discs, rings on any face, arcs; tested); `shapes.tsx` draws with it in one light (lit top, base left face, shaded right face, ink outline, contact shadow) and colours from tokens only (`--part-*`, mixed for tones; a test checks no raw colour is painted); `drawings/*.tsx` hold the parts by theme and `registry.ts` names them. A new part = one drawing + one registry line. `content/icons.ts` gives every theme and lesson its part (the content test checks none is missing). Interface controls keep the small line icons of `ui/Icon.tsx`.
+- **3D** (`ui/stage3d/`): `Stage3d` (eased orbit camera, toolbar turn/zoom/recentre, ctrl+wheel or pinch zoom that never steals page scroll, `fitWidth` to frame a scene on any canvas shape, optional idle sway, labels and leader lines written into nodes it creates itself), `useStage3d` (loads three.js in its own chunk, builds once, adds ink outlines, runs only on screen), `StageBox` and `toon()` materials. The RFID field and memory panels and the home board all use it.
+- **Colour**: a theme's token (`Track.color`) is set once as `--track` on a page or card; children tint with `color-mix()` over tokens, never raw colours. Icons are one inline set (`ui/Icon.tsx`, `currentColor`).
 
 ## Content model
 
@@ -130,7 +145,7 @@ classDiagram
 
 A track writes one `LabKit` (its status bar, its shared hardware model, its common buttons and commands, `subscribe` for outside state its buttons show) and one `ScreenSpec` per lab; `bindLab(kit, spec)` pairs them (a record of labs with different state types, no casts) and `LabScreen` / `ScreenGallery` do the rest. RFID R1–R6, the 03b showcase and the Wi-Fi previews have their own button gestures and status bars, so they compose `ScreenFrame`, `Terminal`, `useFrameLoop` and `useSimulation` directly instead.
 
-Other shared pieces: `PushButton` / `HoldButton` / `BoardButton` (the board's push button: click, double-click, hold, by pointer or keyboard), `ScrollBox` (wide drawings and tables scroll inside themselves on phones), `Terminal` + `TerminalLog` (a serial monitor any code can print to), `SequenceDiagram` (steppable message flows), `useBoardRgb()` (light the RGB LED on the board drawing), `scopePalette()` / `definePalette()` (canvas colours from CSS tokens, re-read after a theme change), `useInterval`, `useReducedMotion`.
+3D panels build on `ui/stage3d` (see Screens above): a scene file builds meshes on a `Stage3d` and animates them in `onFrame`, from simulation state like any other simulator. Other shared pieces: `PushButton` / `HoldButton` / `BoardButton` (the board's push button: click, double-click, hold, by pointer or keyboard), `ScrollBox` (wide drawings and tables scroll inside themselves on phones), `Terminal` + `TerminalLog` (a serial monitor any code can print to), `SequenceDiagram` (steppable message flows), `useBoardRgb()` (light the RGB LED on the board drawing), `scopePalette()` / `definePalette()` (canvas colours from CSS tokens, re-read after a theme change), `useInterval`, `useReducedMotion`.
 
 ## Reading the code
 
@@ -173,6 +188,7 @@ flowchart TB
 | Lesson content                      | Query cache, `staleTime: "static"`                                                  | Bundled, never changes while the page is open            |
 | Bench status + log                  | Query cache, fresh for 60 s, refetched on focus                                     | Changes when Claude records a command; no rebuild needed |
 | Ticks, last lesson, variants, theme | `createPersistentStore` (localStorage + `useSyncExternalStore`, synced across tabs) | Yours, in this browser only                              |
+| Section you are reading             | `useActiveSection` (IntersectionObserver), lesson route                              | Lights the sheet's via and the dock's chip               |
 | Code settings, motion, code read, words met | Same stores; settings are re-validated (`normalizeSettings`) on every read | Yours; a stale value falls back to defaults |
 | Lab code + phrasebook | Query cache, `staleTime: "static"`; analysis cached per document | Bundled at build time |
 | Variant, log filter                 | URL search params                                                                   | Shareable                                                |

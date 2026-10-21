@@ -1,11 +1,18 @@
-import { NavLink, Outlet, ScrollRestoration, useNavigation } from "react-router";
-import { BenchOverview } from "@/features/bench/BenchOverview";
-import { ThemeSwitch } from "@/features/theme/ThemeSwitch";
+import { Link, Outlet, ScrollRestoration, useLocation, useNavigation } from "react-router";
+import { BenchPill } from "@/features/bench/BenchPill";
+import { Icon, type IconName } from "@/ui/Icon";
 import styles from "./AppLayout.module.css";
 
-/** Header, bench status and the page. Shared by every route. */
+const SECTIONS: readonly { to: string; label: string; icon: IconName; match: RegExp }[] = [
+  { to: "/", label: "Labs", icon: "board", match: /^\/($|lessons|tracks)/ },
+  { to: "/log", label: "Bench", icon: "log", match: /^\/log/ },
+  { to: "/settings", label: "Settings", icon: "sliders", match: /^\/settings/ },
+];
+
+/** A slim top bar, the page, and a footnote. Shared by every route. */
 export function AppLayout() {
   const navigation = useNavigation();
+  const { pathname } = useLocation();
   return (
     <div className={styles.wrap}>
       {/* The hash router owns location.hash, so the skip link moves focus itself. */}
@@ -23,47 +30,41 @@ export function AppLayout() {
         <div className={styles.progress} role="progressbar" aria-label="Loading" />
       ) : null}
       <header className={styles.top}>
-        <div>
-          <p className={styles.eyebrow}>esp-labs</p>
-          <h1>
-            ESP32-S3 <span className={styles.part}>N16R8</span> bench guide
-          </h1>
-        </div>
-        <div className={styles.side}>
-          <p className={styles.spec} aria-label="Board specifications">
-            <span>
-              <b>2×</b> Xtensa LX7 @ 240 MHz
+        <Link to="/" className={styles.brand}>
+          <span className={styles.mark} aria-hidden="true">
+            <Icon name="chip" size={20} />
+          </span>
+          <span>
+            <span className={styles.eyebrow}>esp-labs</span>
+            <span className={styles.name}>
+              ESP32-S3 <span className={styles.part}>bench guide</span>
             </span>
-            <span>
-              <b>16 MB</b> flash
-            </span>
-            <span>
-              <b>8 MB</b> octal PSRAM
-            </span>
-            <span>
-              <b>Wi-Fi 4</b> + BLE 5
-            </span>
-            <span>
-              <b>3.3 V</b> logic
-            </span>
-          </p>
-          <div className={styles.tools}>
-            <nav aria-label="Sections" className={styles.sections}>
-              <NavLink to="/lessons">Lessons</NavLink>
-              <NavLink to="/log">Bench log</NavLink>
-              <NavLink to="/settings">Settings</NavLink>
-            </nav>
-            <ThemeSwitch />
-          </div>
-        </div>
+          </span>
+        </Link>
+        <BenchPill />
+        <nav aria-label="Sections" className={styles.sections}>
+          {SECTIONS.map((s) => {
+            const here = s.match.test(pathname);
+            return (
+              <Link
+                key={s.to}
+                to={s.to}
+                aria-current={here ? (pathname === s.to ? "page" : "true") : undefined}
+              >
+                <Icon name={s.icon} size={17} />
+                <span className={styles.navLabel}>{s.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
       </header>
-      <BenchOverview />
       <main id="main" tabIndex={-1} className={styles.main}>
         <Outlet />
       </main>
       <p className={styles.foot}>
         Pin layout follows the Espressif DevKitC-1 v1.0. Clones are nearly identical, but the labels
-        printed on your board always win. Your ticks are saved in this browser only.
+        printed on your board always win. Your ticks are saved in this browser only.{" "}
+        <Link to="/parts">The parts library</Link>
       </p>
       <ScrollRestoration />
     </div>

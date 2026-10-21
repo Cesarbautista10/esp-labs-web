@@ -1,13 +1,18 @@
 .card {
+  scroll-margin-top: var(--dock-clearance, 132px);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-l);
   padding: 14px;
 }
+.card:focus {
+  outline: none;
+}
+/* Wide: it stays beside the lesson, under the sticky dock. */
 @media (min-width: 880px) {
   .card {
     position: sticky;
-    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    top: calc(env(safe-area-inset-top, 0px) + 76px);
   }
 }
 .legend {
