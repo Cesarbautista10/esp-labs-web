@@ -2,7 +2,7 @@
 
 The ESP32-S3 bench guide (`test-esp/guide/bench-guide.html`, one 11k-line HTML file) rebuilt as a modular React app: a live pinout, the lessons of every track with their simulators, and the bench log. Same content and look; lessons are data, simulators are lazily loaded widgets, and the bench log is JSON you can update without a rebuild.
 
-It is a standalone pnpm project, like `test-esp/dashboard`: not part of the monorepo workspace, with its own lint and test setup. Architecture, data flow and how to extend it: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+It is a standalone pnpm project, like the apps in esp-labs: not part of the monorepo workspace, with its own lint and test setup. Architecture, data flow and how to extend it: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 ```mermaid
 flowchart LR
