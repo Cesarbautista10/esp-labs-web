@@ -23,6 +23,6 @@ export const firmwareEnvQuery = (envName: string) =>
     gcTime: 10 * 60_000,
   });
 
-/** "uv run pio run -e 02-led -t upload" → "02-led": a lesson's command names its firmware. */
+/** "uv run pio run -d labs/02-led -e 02-led -t upload" → "02-led": a lesson's command names its firmware. */
 export const envOfCommand = (cmd: string): string | undefined =>
   /(?:^|\s)-e\s+([\w.-]+)/.exec(cmd)?.[1];

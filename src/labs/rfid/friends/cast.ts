@@ -1,4 +1,4 @@
-// R8's cast, drawn like the board does (src/rfid-lab-r8/characters.h): circles, ovals and
+// R8's cast, drawn like the board does (labs/rfid-lab-r8/src/characters.h): circles, ovals and
 // triangles, no pictures in flash. The colours are the characters' own data, as in characters.h.
 
 export interface Friend {

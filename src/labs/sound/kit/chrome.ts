@@ -1,4 +1,4 @@
-// The board's header and footer (lib/sound-kit/src/sound_views.h): lab id, view name, view dots,
+// The board's header and footer (kit/lib/sound-kit/src/sound_views.h): lab id, view name, view dots,
 // the ear (10 level segments, the DO lamp or "D", speaker waves, the REC dot), the hint and the
 // latest note.
 import type { ResolvedLesson } from "@/domain/lesson";

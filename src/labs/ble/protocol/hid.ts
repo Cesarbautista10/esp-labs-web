@@ -1,5 +1,5 @@
 // HID over GATT for B8: three Report Maps, a report descriptor parser (the same rules as
-// lib/ble-kit/src/hid_report.h, plus a line of text per item), bit packing and key → character.
+// kit/lib/ble-kit/src/hid_report.h, plus a line of text per item), bit packing and key → character.
 
 export const B8_MAPS = {
   combo: {

@@ -10,7 +10,7 @@ export const soundLessons = [
     title: "Hear",
     status: "built, not flashed",
     heading: "Hear what the microphones really send",
-    goal: '<span class="snd-parts"><span class="need">KY-037 or INMP441</span></span>Two microphones, two ways in. The <b>INMP441</b> is digital: its own amplifier and 24-bit converter, numbers over I2S. The KY-037 has two outputs. <b>AO</b> is the microphone\'s own voltage: a tiny wave riding on a steady <i>bias</i>. <b>DO</b> is a yes/no from the LM393 comparator, set by the blue trim pot. S1 samples AO 16 000 times a second with the ADC\'s DMA (no <code>analogRead()</code> in a loop), draws it as an oscilloscope, shows where it sits in the ADC\'s range, and lets you tune the pot. The <b>mics</b> view puts both side by side. Every other sound lab stands on this: the sampler, the 4-second ring and the level meter live in <code>lib/sound-kit</code>.',
+    goal: '<span class="snd-parts"><span class="need">KY-037 or INMP441</span></span>Two microphones, two ways in. The <b>INMP441</b> is digital: its own amplifier and 24-bit converter, numbers over I2S. The KY-037 has two outputs. <b>AO</b> is the microphone\'s own voltage: a tiny wave riding on a steady <i>bias</i>. <b>DO</b> is a yes/no from the LM393 comparator, set by the blue trim pot. S1 samples AO 16 000 times a second with the ADC\'s DMA (no <code>analogRead()</code> in a loop), draws it as an oscilloscope, shows where it sits in the ADC\'s range, and lets you tune the pot. The <b>mics</b> view puts both side by side. Every other sound lab stands on this: the sampler, the 4-second ring and the level meter live in <code>kit/lib/sound-kit</code>.',
     goalLine:
       "See your voice and a clap as a wave, compare the two microphones, read the bias (or the bits), and tune the comparator so it fires only with loud sounds.",
     goalCheck: [
@@ -165,7 +165,7 @@ export const soundLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e sound-lab-s1 -t upload",
+    cmd: "uv run pio run -d labs/sound-lab-s1 -e sound-lab-s1 -t upload",
     wiring: {
       title:
         "Wiring: the microphones and the speaker (wire what the lab needs; the screen stays as in lesson 03)",
@@ -234,7 +234,7 @@ export const soundLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e sound-lab-s1 -t upload",
+        command: "uv run pio run -d labs/sound-lab-s1 -e sound-lab-s1 -t upload",
         where: "mac",
         card: "squiet",
         does: "Builds lab S1 and writes it to the board, then open the monitor with <code>uv run pio device monitor</code>.",
@@ -541,7 +541,7 @@ export const soundLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e sound-lab-s2 -t upload",
+    cmd: "uv run pio run -d labs/sound-lab-s2 -e sound-lab-s2 -t upload",
     wiring: {
       title:
         "Wiring: the microphones and the speaker (wire what the lab needs; the screen stays as in lesson 03)",
@@ -610,7 +610,7 @@ export const soundLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e sound-lab-s2 -t upload",
+        command: "uv run pio run -d labs/sound-lab-s2 -e sound-lab-s2 -t upload",
         where: "mac",
         card: "squiet",
         does: "Builds lab S2 and writes it to the board, then open the monitor with <code>uv run pio device monitor</code>.",
@@ -870,7 +870,7 @@ export const soundLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e sound-lab-s3 -t upload",
+    cmd: "uv run pio run -d labs/sound-lab-s3 -e sound-lab-s3 -t upload",
     wiring: {
       title:
         "Wiring: the microphones and the speaker (wire what the lab needs; the screen stays as in lesson 03)",
@@ -939,7 +939,7 @@ export const soundLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e sound-lab-s3 -t upload",
+        command: "uv run pio run -d labs/sound-lab-s3 -e sound-lab-s3 -t upload",
         where: "mac",
         card: "squiet",
         does: "Builds lab S3 and writes it to the board, then open the monitor with <code>uv run pio device monitor</code>.",
@@ -1002,7 +1002,7 @@ export const soundLessons = [
         title: "Is it a clap? The detector, 4 ms at a time",
         widget: "soundClapMachine",
         intro:
-          "The same rules as lib/sound-kit/src/onsets.h, run on a sound you pick. Step one frame at a time or play it, move the rise and release lines. Armed → loud (ONSET) → quiet (CLAP if it was short, LONG if not) → armed again after 40 ms of quiet.",
+          "The same rules as kit/lib/sound-kit/src/onsets.h, run on a sound you pick. Step one frame at a time or play it, move the rise and release lines. Armed → loud (ONSET) → quiet (CLAP if it was short, LONG if not) → armed again after 40 ms of quiet.",
       },
       {
         title: "What the screen shows",
@@ -1185,7 +1185,7 @@ export const soundLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e sound-lab-s4 -t upload",
+    cmd: "uv run pio run -d labs/sound-lab-s4 -e sound-lab-s4 -t upload",
     wiring: {
       title:
         "Wiring: the microphones and the speaker (wire what the lab needs; the screen stays as in lesson 03)",
@@ -1254,7 +1254,7 @@ export const soundLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e sound-lab-s4 -t upload",
+        command: "uv run pio run -d labs/sound-lab-s4 -e sound-lab-s4 -t upload",
         where: "mac",
         card: "squiet",
         does: "Builds lab S4 and writes it to the board, then open the monitor with <code>uv run pio device monitor</code>.",
@@ -1507,7 +1507,7 @@ export const soundLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e sound-lab-s5 -t upload",
+    cmd: "uv run pio run -d labs/sound-lab-s5 -e sound-lab-s5 -t upload",
     wiring: {
       title:
         "Wiring: the microphones and the speaker (wire what the lab needs; the screen stays as in lesson 03)",
@@ -1576,7 +1576,7 @@ export const soundLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e sound-lab-s5 -t upload",
+        command: "uv run pio run -d labs/sound-lab-s5 -e sound-lab-s5 -t upload",
         where: "mac",
         card: "squiet",
         does: "Builds lab S5 and writes it to the board, then open the monitor with <code>uv run pio device monitor</code>.",
@@ -1834,7 +1834,7 @@ export const soundLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e sound-lab-s6 -t upload",
+    cmd: "uv run pio run -d labs/sound-lab-s6 -e sound-lab-s6 -t upload",
     wiring: {
       title:
         "Wiring: the microphones and the speaker (wire what the lab needs; the screen stays as in lesson 03)",
@@ -1903,7 +1903,7 @@ export const soundLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e sound-lab-s6 -t upload",
+        command: "uv run pio run -d labs/sound-lab-s6 -e sound-lab-s6 -t upload",
         where: "mac",
         card: "squiet",
         does: "Builds lab S6 and writes it to the board, then open the monitor with <code>uv run pio device monitor</code>.",
@@ -2156,7 +2156,7 @@ export const soundLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e sound-lab-s7 -t upload",
+    cmd: "uv run pio run -d labs/sound-lab-s7 -e sound-lab-s7 -t upload",
     wiring: {
       title:
         "Wiring: the microphones and the speaker (wire what the lab needs; the screen stays as in lesson 03)",
@@ -2225,7 +2225,7 @@ export const soundLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e sound-lab-s7 -t upload",
+        command: "uv run pio run -d labs/sound-lab-s7 -e sound-lab-s7 -t upload",
         where: "mac",
         card: "squiet",
         does: "Builds lab S7 and writes it to the board, then open the monitor with <code>uv run pio device monitor</code>.",
@@ -2487,7 +2487,7 @@ export const soundLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e sound-lab-s8 -t upload",
+    cmd: "uv run pio run -d labs/sound-lab-s8 -e sound-lab-s8 -t upload",
     wiring: {
       title:
         "Wiring: the microphones and the speaker (wire what the lab needs; the screen stays as in lesson 03)",
@@ -2556,7 +2556,7 @@ export const soundLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e sound-lab-s8 -t upload",
+        command: "uv run pio run -d labs/sound-lab-s8 -e sound-lab-s8 -t upload",
         where: "mac",
         card: "squiet",
         does: "Builds lab S8 and writes it to the board, then open the monitor with <code>uv run pio device monitor</code>.",

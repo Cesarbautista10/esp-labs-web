@@ -91,7 +91,7 @@ export function tapCard(
 /** The LED colour while a friend shows (its body colour), or green for a card with nobody yet. */
 export const showColor = (c: FriendCard) => friendOf(c.character)?.body ?? "var(--ok)";
 
-/** The friends screen (src/rfid-lab-r8/friends_views.h). */
+/** The friends screen (labs/rfid-lab-r8/src/friends_views.h). */
 export function drawFriendsScreen(
   g: CanvasRenderingContext2D,
   C: ScopePalette,

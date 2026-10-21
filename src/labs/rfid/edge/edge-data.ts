@@ -1,6 +1,6 @@
 // R6's edge lab experiments. Example numbers are illustrative (a typical RC522 on 15 cm jumpers),
 // not measured on your board. Each parser reads the exact table the firmware prints
-// (lib/rfid-lab-kit/src/edge.h).
+// (kit/lib/rfid-lab-kit/src/edge.h).
 
 export type Row = readonly [label: string, value: number];
 

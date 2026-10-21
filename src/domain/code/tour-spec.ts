@@ -33,7 +33,7 @@ export interface TourStopSpec {
 }
 
 export interface FileTourSpec {
-  /** Path as in the firmware manifest, e.g. "src/02-led/main.cpp". */
+  /** Path as in the firmware manifest, e.g. "labs/02-led/src/main.cpp". */
   readonly path: string;
   readonly stops: readonly TourStopSpec[];
 }

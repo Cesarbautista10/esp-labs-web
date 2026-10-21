@@ -1,4 +1,4 @@
-// BLE-MIDI packets (the same rules as lib/ble-kit/src/midi_ble.h encode()) and why notes wait
+// BLE-MIDI packets (the same rules as kit/lib/ble-kit/src/midi_ble.h encode()) and why notes wait
 // for connection events.
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];

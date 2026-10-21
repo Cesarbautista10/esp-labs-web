@@ -1,4 +1,4 @@
-// lib/sound-kit/src/spectrum.h in TypeScript: Hann window, radix-2 FFT, magnitudes, peak +
+// kit/lib/sound-kit/src/spectrum.h in TypeScript: Hann window, radix-2 FFT, magnitudes, peak +
 // parabola, log-spaced bands.
 
 export interface FftPeak {

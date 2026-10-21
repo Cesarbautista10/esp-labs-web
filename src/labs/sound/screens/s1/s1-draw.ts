@@ -1,4 +1,4 @@
-// S1's views, drawn like lib/sound-kit's screen code on the 320×170 canvas.
+// S1's views, drawn like kit/lib/sound-kit's screen code on the 320×170 canvas.
 import type { ScopePalette } from "@/lib/canvas";
 import { B12, drawStat, drawWave, levelColour, maxAbs, S8, textWriter } from "../../kit/draw";
 import { attenName } from "../../model/level";

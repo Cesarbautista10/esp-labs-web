@@ -1,4 +1,4 @@
-// The rfid-lab serial commands, one handler each (lib/rfid-lab-kit/src/lab_commands.h).
+// The rfid-lab serial commands, one handler each (kit/lib/rfid-lab-kit/src/lab_commands.h).
 import { asciiOf, crcA, hx, hxs, withCrc } from "../protocol/bytes";
 import { blockKind, valueBlock, valueOf } from "../protocol/card-memory";
 import { EDGE, type EdgeExperiment } from "../edge/edge-data";

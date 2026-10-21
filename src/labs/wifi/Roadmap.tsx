@@ -124,8 +124,8 @@ export function Roadmap(_: WidgetProps) {
         Each lab has its own firmware and command (
         <code className={styles.inlineCode}>wifi-lab-w1</code>,{" "}
         <code className={styles.inlineCode}>wifi-lab-w2</code>, …); what they share lives in{" "}
-        <code className={styles.inlineCode}>lib/wifi-kit</code>, so each lab adds features instead
-        of starting over.
+        <code className={styles.inlineCode}>kit/lib/wifi-kit</code>, so each lab adds features
+        instead of starting over.
       </Caption>
       <h4 className={`${styles.subhead} ${styles.subheadGap}`}>Parts that unlock more</h4>
       <ScrollBox label="Parts that unlock more">

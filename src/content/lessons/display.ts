@@ -58,7 +58,7 @@ export const displayLessons = [
         kind: "gnd",
       },
     ],
-    cmd: "uv run pio run -e 03-display -t upload -t monitor",
+    cmd: "uv run pio run -d labs/03-display -e 03-display -t upload -t monitor",
     wiring: {
       head: ["Display pin", "ESP32-S3", "Role"],
       rows: [
@@ -165,7 +165,7 @@ export const displayLessons = [
             side: "R",
           },
         ],
-        cmd: "uv run pio run -e 03b-showcase -t upload",
+        cmd: "uv run pio run -d labs/03b-showcase -e 03b-showcase -t upload",
         steps: [
           "Keep the display wired exactly as in lesson 03. Nothing new to plug in.",
           "Flash with the command above (or tell Claude “go” and it runs it for you).",
@@ -240,7 +240,7 @@ export const displayLessons = [
             side: "R",
           },
         ],
-        cmd: "uv run pio run -e 03b-showcase-button -t upload",
+        cmd: "uv run pio run -d labs/03b-showcase -e 03b-showcase-button -t upload",
         wiring: {
           title: "Button wiring (the 2 new wires)",
           head: ["From", "To", "Where"],

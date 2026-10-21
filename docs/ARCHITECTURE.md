@@ -138,7 +138,7 @@ Every lesson with a firmware has a second tab, **Read the code** (`#/lessons/02/
 
 ```mermaid
 flowchart LR
-  pio["test-esp/platformio.ini<br/>+ src/, lib/, include/"] -->|"build time<br/>tools/firmware"| json["firmware/index.json<br/>firmware/&lt;env&gt;.json"]
+  pio["esp-labs/labs/&lt;lab&gt;/platformio.ini<br/>+ src/, kit/lib/, kit/include/"] -->|"build time<br/>tools/firmware"| json["firmware/index.json<br/>firmware/&lt;env&gt;.json"]
   json -->|"Query + zod"| lab["buildLabCode()<br/>analyse · tours · definitions"]
   tours["content/code/tours.ts<br/>(hand-written, labs 01–03)"] --> lab
   words["content/code/glossary.ts<br/>(196 words)"] --> lab
@@ -146,7 +146,7 @@ flowchart LR
   settings["Settings<br/>level, guess first, hints, display"] --> reader
 ```
 
-- **Where the code comes from.** `tools/firmware/vite-plugin.ts` reads the PlatformIO project at `FIRMWARE_DIR` (default `../test-esp`): each env's `build_src_filter` plus every local header reached through `#include`, lab files first in reading order. Dev serves it from memory (edits under `test-esp` reload the page); build emits static JSON, so the reader always shows what is actually flashed. A lesson finds its env from its command (`-e 02-led`), so variants (03b, W2) show their own code.
+- **Where the code comes from.** `tools/firmware/vite-plugin.ts` reads the firmware checkout at `FIRMWARE_DIR` (default `../../esp-labs`, one PlatformIO project per lab under `labs/`, shared code in `kit/`; `tools/firmware/layout.ts` also still reads the old single-project `test-esp` layout): each env's `build_src_filter` plus every local header reached through `#include`, lab files first in reading order. Dev serves it from memory (edits in the checkout reload the page); build emits static JSON, so the reader always shows what is actually flashed. A lesson finds its env from its command (`-e 02-led`), so variants (03b, W2) show their own code.
 - **The analyser** (`src/domain/code/`, pure TypeScript, unit-tested): `tokenize` (C++ tokens per line, raw strings and block comments included), `analyze` (statements, blocks with their calls, chapters drawn as `// ---- x ----`, folds for long data and embedded web pages), `explain` (a plain sentence for every line, rule by rule from specific to general, with "go to definition" across files), `tour` (stops: hand-written ones resolved by text anchors, or automatic ones built from the code's own comments and structure; closing braces are absorbed so no line is left out).
 - **Three ways to read**, each a module in `features/code/reader/modes/` registered in `READER_MODES` (`reader/modes.ts`):
   - **Tour**: file by file, a few lines at a time (hand-written or automatic stops).

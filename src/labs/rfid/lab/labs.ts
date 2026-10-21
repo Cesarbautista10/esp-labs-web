@@ -1,4 +1,4 @@
-// What each lab's firmware has: its views and commands (lib/rfid-lab-kit, src/rfid-lab-rN/main.cpp).
+// What each lab's firmware has: its views and commands (kit/lib/rfid-lab-kit, labs/rfid-lab-rN/src/main.cpp).
 
 export type LabId = "R1" | "R2" | "R3" | "R4" | "R5" | "R6";
 

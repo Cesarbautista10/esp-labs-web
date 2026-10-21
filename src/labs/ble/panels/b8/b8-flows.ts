@@ -151,7 +151,7 @@ export const B8_FLOWS: SeqFlows = {
         ms: 60,
         net: true,
         title: "What every bit means",
-        text: "Report 1: 8 modifier bits, a padding byte, 6 key codes. Report 3: one 16-bit media key. lib/ble-kit/src/hid_report.h turns these bytes into fields; try it in the next panel.",
+        text: "Report 1: 8 modifier bits, a padding byte, 6 key codes. Report 3: one 16-bit media key. kit/lib/ble-kit/src/hid_report.h turns these bytes into fields; try it in the next panel.",
         code: `${comboHex.slice(0, 24).join(" ")}\n${comboHex.slice(24, 48).join(" ")}\n${comboHex.slice(48).join(" ")}`,
       },
       {

@@ -1,4 +1,4 @@
-// What src/03b-showcase does with its controls, as pure functions: which gesture a press is,
+// What labs/03b-showcase/src does with its controls, as pure functions: which gesture a press is,
 // which scene comes next, and what the firmware prints.
 import type { Tone } from "@/ui/terminal/terminal-log";
 import { SCENE_NAMES } from "./renderer";

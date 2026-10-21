@@ -10,7 +10,7 @@ export const rfidLessons = [
     title: "Wire & talk",
     status: "built, not flashed",
     heading: "Wire the reader and talk to its chip",
-    goal: "Its own firmware (rfid-lab-r1; every RFID lab has its own) with our own driver in lib/rfid-kit: no RFID library, so every byte is ours to see. Eight wires put the RC522 on the S3's second SPI bus, so it never shares with the screen. The first conversation is with the chip itself, not a card: its version register, the self-test from the datasheet, and 3,200 bytes through its FIFO and back.",
+    goal: "Its own firmware (rfid-lab-r1; every RFID lab has its own) with our own driver in kit/lib/rfid-kit: no RFID library, so every byte is ours to see. Eight wires put the RC522 on the S3's second SPI bus, so it never shares with the screen. The first conversation is with the chip itself, not a card: its version register, the self-test from the datasheet, and 3,200 bytes through its FIFO and back.",
     goalLine:
       "Prove that the ESP32 and the reader chip talk to each other reliably over SPI, before any card is involved. Keep the card and the tag away for now.",
     goalCheck: [
@@ -135,7 +135,7 @@ export const rfidLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e rfid-lab-r1 -t upload",
+    cmd: "uv run pio run -d labs/rfid-lab-r1 -e rfid-lab-r1 -t upload",
     wiring: {
       title: "RC522 wiring (8 new wires, the screen stays as it is)",
       head: ["RC522 pin", "ESP32-S3", "Role"],
@@ -152,7 +152,7 @@ export const rfidLessons = [
     },
     commands: [
       {
-        command: "uv run pio run -e rfid-lab-r1 -t upload",
+        command: "uv run pio run -d labs/rfid-lab-r1 -e rfid-lab-r1 -t upload",
         where: "mac",
         card: "off",
         does: "Builds lab R1's firmware and writes it to the board (no new downloads: it only uses the display libraries you already have).",
@@ -370,10 +370,10 @@ export const rfidLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e rfid-lab-r2 -t upload",
+    cmd: "uv run pio run -d labs/rfid-lab-r2 -e rfid-lab-r2 -t upload",
     commands: [
       {
-        command: "uv run pio run -e rfid-lab-r2 -t upload",
+        command: "uv run pio run -d labs/rfid-lab-r2 -e rfid-lab-r2 -t upload",
         where: "mac",
         card: "any",
         does: "Flashes lab R2's own firmware: everything from R1, plus the trace view and the poll and trace commands. <code>help</code> lists exactly this lab's commands.",
@@ -600,10 +600,10 @@ export const rfidLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e rfid-lab-r3 -t upload",
+    cmd: "uv run pio run -d labs/rfid-lab-r3 -e rfid-lab-r3 -t upload",
     commands: [
       {
-        command: "uv run pio run -e rfid-lab-r3 -t upload",
+        command: "uv run pio run -d labs/rfid-lab-r3 -e rfid-lab-r3 -t upload",
         where: "mac",
         card: "any",
         does: "Flashes lab R3's own firmware: everything from R2, plus inventory (and a double-click on the card view runs it). <code>help</code> lists exactly this lab's commands.",
@@ -792,10 +792,10 @@ export const rfidLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e rfid-lab-r4 -t upload",
+    cmd: "uv run pio run -d labs/rfid-lab-r4 -e rfid-lab-r4 -t upload",
     commands: [
       {
-        command: "uv run pio run -e rfid-lab-r4 -t upload",
+        command: "uv run pio run -d labs/rfid-lab-r4 -e rfid-lab-r4 -t upload",
         where: "mac",
         card: "any",
         does: "Flashes lab R4's own firmware: everything from R3, plus the memory view, dump and read. <code>help</code> lists exactly this lab's commands.",
@@ -996,10 +996,10 @@ export const rfidLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e rfid-lab-r5 -t upload",
+    cmd: "uv run pio run -d labs/rfid-lab-r5 -e rfid-lab-r5 -t upload",
     commands: [
       {
-        command: "uv run pio run -e rfid-lab-r5 -t upload",
+        command: "uv run pio run -d labs/rfid-lab-r5 -e rfid-lab-r5 -t upload",
         where: "mac",
         card: "any",
         does: "Flashes lab R5's own firmware: everything from R4, plus the credits view, write and credits. <code>help</code> lists exactly this lab's commands.",
@@ -1213,10 +1213,10 @@ export const rfidLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e rfid-lab-r6 -t upload",
+    cmd: "uv run pio run -d labs/rfid-lab-r6 -e rfid-lab-r6 -t upload",
     commands: [
       {
-        command: "uv run pio run -e rfid-lab-r6 -t upload",
+        command: "uv run pio run -d labs/rfid-lab-r6 -e rfid-lab-r6 -t upload",
         where: "mac",
         card: "any",
         does: "Flashes lab R6's own firmware: everything from R5, plus the edge view and the seven edge experiments. <code>help</code> lists exactly this lab's commands.",
@@ -1310,7 +1310,7 @@ export const rfidLessons = [
     title: "Card manager",
     status: "on board, works",
     heading: "Manage your cards from a React app",
-    goal: "Its own firmware (rfid-lab-r7) turns the bench into a door you manage from a small React app (test-esp/door-app) over your Wi-Fi. The board keeps the card list in its flash and decides every tap itself; the card only brings its UID. From the app you add cards, name them, give them a role, block them, limit them to hours, an end date or a number of uses, copy one card's rules to another, replace a lost card, write a name label onto them, wipe the data the labs wrote, save a card's data and write it back or copy it onto another card, open the door remotely, switch on lockdown, and watch every tap live. Two simulated locks (the screen and the LED): the front door, for every role, and the admin room, for admin cards only; the one reader is mounted at one of them at a time.",
+    goal: "Its own firmware (rfid-lab-r7) turns the bench into a door you manage from a small React app (esp-labs/apps/door-app) over your Wi-Fi. The board keeps the card list in its flash and decides every tap itself; the card only brings its UID. From the app you add cards, name them, give them a role, block them, limit them to hours, an end date or a number of uses, copy one card's rules to another, replace a lost card, write a name label onto them, wipe the data the labs wrote, save a card's data and write it back or copy it onto another card, open the door remotely, switch on lockdown, and watch every tap live. Two simulated locks (the screen and the LED): the front door, for every role, and the admin room, for admin cards only; the one reader is mounted at one of them at a time.",
     goalLine:
       "Run your two tags as a small access system: one resident, one guest, and see each rule decide a tap.",
     goalCheck: [
@@ -1439,13 +1439,13 @@ export const rfidLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e rfid-lab-r7 -t upload",
+    cmd: "uv run pio run -d labs/rfid-lab-r7 -e rfid-lab-r7 -t upload",
     commands: [
       {
-        command: "uv run pio run -e rfid-lab-r7 -t upload",
+        command: "uv run pio run -d labs/rfid-lab-r7 -e rfid-lab-r7 -t upload",
         where: "mac",
         card: "any",
-        does: "Flashes the door firmware. The first build copies the web libraries W2 already uses (ESPAsyncWebServer, AsyncTCP, ArduinoJson) into test-esp/.pio.",
+        does: "Flashes the door firmware. The first build copies the web libraries W2 already uses (ESPAsyncWebServer, AsyncTCP, ArduinoJson) into esp-labs/.pio.",
         see: "The screen shows <b>DOOR door</b>, LOCKED, “0 cards in the list” and <code>http://bench.local</code> at the bottom once Wi-Fi joins.",
         fix: "“no Wi-Fi saved: run W1 once”: R7 uses the network W1/W2 saved. Flash W1, <code>join</code>, then flash R7 again.",
       },
@@ -1457,7 +1457,7 @@ export const rfidLessons = [
         fix: "Keep it out of chats and git. <code>token new</code> replaces it.",
       },
       {
-        command: "cd test-esp/door-app && cp .env.example .env",
+        command: "cd esp-labs/apps/door-app && cp .env.example .env",
         where: "mac",
         card: "any",
         does: "Creates the app's settings file: <code>BENCH_URL=http://bench.local</code> (or the IP from <code>status</code>) and <code>BENCH_TOKEN=</code> the token.",
@@ -1638,7 +1638,7 @@ export const rfidLessons = [
         title: "Which rule decides?",
         widget: "doorRules",
         intro:
-          "The board checks the rules in this order, and the first one that says no wins. Set up a card, the clock and lockdown, and see which rule decides. It is the same order as src/rfid-lab-r7/access_rules.h (tested on the Mac).",
+          "The board checks the rules in this order, and the first one that says no wins. Set up a card, the clock and lockdown, and see which rule decides. It is the same order as kit/lib/door-rules/src/access_rules.h (tested on the Mac).",
       },
       {
         title: "Follow one tap, one block, one new card, one copy",
@@ -1655,8 +1655,8 @@ export const rfidLessons = [
     ],
     steps: [
       "Same wiring as R1. Flash <code>rfid-lab-r7</code>. The board needs the Wi-Fi network W1/W2 saved.",
-      "In the monitor: <code>token</code>. Copy it into <code>test-esp/door-app/.env</code> as <code>BENCH_TOKEN=</code>.",
-      "<code>pnpm install</code> and <code>pnpm dev</code> in test-esp/door-app, open <code>http://localhost:5174</code>. <b>Checkpoint:</b> live, chip B2h, a clock.",
+      "In the monitor: <code>token</code>. Copy it into <code>esp-labs/apps/door-app/.env</code> as <code>BENCH_TOKEN=</code>.",
+      "<code>pnpm install</code> and <code>pnpm dev</code> in esp-labs/apps/door-app, open <code>http://localhost:5174</code>. <b>Checkpoint:</b> live, chip B2h, a clock.",
       "Add the white card as a resident and the key tag as a guest. <b>Checkpoint:</b> both in the list, “opens now”.",
       "Tap both a few times: OPEN, the guest's uses going down, every tap in the log.",
       "Block the white card and tap it (DENIED · blocked), unblock it. Try the presets and lockdown, and watch the “Which rule decides?” panel agree.",
@@ -1676,7 +1676,7 @@ export const rfidLessons = [
     title: "Card friends",
     status: "built, not flashed",
     heading: "A friend lives on every card",
-    goal: "A lab for kids, built from R7's parts. Its own firmware (rfid-lab-r8) makes every card the home of a friend: a fox, a robot, a dragon, a penguin, an alien, a cat, a frog or a unicorn. Tap a card and its friend pops out on the board's screen with stars in its colours, and in 3D in a small React app (test-esp/friends-app), with its own move, sparkles, sky and tune. Card 1 and card 2 show different friends; tap both and they play together. A new card adds itself on its first tap, and you drag a friend onto it. The app has two tabs: Play for the kids, Setup for the grown-up (real or pretend board, reader health, the card list, sound, calm motion, day or night).",
+    goal: "A lab for kids, built from R7's parts. Its own firmware (rfid-lab-r8) makes every card the home of a friend: a fox, a robot, a dragon, a penguin, an alien, a cat, a frog or a unicorn. Tap a card and its friend pops out on the board's screen with stars in its colours, and in 3D in a small React app (esp-labs/apps/friends-app), with its own move, sparkles, sky and tune. Card 1 and card 2 show different friends; tap both and they play together. A new card adds itself on its first tap, and you drag a friend onto it. The app has two tabs: Play for the kids, Setup for the grown-up (real or pretend board, reader health, the card list, sound, calm motion, day or night).",
     goalLine:
       "Give the white card and the key tag a friend each, then tap them and watch both friends play.",
     goalCheck: [
@@ -1804,10 +1804,10 @@ export const rfidLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e rfid-lab-r8 -t upload",
+    cmd: "uv run pio run -d labs/rfid-lab-r8 -e rfid-lab-r8 -t upload",
     commands: [
       {
-        command: "uv run pio run -e rfid-lab-r8 -t upload",
+        command: "uv run pio run -d labs/rfid-lab-r8 -e rfid-lab-r8 -t upload",
         where: "mac",
         card: "any",
         does: "Flashes the friends firmware. It uses R7's web libraries and the Wi-Fi network W1/W2 saved.",
@@ -1822,7 +1822,7 @@ export const rfidLessons = [
         fix: "Keep it out of chats and git.",
       },
       {
-        command: "cd test-esp/friends-app && cp .env.example .env",
+        command: "cd esp-labs/apps/friends-app && cp .env.example .env",
         where: "mac",
         card: "any",
         does: "<code>BENCH_URL=http://bench.local</code> (or the IP from <code>status</code>), <code>BENCH_TOKEN=</code> the token.",
@@ -1893,8 +1893,8 @@ export const rfidLessons = [
     ],
     steps: [
       "Same wiring as R1. Flash <code>rfid-lab-r8</code>. The board needs the Wi-Fi network W1/W2 saved.",
-      "In the monitor: <code>token</code>, into <code>test-esp/friends-app/.env</code> as <code>BENCH_TOKEN=</code>.",
-      "<code>pnpm install</code> and <code>pnpm dev</code> in test-esp/friends-app, open <code>http://localhost:5175</code>. <b>Checkpoint:</b> Setup says live, chip B2h.",
+      "In the monitor: <code>token</code>, into <code>esp-labs/apps/friends-app/.env</code> as <code>BENCH_TOKEN=</code>.",
+      "<code>pnpm install</code> and <code>pnpm dev</code> in esp-labs/apps/friends-app, open <code>http://localhost:5175</code>. <b>Checkpoint:</b> Setup says live, chip B2h.",
       "Tap the white card and the key tag once each. <b>Checkpoint:</b> two tiles in Play, each asking “Who lives here?”.",
       "Drag a friend onto each card. Watch the board's screen and the 3D stage together.",
       "Tap card 1, then card 2: two different friends play together. Poke one on the stage.",

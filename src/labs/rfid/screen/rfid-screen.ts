@@ -1,4 +1,4 @@
-// The rfid-lab screen, drawn like lib/rfid-lab-kit/src/rfid_views.h. One drawer for both the
+// The rfid-lab screen, drawn like kit/lib/rfid-lab-kit/src/rfid_views.h. One drawer for both the
 // simulator and the "What the screen shows" panel.
 import { DISPLAY_FONT, MONO_FONT, SCREEN_H, SCREEN_W, type ScopePalette } from "@/lib/canvas";
 import { hx, hxs, type Uid } from "../protocol/bytes";

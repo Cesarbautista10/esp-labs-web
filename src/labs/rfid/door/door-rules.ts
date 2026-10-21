@@ -1,4 +1,4 @@
-// R7's door rules, mirrored from src/rfid-lab-r7/access_rules.h: checked in order, the first
+// R7's door rules, mirrored from kit/lib/door-rules/src/access_rules.h: checked in order, the first
 // one that says no decides.
 
 export type Role = "resident" | "guest" | "maintenance" | "admin";

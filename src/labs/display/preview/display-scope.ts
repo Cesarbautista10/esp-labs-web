@@ -1,4 +1,4 @@
-// The drawing of src/03-display/main.cpp: 2.5 s of RGB test bars, then the bench scope.
+// The drawing of labs/03-display/src/main.cpp: 2.5 s of RGB test bars, then the bench scope.
 import { definePalette } from "@/lib/palette";
 import { MONO_FONT } from "@/lib/canvas";
 

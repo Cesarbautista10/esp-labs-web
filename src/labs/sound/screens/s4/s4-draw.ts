@@ -1,4 +1,4 @@
-// S4's views, drawn like lib/sound-kit's screen code on the 320×170 canvas.
+// S4's views, drawn like kit/lib/sound-kit's screen code on the 320×170 canvas.
 import type { ScopePalette } from "@/lib/canvas";
 import { B12, display, drawStat, S8, textWriter } from "../../kit/draw";
 import { sndDb } from "../../model/level";

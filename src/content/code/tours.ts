@@ -9,7 +9,7 @@ const hello: LabTourSpec = {
     "This first program proves the board is alive. <code>setup()</code> runs once: it opens the serial monitor and prints the chip's identity card. Then <code>loop()</code> runs forever, nudging the on-board RGB LED one step around a colour wheel each time, so you see a slow rainbow.",
   files: [
     {
-      path: "src/01-hello/main.cpp",
+      path: "labs/01-hello/src/main.cpp",
       stops: [
         {
           at: "// Lesson 01: meet the board.",
@@ -126,7 +126,7 @@ const hello: LabTourSpec = {
       ],
     },
     {
-      path: "include/pins.h",
+      path: "kit/include/pins.h",
       stops: [
         {
           at: "// The one place that says which wire goes where.",
@@ -160,7 +160,7 @@ const led: LabTourSpec = {
     "This program drives an LED on your breadboard and listens for commands you type in the serial monitor. <code>setup()</code> runs once to hand the pin to the PWM hardware and start a gentle fade. <code>loop()</code> then runs forever, doing two quick jobs each pass: read any typed letters, and set the LED's brightness for the current mode, so it never stops animating while it listens.",
   files: [
     {
-      path: "src/02-led/main.cpp",
+      path: "labs/02-led/src/main.cpp",
       stops: [
         {
           at: "// Lesson 02: your first circuit.",
@@ -328,7 +328,7 @@ const display: LabTourSpec = {
     "This program lights up the 1.9″ screen. <code>setup()</code> runs once: it switches on the backlight, sets up the SPI bus, shows red, green and blue bars so you can check the colours, then reserves a picture-sized canvas in PSRAM. <code>loop()</code> then runs forever, drawing a moving sine wave with the frame rate and uptime on that canvas and sending each finished picture to the screen in one go.",
   files: [
     {
-      path: "src/03-display/main.cpp",
+      path: "labs/03-display/src/main.cpp",
       stops: [
         {
           at: '// Lesson 03: the 1.9" IPS display',

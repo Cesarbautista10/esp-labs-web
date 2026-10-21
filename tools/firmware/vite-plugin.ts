@@ -1,13 +1,13 @@
-import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { Plugin } from "vite";
 import { collectFirmware, type FirmwareEnv } from "./collect.ts";
+import { detectLayout } from "./layout.ts";
 
 // Ships the firmware sources next to the guide so the code reader always shows the code that is
 // actually flashed, without copying it into this project:
 //   firmware/index.json      every env with its file list and line counts (small, for overviews)
 //   firmware/<env>.json      one env's files with their text (fetched when you open its code)
-// Dev: served from memory and re-read on every request; edits under test-esp reload the page.
+// Dev: served from memory and re-read on every request; edits in the checkout reload the page.
 // Build: emitted as static assets into dist/firmware/.
 
 const DIR = "firmware";
@@ -23,8 +23,8 @@ const indexOf = (envs: readonly FirmwareEnv[]) => ({
 export function firmwarePlugin(options: { root: string }): Plugin {
   const root = resolve(options.root);
   const collect = () => {
-    if (!existsSync(join(root, "platformio.ini"))) {
-      console.warn(`[firmware] no platformio.ini in ${root}: the code reader will be empty`);
+    if (!detectLayout(root)) {
+      console.warn(`[firmware] no PlatformIO project in ${root}: the code reader will be empty`);
       return [];
     }
     return collectFirmware(root);
@@ -38,7 +38,7 @@ export function firmwarePlugin(options: { root: string }): Plugin {
   return {
     name: "bench-firmware",
     configureServer(server) {
-      for (const sub of ["src", "lib", "include", "platformio.ini"])
+      for (const sub of ["labs", "kit", "src", "lib", "include", "platformio.ini"])
         server.watcher.add(join(root, sub));
       server.watcher.on("change", (file) => {
         if (file.startsWith(root)) server.ws.send({ type: "full-reload" });

@@ -10,7 +10,7 @@ export const bleLessons = [
     title: "Listen",
     status: "built, not flashed",
     heading: "Hear every Bluetooth device around you",
-    goal: "Phones, watches, earbuds, speakers, keyboards and beacons announce themselves all day: short <b>advertising</b> packets on three radio channels, many times a second, whether anyone listens or not. B1 turns the board into a listener. It draws them on a radar, guesses what each one is, and takes a packet apart byte by byte. The radio uses NimBLE, a lightweight Bluetooth stack; the firmware is its own (<code>ble-lab-b1</code>), with shared code in <code>lib/ble-kit</code>.",
+    goal: "Phones, watches, earbuds, speakers, keyboards and beacons announce themselves all day: short <b>advertising</b> packets on three radio channels, many times a second, whether anyone listens or not. B1 turns the board into a listener. It draws them on a radar, guesses what each one is, and takes a packet apart byte by byte. The radio uses NimBLE, a lightweight Bluetooth stack; the firmware is its own (<code>ble-lab-b1</code>), with shared code in <code>kit/lib/ble-kit</code>.",
     goalLine:
       "Find your own phone among the devices around you, read its packets byte by byte, and measure how often it advertises.",
     goalCheck: [
@@ -86,10 +86,10 @@ export const bleLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e ble-lab-b1 -t upload",
+    cmd: "uv run pio run -d labs/ble-lab-b1 -e ble-lab-b1 -t upload",
     commands: [
       {
-        command: "uv run pio run -e ble-lab-b1 -t upload",
+        command: "uv run pio run -d labs/ble-lab-b1 -e ble-lab-b1 -t upload",
         where: "mac",
         card: "bnone",
         does: "Builds lab B1 and writes it to the board. The first build downloads NimBLE-Arduino 2.5.1 (the Bluetooth stack).",
@@ -278,10 +278,10 @@ export const bleLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e ble-lab-b2 -t upload",
+    cmd: "uv run pio run -d labs/ble-lab-b2 -e ble-lab-b2 -t upload",
     commands: [
       {
-        command: "uv run pio run -e ble-lab-b2 -t upload",
+        command: "uv run pio run -d labs/ble-lab-b2 -e ble-lab-b2 -t upload",
         where: "mac",
         card: "bnone",
         does: "Builds lab B2 and writes it to the board.",
@@ -479,10 +479,10 @@ export const bleLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e ble-lab-b3 -t upload",
+    cmd: "uv run pio run -d labs/ble-lab-b3 -e ble-lab-b3 -t upload",
     commands: [
       {
-        command: "uv run pio run -e ble-lab-b3 -t upload",
+        command: "uv run pio run -d labs/ble-lab-b3 -e ble-lab-b3 -t upload",
         where: "mac",
         card: "bnone",
         does: "Builds lab B3 and writes it to the board.",
@@ -670,10 +670,10 @@ export const bleLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e ble-lab-b4 -t upload",
+    cmd: "uv run pio run -d labs/ble-lab-b4 -e ble-lab-b4 -t upload",
     commands: [
       {
-        command: "uv run pio run -e ble-lab-b4 -t upload",
+        command: "uv run pio run -d labs/ble-lab-b4 -e ble-lab-b4 -t upload",
         where: "mac",
         card: "bnone",
         does: "Builds lab B4 and writes it to the board.",
@@ -796,7 +796,7 @@ export const bleLessons = [
     title: "Phone app",
     status: "built, not flashed",
     heading: "Your own app, straight to the board",
-    goal: "nRF Connect is a screwdriver; now you build the tool. <b>test-esp/ble-app</b> is a small React app that uses <b>Web Bluetooth</b>: the browser itself becomes the GATT client, so a web page on your Mac or phone talks to the board with no Wi-Fi, no server and no app store. The firmware keeps B3's Bench service and adds four characteristics: a <b>Canvas</b> you draw on from the phone, <b>Sensors</b> that stream five times a second, a <b>Speed</b> test that pushes notifications as fast as the radio allows, and <b>Link</b> controls to change the connection while you watch the speed move.",
+    goal: "nRF Connect is a screwdriver; now you build the tool. <b>esp-labs/apps/ble-app</b> is a small React app that uses <b>Web Bluetooth</b>: the browser itself becomes the GATT client, so a web page on your Mac or phone talks to the board with no Wi-Fi, no server and no app store. The firmware keeps B3's Bench service and adds four characteristics: a <b>Canvas</b> you draw on from the phone, <b>Sensors</b> that stream five times a second, a <b>Speed</b> test that pushes notifications as fast as the radio allows, and <b>Link</b> controls to change the connection while you watch the speed move.",
     goalLine:
       "Control and draw on the board from a web page, and measure how many bytes per second your link really carries.",
     goalCheck: [
@@ -872,10 +872,10 @@ export const bleLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e ble-lab-b5 -t upload",
+    cmd: "uv run pio run -d labs/ble-lab-b5 -e ble-lab-b5 -t upload",
     commands: [
       {
-        command: "uv run pio run -e ble-lab-b5 -t upload",
+        command: "uv run pio run -d labs/ble-lab-b5 -e ble-lab-b5 -t upload",
         where: "mac",
         card: "bnone",
         does: "Builds lab B5 and writes it to the board.",
@@ -883,7 +883,7 @@ export const bleLessons = [
         fix: "“Failed to connect”: hold BOOT, tap RST, release BOOT, run it again.",
       },
       {
-        command: "cd test-esp/ble-app && pnpm install && pnpm dev",
+        command: "cd esp-labs/apps/ble-app && pnpm install && pnpm dev",
         where: "mac",
         card: "bnone",
         does: "Installs the app once (React, Vite, TypeScript, exact versions) and serves it at <code>http://localhost:5177</code>. No server code: Vite only hands the page to the browser.",
@@ -1064,10 +1064,10 @@ export const bleLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e ble-lab-b6 -t upload",
+    cmd: "uv run pio run -d labs/ble-lab-b6 -e ble-lab-b6 -t upload",
     commands: [
       {
-        command: "uv run pio run -e ble-lab-b6 -t upload",
+        command: "uv run pio run -d labs/ble-lab-b6 -e ble-lab-b6 -t upload",
         where: "mac",
         card: "bnone",
         does: "Builds lab B6 and flashes it (no new downloads: NimBLE came with B1).",
@@ -1251,10 +1251,10 @@ export const bleLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e ble-lab-b7 -t upload",
+    cmd: "uv run pio run -d labs/ble-lab-b7 -e ble-lab-b7 -t upload",
     commands: [
       {
-        command: "uv run pio run -e ble-lab-b7 -t upload",
+        command: "uv run pio run -d labs/ble-lab-b7 -e ble-lab-b7 -t upload",
         where: "mac",
         card: "bnone",
         does: "Builds lab B7 and flashes it.",
@@ -1433,10 +1433,10 @@ export const bleLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e ble-lab-b8 -t upload",
+    cmd: "uv run pio run -d labs/ble-lab-b8 -e ble-lab-b8 -t upload",
     commands: [
       {
-        command: "uv run pio run -e ble-lab-b8 -t upload",
+        command: "uv run pio run -d labs/ble-lab-b8 -e ble-lab-b8 -t upload",
         where: "mac",
         card: "bnone",
         does: "Builds lab B8 and writes it to the board. NimBLE-Arduino is already downloaded (B1).",

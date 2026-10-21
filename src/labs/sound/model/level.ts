@@ -1,4 +1,4 @@
-// lib/sound-kit/src/level.h in TypeScript: decibels and the level meter every lab reads.
+// kit/lib/sound-kit/src/level.h in TypeScript: decibels and the level meter every lab reads.
 
 /** RMS of int16 samples → dB below full scale (dBFS); -96 for silence. */
 export const sndDb = (rms: number) => (rms < 0.5 ? -96 : 20 * Math.log10(rms / 32768));

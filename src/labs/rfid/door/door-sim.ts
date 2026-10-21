@@ -100,7 +100,7 @@ export function ledColor(st: DoorSimState): string | null {
 
 const MONO = `8px ${MONO_FONT}`;
 
-/** The door screen (src/rfid-lab-r7/door_views.h). */
+/** The door screen (labs/rfid-lab-r7/src/door_views.h). */
 export function drawDoorScreen(
   g: CanvasRenderingContext2D,
   C: ScopePalette,

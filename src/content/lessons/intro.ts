@@ -14,7 +14,7 @@ export const introLessons = [
     learn: ["USB-C data vs charge cable", "COM vs native USB port", "serial ports", "boot mode"],
     pins: [],
     usb: true,
-    cmd: "cd test-esp && uv sync && uv run pio device list",
+    cmd: "cd esp-labs && uv sync && uv run pio device list",
     steps: [
       "Plug a <b>data</b> USB-C cable into the port labelled <code>COM</code> (or <code>UART</code>).",
       "Check that a red power LED comes on.",
@@ -43,7 +43,7 @@ export const introLessons = [
         side: "R",
       },
     ],
-    cmd: "uv run pio run -e 01-hello -t upload -t monitor",
+    cmd: "uv run pio run -d labs/01-hello -e 01-hello -t upload -t monitor",
     steps: [
       "Nothing to wire. Keep the cable in the <code>COM</code> port.",
       "Run the command. Wait for <code>Hard resetting via RTS pin…</code>.",
@@ -51,7 +51,7 @@ export const introLessons = [
       "Watch the RGB LED next to the chip cycle through colours.",
       "Press <code>Ctrl+C</code> to leave the monitor.",
     ],
-    note: "No colour on the LED? Some boards wire it to GPIO 38. Change PIN_RGB in include/pins.h.",
+    note: "No colour on the LED? Some boards wire it to GPIO 38. Change PIN_RGB in kit/include/pins.h.",
     preview: {
       widget: "hello",
     },
@@ -80,7 +80,7 @@ export const introLessons = [
         kind: "gnd",
       },
     ],
-    cmd: "uv run pio run -e 02-led -t upload -t monitor",
+    cmd: "uv run pio run -d labs/02-led -e 02-led -t upload -t monitor",
     wiring: {
       rows: [
         ["GPIO 4", "resistor 220–330 Ω", "first leg"],

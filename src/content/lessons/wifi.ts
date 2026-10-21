@@ -10,7 +10,7 @@ export const wifiLessons = [
     title: "Scan & join",
     status: "built, not flashed",
     heading: "Scan the air, then join your network",
-    goal: "The first Wi-Fi lab, with its own firmware (wifi-lab-w1); the code every lab shares lives in lib/wifi-kit. The ESP32 lists every 2.4 GHz network nearby, then joins yours: you pick it from the scan table and type the password once. It's stored on the chip, never in code. A status view shows the clock (internet time), IP address, bench.local and a live signal chart.",
+    goal: "The first Wi-Fi lab, with its own firmware (wifi-lab-w1); the code every lab shares lives in kit/lib/wifi-kit. The ESP32 lists every 2.4 GHz network nearby, then joins yours: you pick it from the scan table and type the password once. It's stored on the chip, never in code. A status view shows the clock (internet time), IP address, bench.local and a live signal chart.",
     learn: [
       "station mode",
       "channels & dBm",
@@ -78,7 +78,7 @@ export const wifiLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e wifi-lab-w1 -t upload",
+    cmd: "uv run pio run -d labs/wifi-lab-w1 -e wifi-lab-w1 -t upload",
     panels: [
       {
         title: "How a scan works",
@@ -176,7 +176,7 @@ export const wifiLessons = [
         key: "lan",
         label: "Variation 1 · On your Wi-Fi",
         short: "phone → board, at home",
-        goal: "Its own firmware (wifi-lab-w2): everything from W1, plus a small web server: a REST API, a live WebSocket, a phone page at bench.local and a set-up network for joining Wi-Fi without a cable. A React + Node dashboard in test-esp/dashboard gives the same controls on your Mac, with live charts and firmware updates.",
+        goal: "Its own firmware (wifi-lab-w2): everything from W1, plus a small web server: a REST API, a live WebSocket, a phone page at bench.local and a set-up network for joining Wi-Fi without a cable. A React + Node dashboard in esp-labs/apps/dashboard gives the same controls on your Mac, with live charts and firmware updates.",
         learn: [
           "REST API",
           "WebSocket",
@@ -186,7 +186,7 @@ export const wifiLessons = [
           "admin token",
           "React + Node",
         ],
-        cmd: "uv run pio run -e wifi-lab-w2 -t upload",
+        cmd: "uv run pio run -d labs/wifi-lab-w2 -e wifi-lab-w2 -t upload",
         panels: [
           {
             title: "How the pieces talk",
@@ -198,9 +198,9 @@ export const wifiLessons = [
           "Not joined yet? The status view shows the set-up network <code>bench-setup</code> and its password. Join it from your phone, pick your Wi-Fi on the page that opens, type the password.",
           "Joined: open <code>http://bench.local</code> on your phone. Change the view, send a message, pick an LED colour, dim the screen.",
           "In the serial monitor type <code>token</code> and copy the value.",
-          "On the Mac: <code>cd test-esp/dashboard</code>, <code>cp .env.example .env</code>, paste the token as <code>ESP_TOKEN=</code>, then <code>pnpm install</code> and <code>pnpm dev</code>. Open <code>http://localhost:5173</code>.",
+          "On the Mac: <code>cd esp-labs/apps/dashboard</code>, <code>cp .env.example .env</code>, paste the token as <code>ESP_TOKEN=</code>, then <code>pnpm install</code> and <code>pnpm dev</code>. Open <code>http://localhost:5173</code>.",
           "Press the button or BOOT: the click appears live on the phone page and the dashboard.",
-          "Try a wireless update: <code>uv run pio run -e wifi-lab-w2</code>, then upload <code>.pio/build/wifi-lab-w2/firmware.bin</code> in the dashboard's Admin panel. The screen shows the progress.",
+          "Try a wireless update: <code>uv run pio run -d labs/wifi-lab-w2 -e wifi-lab-w2</code>, then upload <code>.pio/build/wifi-lab-w2/firmware.bin</code> in the dashboard's Admin panel. The screen shows the progress.",
         ],
         note: "Everyday controls are open to anyone on your home network: it's a bench toy. Reboot, forget Wi-Fi and firmware updates need the token, which lives on the chip and in the dashboard's .env (git-ignored), never in the browser. Page won't open? Type <code>http://</code>; on a FRITZ!Box tick “WLAN devices may communicate with each other”; on the Mac allow the browser under Privacy & Security → Local Network.",
       },
@@ -217,7 +217,7 @@ export const wifiLessons = [
           "FreeRTOS tasks",
           "sign-in & cookies",
         ],
-        cmd: "uv run pio run -e wifi-lab-w2-remote -t upload",
+        cmd: "uv run pio run -d labs/wifi-lab-w2 -e wifi-lab-w2-remote -t upload",
         panels: [
           {
             title: "How remote control works",
@@ -226,8 +226,8 @@ export const wifiLessons = [
         ],
         steps: [
           "Same wiring (push button optional). Flash with the command above (or tell Claude “go”). It downloads one library the first time: links2004/WebSockets 2.7.3.",
-          "On the Mac, in <code>test-esp/dashboard/.env</code>: <code>ESP_MODE=relay</code>, <code>ESP_TOKEN=</code> the serial <code>token</code>, and <code>DASHBOARD_KEY=</code> the output of <code>openssl rand -hex 16</code>.",
-          "Start the server: <code>cd test-esp/dashboard && pnpm remote</code> (builds the app and serves it on port 8787).",
+          "On the Mac, in <code>esp-labs/apps/dashboard/.env</code>: <code>ESP_MODE=relay</code>, <code>ESP_TOKEN=</code> the serial <code>token</code>, and <code>DASHBOARD_KEY=</code> the output of <code>openssl rand -hex 16</code>.",
+          "Start the server: <code>cd esp-labs/apps/dashboard && pnpm remote</code> (builds the app and serves it on port 8787).",
           "In a second terminal, open a tunnel: <code>pnpm tunnel:cloudflare</code> (no account; prints <code>https://…trycloudflare.com</code>, new each time) or <code>pnpm tunnel:ngrok</code> (your ngrok account; add <code>--url=&lt;your free static domain&gt;</code> and the address never changes).",
           "Tell the board in the serial monitor: <code>relay wss://&lt;tunnel host&gt;</code>. It saves the address and connects; <code>relay</code> then says <code>online</code> and a teal ring appears around the link dot on the screen.",
           "On your phone, turn Wi-Fi off (mobile data), open the tunnel address, sign in with the key, and change the view or the LED. You're controlling the bench from outside your home.",
@@ -312,7 +312,7 @@ export const wifiLessons = [
       },
     ],
     boot: true,
-    cmd: "uv run pio run -e wifi-lab-w3 -t upload",
+    cmd: "uv run pio run -d labs/wifi-lab-w3 -e wifi-lab-w3 -t upload",
     panels: [
       {
         title: "Follow one request, step by step",
@@ -323,7 +323,7 @@ export const wifiLessons = [
       "Same wiring (push button optional). Flash with the command above (or tell Claude “go”). It uses the Wi-Fi network W1/W2 saved.",
       "Open <code>uv run pio device monitor</code> and type <code>city Hamburg</code> (your city). The board looks it up, saves it and fetches the weather.",
       "<b>Click</b> through the views: now (animated sky), forecast (next 24 h), week. The footer shows each request: how long it took and how big the answer was.",
-      "Start the AI gateway on the Mac: <code>cd test-esp/ai-gateway</code>, <code>cp .env.example .env</code> (a <code>LITELLM_MASTER_KEY</code> plus your provider key, e.g. <code>ANTHROPIC_API_KEY</code>), <code>uv sync</code>, then <code>uv run --env-file .env litellm --config config.yaml --port 4000</code>.",
+      "Start the AI gateway on the Mac: <code>cd esp-labs/apps/ai-gateway</code>, <code>cp .env.example .env</code> (a <code>LITELLM_MASTER_KEY</code> plus your provider key, e.g. <code>ANTHROPIC_API_KEY</code>), <code>uv sync</code>, then <code>uv run --env-file .env litellm --config config.yaml --port 4000</code>.",
       "Tell the board where it is, in the monitor: <code>ai url http://&lt;your Mac's IP&gt;:4000</code> and <code>ai key &lt;LITELLM_MASTER_KEY&gt;</code>. Type keys there, never in a chat.",
       "Go to the oracle view and <b>double-click</b>: the model writes a haiku about this moment and picks the LED colour. Hold the button from any view for the same.",
       "Ask it things: <code>ask should I bike to work?</code> or <code>ask what should I build next?</code>. It knows your weather and the board's state.",

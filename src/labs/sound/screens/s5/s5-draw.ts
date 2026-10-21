@@ -1,4 +1,4 @@
-// S5's views, drawn like lib/sound-kit's screen code on the 320×170 canvas.
+// S5's views, drawn like kit/lib/sound-kit's screen code on the 320×170 canvas.
 import type { ScopePalette } from "@/lib/canvas";
 import { B12, display, S8, textWriter } from "../../kit/draw";
 import { noteOf } from "../../model/tune";

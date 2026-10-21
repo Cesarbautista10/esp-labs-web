@@ -1,4 +1,4 @@
-// The commands every sound lab's shell understands (lib/sound-kit's SoundLab), for the simulated
+// The commands every sound lab's shell understands (kit/lib/sound-kit's SoundLab), for the simulated
 // serial monitor. Each returns true when it handled the line.
 import type { ResolvedLesson } from "@/domain/lesson";
 import type { TerminalPrinter } from "@/ui/terminal/terminal-log";

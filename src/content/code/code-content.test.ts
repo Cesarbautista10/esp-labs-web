@@ -16,8 +16,9 @@ import { GLOSSARY } from "./glossary";
 import { TOURS } from "./tours";
 
 // The guide and the firmware live side by side: these checks keep them in step.
-// Vitest runs from the project folder; the firmware sits next to it.
-const firmware = collectFirmware(resolve(process.cwd(), "../test-esp"));
+// Vitest runs from the project folder; the esp-labs checkout sits next to hardware-diary.
+const firmwareDir = process.env.FIRMWARE_DIR ?? "../../esp-labs";
+const firmware = collectFirmware(resolve(process.cwd(), firmwareDir));
 const byEnv = new Map(firmware.map((e) => [e.env, e]));
 
 describe("code content", () => {

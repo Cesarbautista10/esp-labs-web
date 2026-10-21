@@ -1,4 +1,4 @@
-// The logic of src/02-led/main.cpp, as pure functions: what the LED does and how the serial
+// The logic of labs/02-led/src/main.cpp, as pure functions: what the LED does and how the serial
 // commands change it. The preview only draws what these return.
 import type { Tone } from "@/ui/terminal/terminal-log";
 

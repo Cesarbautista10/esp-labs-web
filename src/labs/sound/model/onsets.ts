@@ -1,4 +1,4 @@
-// lib/sound-kit/src/onsets.h in TypeScript: armed → loud → quiet → armed; a clap if it was short.
+// kit/lib/sound-kit/src/onsets.h in TypeScript: armed → loud → quiet → armed; a clap if it was short.
 
 export interface OnsetConfig {
   riseDb: number;

@@ -1,4 +1,4 @@
-// lib/sound-kit/src/rhythm.h in TypeScript: knock rhythms as shares of the whole pattern, and the
+// kit/lib/sound-kit/src/rhythm.h in TypeScript: knock rhythms as shares of the whole pattern, and the
 // beat detector of S6's party.
 
 /** The gaps between knocks as shares of the whole pattern (so speed doesn't matter). */

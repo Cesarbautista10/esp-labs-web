@@ -2066,7 +2066,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     short:
       "This project's off-screen picture: draw into it with the normal GFX calls, then push it to the screen.",
     simple: "Our own sketch pad, kept in the fastest drawer that has room.",
-    deep: "Defined in <code>lib/bench/src/frame_buffer.h</code>. <code>begin()</code> tries fast internal RAM first and falls back to PSRAM, and <code>internal()</code> says which it got. It overrides <code>drawPixel</code>, <code>fillScreen</code> and the line and rectangle calls with direct writes into <code>pixels()</code>.",
+    deep: "Defined in <code>kit/lib/bench/src/frame_buffer.h</code>. <code>begin()</code> tries fast internal RAM first and falls back to PSRAM, and <code>internal()</code> says which it got. It overrides <code>drawPixel</code>, <code>fillScreen</code> and the line and rectangle calls with direct writes into <code>pixels()</code>.",
     example: "FrameBuffer &fb = display.fb();",
   },
   {
@@ -2079,7 +2079,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
       "This project's screen helper: the ST7789, its backlight and the frame buffer, set up the same way in every lab.",
     simple:
       "The screen and its sketch pad packaged together: draw on <code>fb()</code>, then <code>push()</code> shows it.",
-    deep: "Defined in <code>lib/bench/src/display.h</code>. <code>begin()</code> starts PWM on the backlight, SPI at 40 MHz and the panel in landscape; <code>push()</code> sends the whole picture with one <code>drawRGBBitmap</code>.",
+    deep: "Defined in <code>kit/lib/bench/src/display.h</code>. <code>begin()</code> starts PWM on the backlight, SPI at 40 MHz and the panel in landscape; <code>push()</code> sends the whole picture with one <code>drawRGBBitmap</code>.",
     example: 'if (!display.begin()) log_e("no memory for the frame buffer");',
   },
   {
@@ -2092,7 +2092,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
       "This project's push-button helper: turns raw presses into clean clicks, double-clicks and long presses.",
     simple:
       "A doorman for the button: it ignores the jitter of the metal contacts and tells you what the person really meant.",
-    deep: "Defined in <code>lib/bench/src/button.h</code>. An <code>IRAM_ATTR</code> interrupt counts every edge; <code>poll()</code> accepts a new level after 25 ms of quiet and reports <code>Event::Click</code>, <code>DoubleClick</code> (within 280 ms) or <code>LongPress</code> (600 ms).",
+    deep: "Defined in <code>kit/lib/bench/src/button.h</code>. An <code>IRAM_ATTR</code> interrupt counts every edge; <code>poll()</code> accepts a new level after 25 ms of quiet and reports <code>Event::Click</code>, <code>DoubleClick</code> (within 280 ms) or <code>LongPress</code> (600 ms).",
     example: 'Button external(PIN_BUTTON, "button");',
   },
   {
@@ -2129,7 +2129,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
       "This project's own driver for the RC522 card reader, written register by register with no library.",
     simple:
       "Speaking to the reader chip directly, one byte at a time, so you can see every word of the conversation.",
-    deep: "Defined in <code>lib/rfid-kit/src/mfrc522.h</code>: SPI framing, registers, FIFO, the chip's timer and either polling or sleeping on its IRQ wire. <code>iso14443a.h</code> and <code>mifare_classic.h</code> build the card protocol on top.",
+    deep: "Defined in <code>kit/lib/rfid-kit/src/mfrc522.h</code>: SPI framing, registers, FIFO, the chip's timer and either polling or sleeping on its IRQ wire. <code>iso14443a.h</code> and <code>mifare_classic.h</code> build the card protocol on top.",
     example: "const uint8_t v = chip_.begin(*spi_, pins, nullptr);",
   },
   {
@@ -2715,7 +2715,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     match: { calls: ["BLE_NOTE"] },
     short: "This project's shortcut for adding a line to the Bluetooth labs' activity log.",
     simple: "A quick jot in the lab notebook that the screen and serial log both show.",
-    deep: "A macro from <code>lib/ble-kit/src/ble_link.h</code> that expands to <code>::ble::activity().add(::ble::Act::kind, ...)</code>: a printf-style entry in a ring buffer guarded by a critical section, so callbacks in the NimBLE task can write safely.",
+    deep: "A macro from <code>kit/lib/ble-kit/src/ble_link.h</code> that expands to <code>::ble::activity().add(::ble::Act::kind, ...)</code>: a printf-style entry in a ring buffer guarded by a critical section, so callbacks in the NimBLE task can write safely.",
     example: 'BLE_NOTE(Info, "Vault set (%u bytes)", arg.length());',
   },
   {

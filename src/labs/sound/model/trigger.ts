@@ -1,4 +1,4 @@
-// lib/sound-kit/src/trigger.h in TypeScript (voice-activated recording), counted in milliseconds
+// kit/lib/sound-kit/src/trigger.h in TypeScript (voice-activated recording), counted in milliseconds
 // of sound instead of samples.
 
 export interface TriggerConfig {

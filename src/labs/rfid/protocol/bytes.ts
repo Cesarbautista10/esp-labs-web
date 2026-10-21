@@ -18,7 +18,7 @@ export const hxs = (bytes: readonly number[]) => bytes.map(hx).join(" ");
 /** UID check byte: the XOR of the four UID bytes. */
 export const bccOf = (u: Uid) => (u[0] ?? 0) ^ (u[1] ?? 0) ^ (u[2] ?? 0) ^ (u[3] ?? 0);
 
-/** ISO 14443-3 CRC_A, the same maths as lib/rfid-kit/src/rfid_format.h. Low byte first. */
+/** ISO 14443-3 CRC_A, the same maths as kit/lib/rfid-kit/src/rfid_format.h. Low byte first. */
 export function crcA(bytes: readonly number[]): [number, number] {
   let crc = 0x6363;
   for (const b of bytes) {

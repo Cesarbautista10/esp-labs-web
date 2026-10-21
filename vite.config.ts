@@ -8,7 +8,7 @@ import { firmwarePlugin } from "./tools/firmware/vite-plugin.ts";
 // React Compiler memoizes components and hooks at build time, so the code stays free of
 // hand-written useMemo/useCallback. `base: "./"` keeps every asset URL relative: the build
 // works from any static host, in any subfolder, or a claude.ai artifact, with no rewrite rules.
-// FIRMWARE_DIR: the PlatformIO project whose sources the code reader shows (build-time only).
+// FIRMWARE_DIR: the firmware checkout whose sources the code reader shows (build-time only).
 export default defineConfig(({ mode }) => ({
   base: "./",
   plugins: [
@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     babel({ presets: [reactCompilerPreset()] }),
     firmwarePlugin({
       root: fileURLToPath(
-        new URL(loadEnv(mode, process.cwd(), "").FIRMWARE_DIR || "../test-esp", import.meta.url),
+        new URL(loadEnv(mode, process.cwd(), "").FIRMWARE_DIR || "../../esp-labs", import.meta.url),
       ),
     }),
   ],

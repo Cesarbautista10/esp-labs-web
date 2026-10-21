@@ -1,4 +1,4 @@
-// Scene 1: a flat-shaded torus, the same maths as src/03b-showcase (back-face culling,
+// Scene 1: a flat-shaded torus, the same maths as labs/03b-showcase/src (back-face culling,
 // painter's sort, one light).
 import { mix, rgb } from "../color";
 import { H, type SceneLabel, type ShowcaseColors, W } from "./scene-types";

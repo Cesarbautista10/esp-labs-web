@@ -28,12 +28,12 @@ pnpm preview          # serve dist/ locally (browsers will not run module script
 
 Copy `.env.example` to `.env` to override:
 
-| Variable              | Default       | Meaning                                                       |
-| --------------------- | ------------- | ------------------------------------------------------------- |
-| `VITE_BENCH_DATA_URL` | `./data/`     | Where `bench-status.json` and `bench-log.json` are read       |
-| `VITE_FIRMWARE_URL`   | `./firmware/` | Where the bundled lab code is read                            |
-| `VITE_LOG_LEVEL`      | `info`        | `debug`, `info`, `warn`, `error` or `silent`                  |
-| `FIRMWARE_DIR`        | `../test-esp` | Build time only: the PlatformIO project the code reader shows |
+| Variable              | Default          | Meaning                                                      |
+| --------------------- | ---------------- | ------------------------------------------------------------ |
+| `VITE_BENCH_DATA_URL` | `./data/`        | Where `bench-status.json` and `bench-log.json` are read      |
+| `VITE_FIRMWARE_URL`   | `./firmware/`    | Where the bundled lab code is read                           |
+| `VITE_LOG_LEVEL`      | `info`           | `debug`, `info`, `warn`, `error` or `silent`                 |
+| `FIRMWARE_DIR`        | `../../esp-labs` | Build time only: the firmware checkout the code reader shows |
 
 ## Where things live
 
@@ -43,7 +43,7 @@ Copy `.env.example` to `.env` to override:
 | `src/domain/code/`       | C++ tokenizer, analyser, line explainer and tour builder (pure, tested)                                              |
 | `src/features/code/`     | The code reader: tour, explore, map, words                                                                           |
 | `src/features/settings/` | Settings page and its store (level, hints, code display, motion)                                                     |
-| `tools/firmware/`        | Reads `test-esp` and ships each env's code as JSON (Vite plugin)                                                     |
+| `tools/firmware/`        | Reads `esp-labs` (or an old `test-esp`) and ships each env's code as JSON (Vite plugin)                              |
 | `src/labs/<track>/`      | That track's simulators and explainers, registered in `widgets.ts`                                                   |
 | `src/labs/shared/`       | `Simulation` and the lab-screen engine (screen + buttons + serial)                                                   |
 | `src/features/`          | App screens: lesson page, navigation, board pinout, bench log, progress                                              |

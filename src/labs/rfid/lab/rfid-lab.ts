@@ -1,5 +1,5 @@
 // The rfid-lab-rN firmware as the R1-R6 preview runs it: the cards in the field, the reader's
-// settings, and the serial commands (the same words as lib/rfid-lab-kit/src/lab_commands.h).
+// settings, and the serial commands (the same words as kit/lib/rfid-lab-kit/src/lab_commands.h).
 // Plain TypeScript: the preview draws `state` and wires buttons to these methods.
 import type { Tone } from "@/ui/terminal/terminal-log";
 import { bccOf, hx, hxs, RF, type Uid, withCrc } from "../protocol/bytes";

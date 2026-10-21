@@ -8,7 +8,7 @@ export type Tint = "teal" | "amber" | "coral" | "blue" | "violet" | "muted";
 export type Mark = "+" | "!" | "x" | "<" | ">" | "-";
 
 /**
- * What the shared status bar reads, like lib/ble-kit/src/ble_views.h does on the board. Every BLE
+ * What the shared status bar reads, like kit/lib/ble-kit/src/ble_views.h does on the board. Every BLE
  * lab's state extends it.
  */
 export interface BleState extends LabState {

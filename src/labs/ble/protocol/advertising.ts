@@ -1,4 +1,4 @@
-// A TypeScript copy of src/ble-lab-b2/beacon_payload.h: the B2 beacon's AD structures, used by
+// A TypeScript copy of labs/ble-lab-b2/src/beacon_payload.h: the B2 beacon's AD structures, used by
 // the builder panel, the timing panel and the B2 preview.
 import { ascii, le16 } from "./hex";
 
