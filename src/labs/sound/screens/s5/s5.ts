@@ -241,23 +241,23 @@ export const S5: SoundSpec<S5State> = {
   ],
   boot: BOOT,
   captions: [
-    "bars: 24 bands from 100 Hz to 8 kHz on a log scale (like a piano), in dB above each band's own quiet, with falling peak caps. Top: the loudest frequency and its note; right: N, Hz per bin, the FFT's time.",
-    "waterfall: about 6 s of spectrum scrolling left, low notes at the bottom; night → pink → white = 0 → 40 dB above the quiet. A whistle that slides draws a line.",
-    "tuner: whistle or hum: the note big (teal within ±5 cents), the frequency, a needle from flat to sharp and a 5 s trail of your pitch around the note.",
-    "steer: whistle higher to lift the glowing dot, lower to drop it (600-2500 Hz, log scale). Hold it in the ring for a second to score. The RGB LED takes the dot's colour while you whistle.",
+    (t) => t("labs-sound:s5.captions.bars"),
+    (t) => t("labs-sound:s5.captions.waterfall"),
+    (t) => t("labs-sound:s5.captions.tuner"),
+    (t) => t("labs-sound:s5.captions.steer"),
   ],
   actions: [
-    { label: "〰 slide whistle 4 s", run: (st) => st.mic.say("whistle", 4) },
-    { label: "🎵 music 3 s", run: (st) => st.mic.say("music", 3) },
-    { label: "hold", run: (st, term) => void onCommand("hold", st, term) },
+    { label: (_, t) => t("labs-sound:s5.actions.slideWhistle4S"), run: (st) => st.mic.say("whistle", 4) },
+    { label: (_, t) => t("labs-sound:s5.actions.music3S"), run: (st) => st.mic.say("music", 3) },
+    { label: (_, t) => t("labs-sound:s5.actions.hold"), run: (st, term) => void onCommand("hold", st, term) },
     {
-      label: "ref (2x on tuner)",
+      label: (_, t) => t("labs-sound:s5.actions.ref2xOnTuner"),
       run(st, term) {
         onCommand("ref", st, term);
         st.view = 2;
       },
     },
-    { label: "sweep", run: (st, term) => void onCommand("sweep", st, term) },
+    { label: (_, t) => t("labs-sound:s5.actions.sweep"), run: (st, term) => void onCommand("sweep", st, term) },
   ],
   init() {
     const st: S5State = {

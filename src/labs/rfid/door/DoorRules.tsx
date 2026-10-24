@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import type { WidgetProps } from "@/widgets/types";
 import {
   type DoorCard,
@@ -19,6 +20,7 @@ const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
 /** R7 panel: set up a card, the clock and lockdown, and see which rule decides. */
 export function DoorRules(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
   const [st, setSt] = useState<Setup>(() => ({
     lock: "front",
     listed: true,
@@ -40,10 +42,10 @@ export function DoorRules(_: WidgetProps) {
     <div className={styles.rulesUi}>
       <div className={styles.rulesForm}>
         <label>
-          tapped at
+          {t("doorRules.tappedAt")}
           <select value={st.lock} onChange={(e) => set("lock", e.target.value as Lock)}>
-            <option value="front">front door</option>
-            <option value="admin">admin room</option>
+            <option value="front">{t("doorRules.front")}</option>
+            <option value="admin">{t("doorRules.adminRoom")}</option>
           </select>
         </label>
         <label>
@@ -52,13 +54,15 @@ export function DoorRules(_: WidgetProps) {
             checked={st.listed}
             onChange={(e) => set("listed", e.target.checked)}
           />{" "}
-          in the list
+          {t("doorRules.listed")}
         </label>
         <label>
-          role
+          {t("doorRules.role")}
           <select value={st.role} onChange={(e) => set("role", e.target.value as Role)}>
             {ROLES.map((r) => (
-              <option key={r}>{r}</option>
+              <option key={r} value={r}>
+                {t(`doorRules.roles.${r}`)}
+              </option>
             ))}
           </select>
         </label>
@@ -68,18 +72,18 @@ export function DoorRules(_: WidgetProps) {
             checked={st.blocked}
             onChange={(e) => set("blocked", e.target.checked)}
           />{" "}
-          blocked
+          {t("doorRules.blocked")}
         </label>
         <label>
-          end date
+          {t("doorRules.endDate")}
           <select value={st.until} onChange={(e) => set("until", e.target.value as Until)}>
-            <option value="none">none</option>
-            <option value="future">next week</option>
-            <option value="past">yesterday</option>
+            <option value="none">{t("doorRules.until.none")}</option>
+            <option value="future">{t("doorRules.until.future")}</option>
+            <option value="past">{t("doorRules.until.past")}</option>
           </select>
         </label>
         <label>
-          hours from
+          {t("doorRules.hoursFrom")}
           <select value={st.from} onChange={(e) => set("from", Number(e.target.value))}>
             {HOURS.map((h) => (
               <option key={h} value={h}>
@@ -89,7 +93,7 @@ export function DoorRules(_: WidgetProps) {
           </select>
         </label>
         <label>
-          to
+          {t("doorRules.to")}
           <select value={st.to} onChange={(e) => set("to", Number(e.target.value))}>
             {HOURS.map((h) => (
               <option key={h} value={h}>
@@ -99,11 +103,11 @@ export function DoorRules(_: WidgetProps) {
           </select>
         </label>
         <label>
-          uses
+          {t("doorRules.uses")}
           <select value={st.uses} onChange={(e) => set("uses", Number(e.target.value))}>
-            <option value={-1}>unlimited</option>
-            <option value={3}>3 left</option>
-            <option value={0}>0 left</option>
+            <option value={-1}>{t("doorRules.unlimited")}</option>
+            <option value={3}>{t("doorRules.usesLeft", { count: 3 })}</option>
+            <option value={0}>{t("doorRules.usesLeft", { count: 0 })}</option>
           </select>
         </label>
         <label>
@@ -112,7 +116,7 @@ export function DoorRules(_: WidgetProps) {
             checked={st.lockdown}
             onChange={(e) => set("lockdown", e.target.checked)}
           />{" "}
-          lockdown
+          {t("doorRules.lockdown")}
         </label>
         <label>
           <input
@@ -120,10 +124,10 @@ export function DoorRules(_: WidgetProps) {
             checked={st.synced}
             onChange={(e) => set("synced", e.target.checked)}
           />{" "}
-          board has internet time
+          {t("doorRules.synced")}
         </label>
         <label htmlFor={`${ids}h`}>
-          time now
+          {t("doorRules.timeNow")}
           <input
             id={`${ids}h`}
             type="range"
@@ -136,27 +140,31 @@ export function DoorRules(_: WidgetProps) {
         </label>
       </div>
       <ol className={styles.rulesList}>
-        {ruleTrail(st, st).map(({ rule, state, text }) => (
+        {ruleTrail(st, st).map(({ rule, state }) => (
           <li key={rule.key} className={styles[state]}>
-            <span>{rule.name}</span>
-            <b>{text}</b>
+            <span>{t(`doorRules.rules.${rule.key}.name`)}</span>
+            <b>{t(`doorRules.trail.${state}`, { says: t(`doorRules.rules.${rule.key}.says`) })}</b>
           </li>
         ))}
         <li className={decided ? styles.skip : styles.open}>
-          <span>All passed</span>
-          <b>{decided ? "–" : "OPEN (a guest's uses go down by one)"}</b>
+          <span>{t("doorRules.allPassed")}</span>
+          <b>{decided ? "–" : t("doorRules.openNote")}</b>
         </li>
       </ol>
       <p className={styles.verdict} aria-live="polite">
         {decided ? (
-          <>
-            <span className={`${styles.now} ${styles.critical}`}>DENIED · {decided.says}</span> the
-            first rule that says no wins; the rest aren't checked.
-          </>
+          <Trans
+            t={t}
+            i18nKey="doorRules.denied"
+            values={{ says: t(`doorRules.rules.${decided.key}.says`) }}
+            components={{ now: <span className={`${styles.now} ${styles.critical}`} /> }}
+          />
         ) : (
-          <>
-            <span className={`${styles.now} ${styles.good}`}>OPEN</span> every rule passed.
-          </>
+          <Trans
+            t={t}
+            i18nKey="doorRules.granted"
+            components={{ now: <span className={`${styles.now} ${styles.good}`} /> }}
+          />
         )}
       </p>
     </div>

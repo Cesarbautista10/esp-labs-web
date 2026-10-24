@@ -253,22 +253,22 @@ export const S3: SoundSpec<S3State> = {
     ["colour", "next RGB colour (the lamp view's double-click)"],
   ],
   captions: [
-    "timeline: the last 4 s of loudness with the rise (dotted white) and release (dotted grey) lines. A clap gets a teal flag; a long sound (a word, a whistle) an amber bar marked long. Top left: the pattern as it forms, then what it did.",
-    "lamp: the LED on GPIO 4 as a bulb and the RGB LED as an orb in its colour. Clap 4 times for the party.",
-    "patterns: 1 to 4 claps as pairs of hands and the action each one runs; the last match lights up for 3 s.",
-    "tune: double-click, then clap 5 times as you normally would. Each bar is one clap (dB above the quiet, how long it rang); sens becomes 60 % of the softest.",
+    (t) => t("labs-sound:s3.captions.timeline"),
+    (t) => t("labs-sound:s3.captions.lamp"),
+    (t) => t("labs-sound:s3.captions.patterns"),
+    (t) => t("labs-sound:s3.captions.tune"),
   ],
   actions: [
     {
-      label: "👏👏👏 three claps",
+      label: (_, t) => t("labs-sound:s3.actions.threeClaps"),
       run(st) {
         st.mic.clap();
         st.mic.clap(0.3);
         st.mic.clap(0.6);
       },
     },
-    { label: "👏×4 party", run: (st) => [0, 0.25, 0.5, 0.75].forEach((d) => st.mic.clap(d)) },
-    { label: "learn (2x on tune)", run: (st, term) => void onCommand("learn", st, term) },
+    { label: (_, t) => t("labs-sound:s3.actions.n4Party"), run: (st) => [0, 0.25, 0.5, 0.75].forEach((d) => st.mic.clap(d)) },
+    { label: (_, t) => t("labs-sound:s3.actions.learn2xOnTune"), run: (st, term) => void onCommand("learn", st, term) },
   ],
   init() {
     const st: S3State = {

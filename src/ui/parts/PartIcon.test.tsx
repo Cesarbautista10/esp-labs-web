@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PartIcon } from "./PartIcon";
-import { PART_NAMES, PARTS } from "./registry";
+import { PART_NAMES } from "./registry";
 
 describe("PartIcon", () => {
   it.each(PART_NAMES)("draws %s", (name) => {
@@ -14,7 +14,7 @@ describe("PartIcon", () => {
 
   it("names the part for screen readers when asked", () => {
     const { getByRole } = render(<PartIcon name="led" label />);
-    expect(getByRole("img").getAttribute("aria-label")).toBe(PARTS.led.label);
+    expect(getByRole("img").getAttribute("aria-label")).toBe("LED");
   });
 
   it("never paints a raw colour: every fill and stroke comes from a token", () => {

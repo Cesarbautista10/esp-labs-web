@@ -34,7 +34,8 @@
   font: 600 11.5px var(--font-mono);
   letter-spacing: 0.02em;
   border-radius: 999px;
-  padding: 3px 10px 3px 6px;
+  padding-block: 3px;
+  padding-inline: 6px 10px;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);

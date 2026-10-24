@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Button } from "@/ui/Button";
@@ -47,28 +48,12 @@ const LEGS = [
 ] as const;
 
 type Mode = "both" | "screen" | "button";
-const MODES: readonly { key: Mode; label: string }[] = [
-  { key: "both", label: "Both" },
-  { key: "screen", label: "Screen · 8 wires" },
-  { key: "button", label: "Button · 2 wires" },
-];
-
-const CAPTIONS: Record<Mode, { color: string; title: string; text: string }> = {
-  both: {
-    color: "--copper",
-    title: "10 wires on one header",
-    text: "8 go to the screen (an output), 2 go to the button (an input). Both need a GND; any GND pin works. Pin 5 sits right next to 4, so check the label.",
-  },
-  screen: {
-    color: "--w-scl",
-    title: "Screen: an output on 8 wires",
-    text: "Power (VCC, GND), the SPI bus (SCL, SDA), and control lines (CS, DC, RES, BLK). Data flows from the ESP32 to the screen, millions of bits a second.",
-  },
-  button: {
-    color: "--w-btn",
-    title: "Button: an input on 2 wires",
-    text: "GPIO 5 and GND. No power wire: the chip's internal pull-up holds GPIO 5 HIGH, and pressing joins it to GND (LOW). Press the button to see the signal travel in.",
-  },
+// Labels and captions live in labs-display (full.modes.*, full.captions.*).
+const MODES: readonly Mode[] = ["both", "screen", "button"];
+const CAPTION_COLORS: Record<Mode, string> = {
+  both: "--copper",
+  screen: "--w-scl",
+  button: "--w-btn",
 };
 
 function pinStyle(i: number) {
@@ -79,6 +64,7 @@ function pinStyle(i: number) {
 
 /** Lesson 03b variation 2: the screen (output) and the push button (input) on one header. */
 export function FullWiring(_: WidgetProps) {
+  const { t } = useTranslation("labs-display");
   const reduce = useReducedMotion();
   const [mode, setMode] = useState<Mode>("both");
   const [down, setDown] = useState(false);
@@ -88,7 +74,6 @@ export function FullWiring(_: WidgetProps) {
   const pulseRef = useRef<SVGCircleElement>(null);
   const showS = mode !== "button";
   const showB = mode !== "screen";
-  const caption = CAPTIONS[mode];
 
   // Press: the knob goes down, GPIO 5 drops LOW, and a pulse travels from the button to the pin.
   function pressDown() {
@@ -117,30 +102,26 @@ export function FullWiring(_: WidgetProps) {
 
   return (
     <div className={styles.wd}>
-      <div className={styles.wdBar} role="group" aria-label="Show">
+      <div className={styles.wdBar} role="group" aria-label={t("full.show")}>
         <span className={styles.show} aria-hidden="true">
-          Show
+          {t("full.show")}
         </span>
         {MODES.map((m) => (
-          <Button key={m.key} pressed={mode === m.key} onClick={() => setMode(m.key)}>
-            {m.label}
+          <Button key={m} pressed={mode === m} onClick={() => setMode(m)}>
+            {t(`full.modes.${m}`)}
           </Button>
         ))}
         <HoldButton
           down={down}
-          aria-label="Press the drawn button"
+          aria-label={t("press.aria")}
           onDown={pressDown}
           onUp={() => setDown(false)}
         >
-          PRESS
+          {t("press.label")}
         </HoldButton>
       </div>
-      <div ref={wrapRef} className={`${styles.wdSvg} ${styles.signals}`}>
-        <svg
-          viewBox="0 0 760 600"
-          role="img"
-          aria-label="The ESP32 left header with the display wired to 8 pins and the push button wired to GPIO 5 and GND"
-        >
+      <div ref={wrapRef} className={`${styles.wdSvg} ${styles.signals}`} dir="ltr">
+        <svg viewBox="0 0 760 600" role="img" aria-label={t("full.aria")}>
           {/* ESP32 left header */}
           <rect
             x={EX - 20}
@@ -153,7 +134,7 @@ export function FullWiring(_: WidgetProps) {
             strokeWidth="2"
           />
           <Label x={EX - 20} y={16} className={styles.title}>
-            ESP32-S3 · LEFT HEADER
+            {t("wiring.leftHeader")}
           </Label>
           <Label x={EX + 35} y={568} className={styles.silk} anchor="middle">
             USB ↓
@@ -180,18 +161,18 @@ export function FullWiring(_: WidgetProps) {
           />
           <rect x="50" y="58" width="136" height="254" rx="4" fill="var(--scope-paper)" />
           <Label x={118} y={182} className={styles.silk} anchor="middle">
-            SCREEN
+            {t("full.screen")}
           </Label>
           <Label x={118} y={196} className={styles.silk} anchor="middle">
-            output
+            {t("full.output")}
           </Label>
           <Label x={30} y={32} className={styles.title}>
-            1.9″ DISPLAY · OUTPUT
+            {t("full.display")}
           </Label>
 
           {/* Push button (bottom-left) */}
           <Label x={110} y={418} className={styles.title}>
-            PUSH BUTTON · INPUT
+            {t("full.button")}
           </Label>
           <rect
             x="130"
@@ -291,7 +272,7 @@ export function FullWiring(_: WidgetProps) {
             anchor="middle"
             style={{ opacity: showS ? 1 : 0.25 }}
           >
-            OUT → ESP32 talks to the screen
+            {t("full.out")}
           </Label>
           <Label
             x={130}
@@ -299,10 +280,10 @@ export function FullWiring(_: WidgetProps) {
             className={`${styles.lbl} ${styles.on}`}
             style={{ opacity: showB ? 1 : 0.25 }}
           >
-            IN ← ESP32 listens to the button
+            {t("full.in")}
           </Label>
           <Label x={EX - 12} y={eY(GND_PIN) + 46} anchor="end">
-            screen and button GND: any GND pin works
+            {t("full.gnd")}
           </Label>
           <Label
             x={EX - 40}
@@ -310,12 +291,12 @@ export function FullWiring(_: WidgetProps) {
             className={`${styles.lbl} ${styles.on}`}
             anchor="end"
           >
-            {down ? "GPIO 5 = LOW (pressed)" : "GPIO 5 = HIGH"}
+            {down ? t("full.pinLow") : t("full.pinHigh")}
           </Label>
         </svg>
       </div>
-      <WireCaption color={caption.color} title={caption.title}>
-        {caption.text}
+      <WireCaption color={CAPTION_COLORS[mode]} title={t(`full.captions.${mode}.title`)}>
+        {t(`full.captions.${mode}.text`)}
       </WireCaption>
     </div>
   );

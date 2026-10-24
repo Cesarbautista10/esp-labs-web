@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import pluginQuery from "@tanstack/eslint-plugin-query";
+import i18next from "eslint-plugin-i18next";
 import jsxA11y from "eslint-plugin-jsx-a11y-x";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
@@ -26,6 +27,29 @@ export default tseslint.config(
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "no-console": "error",
+    },
+  },
+  // No hard-coded text in JSX: interface strings go through t() (docs/I18N.md). Tests may use
+  // literal text to query the English page.
+  {
+    files: ["src/**/*.tsx"],
+    ignores: ["src/**/*.test.tsx"],
+    plugins: { i18next },
+    rules: {
+      "i18next/no-literal-string": [
+        "error",
+        {
+          mode: "jsx-text-only",
+          // Not words: symbols, silkscreen and register names (VCC, C1), units and their numbers.
+          words: {
+            exclude: [
+              "^[^A-Za-z]*$",
+              "^[^a-z]*$",
+              "^[\\d\\s.\\-−]*(dB|mm|ms|Hz|kHz|MHz|baud|°C|%)?$",
+            ],
+          },
+        },
+      ],
     },
   },
   {

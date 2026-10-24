@@ -1,7 +1,8 @@
 // Where the wave sits in the ADC's range: a 0-3.3 V ruler, the shaded range, the bias line and a
 // talk-like burst, clipped where it leaves the range.
 import type { ScopePalette } from "@/lib/canvas";
-import { mono, textWriter } from "../../kit/draw";
+import { labelWriter, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import { type Atten, SND_TOP } from "../../model/level";
 
 export function drawBias(
@@ -11,8 +12,10 @@ export function drawBias(
   a: number,
   atten: Atten,
   tt: number,
+  tr: SoundT,
 ): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const top = SND_TOP[atten];
   const step = top / 4095;
   const yv = (v: number) => 240 - (v / 3300) * 220;
@@ -28,7 +31,7 @@ export function drawBias(
     g.fillRect(64, yv(v), 6, 1);
     T(60, yv(v) + 4, (v / 1000).toFixed(1), C.muted, small, "right");
   }
-  T(90, yv(top) - 6, `ADC range 0-${(top / 1000).toFixed(2)} V`, C.teal, small, "center");
+  W(90, yv(top) - 6, tr("bias.range", { v: top / 1000 }), C.teal, small, "center");
   g.strokeStyle = C.pink;
   g.beginPath();
   g.moveTo(66, yv(b));
@@ -57,12 +60,11 @@ export function drawBias(
   const steps = Math.round((Math.min(top, hi) - Math.max(0, lo)) / step);
   let hint: string;
   if (lo <= 0 || hi >= top)
-    hint =
-      "CLIPPING: the wave hits the range's edge. Flat tops = lost sound (orange); red = what was cut off.";
-  else if (b > top - 150) hint = "bias near the top: use a bigger atten";
-  else if (atten === 12 && hi < 1600) hint = "fits in 0-1.75 V: try atten 6 (2x finer)";
-  else if (atten === 6 && hi < 1150) hint = "fits in 0-1.25 V: try atten 2.5";
-  else hint = "the wave fits the range: good";
-  T(130, 20, `1 ADC step = ${step.toFixed(2)} mV · this wave spans ${steps} of 4096 steps`, C.ink);
-  T(130, 38, hint, clipped || b > top - 150 ? C.amber : C.teal);
+    hint = tr("bias.hint.clipping");
+  else if (b > top - 150) hint = tr("bias.hint.nearTop");
+  else if (atten === 12 && hi < 1600) hint = tr("bias.hint.try6");
+  else if (atten === 6 && hi < 1150) hint = tr("bias.hint.try25");
+  else hint = tr("bias.hint.good");
+  W(130, 20, tr("bias.steps", { mv: step, steps }), C.ink);
+  W(130, 38, hint, clipped || b > top - 150 ? C.amber : C.teal);
 }

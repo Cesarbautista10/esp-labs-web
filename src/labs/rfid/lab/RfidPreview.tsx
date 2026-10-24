@@ -1,4 +1,5 @@
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useBoardRgb } from "@/features/board/board-signals";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, SCREEN_H, SCREEN_W, scopePalette } from "@/lib/canvas";
@@ -18,12 +19,7 @@ import { useTimers } from "./use-timers";
 
 const LONG_PRESS_MS = 600;
 const DOUBLE_CLICK_MS = 300;
-const FIELD_BUTTONS: readonly (readonly [FieldOn, string])[] = [
-  ["card", "lay the card"],
-  ["tag", "lay the tag"],
-  ["both", "both"],
-  ["none", "remove"],
-];
+const FIELD_BUTTONS: readonly FieldOn[] = ["card", "tag", "both", "none"];
 
 /** R1-R6 preview: the rfid-lab screen, its push button, cards to lay down and the serial monitor. */
 export function RfidPreview({ lesson }: WidgetProps) {
@@ -32,6 +28,7 @@ export function RfidPreview({ lesson }: WidgetProps) {
 }
 
 function Lab({ labId, lessonId, view }: { labId: LabId; lessonId: string; view: number }) {
+  const { t } = useTranslation("labs-rfid");
   const term = useTerminalLog();
   const after = useTimers();
   const [sim, snapshot] = useSimulation(() => initialLabState(view));
@@ -94,6 +91,7 @@ function Lab({ labId, lessonId, view }: { labId: LabId; lessonId: string; view: 
     act(() => lab.nextView());
   }
 
+  const viewName = (v: number) => t(`views.${RFID_VIEWS[v] ?? "chip"}`);
   const st = snapshot.state;
   const spec = lab.spec;
   const pos = Math.max(0, spec.views.indexOf(st.view));
@@ -103,7 +101,7 @@ function Lab({ labId, lessonId, view }: { labId: LabId; lessonId: string; view: 
         <button
           type="button"
           className={`${styles.bootBtn} ${down ? styles.down : ""}`}
-          aria-label="Push button: click next view, double-click this view's action, hold to pause polling"
+          aria-label={t("preview.button")}
           onPointerDown={() => {
             downAt.current = performance.now();
             setDown(true);
@@ -119,52 +117,55 @@ function Lab({ labId, lessonId, view }: { labId: LabId; lessonId: string; view: 
           BUTTON
         </button>
         <ChoiceGroup
-          label="Views"
+          label={t("preview.views")}
           value={pos}
           onChange={(p) => act(() => lab.setView(p))}
           choices={spec.views.map((v, i) => ({
             key: i,
             label: (
-              <span title={RFID_VIEWS[v]}>
+              <span title={viewName(v)}>
                 {i + 1}
-                <span className={styles.vh}> {RFID_VIEWS[v]}</span>
+                <span className={styles.vh}> {viewName(v)}</span>
               </span>
             ),
           }))}
         />
         <span
           className={styles.autoFlag}
-        >{`${RFID_VIEWS[st.view]} view · ${st.polling ? "polling" : "paused"}`}</span>
+        >
+          {t(st.polling ? "preview.status" : "preview.statusPaused", { view: viewName(st.view) })}
+        </span>
       </div>
-      <ButtonRow aria-label="Cards on the reader">
-        {FIELD_BUTTONS.map(([on, text]) => (
+      <ButtonRow aria-label={t("preview.cards")}>
+        {FIELD_BUTTONS.map((on) => (
           <Button
             key={on}
             pressed={on === "none" ? undefined : st.on === on}
             onClick={() => act(() => lab.setField(on))}
           >
-            {text}
+            {t(`preview.field.${on}`)}
           </Button>
         ))}
       </ButtonRow>
       <ScreenFrame>
         <canvas
+          dir="ltr"
           ref={canvasRef}
           width={SCREEN_W}
           height={SCREEN_H}
           role="img"
-          aria-label={`Simulated board screen: ${RFID_VIEWS[st.view]} view`}
+          aria-label={t("preview.screen", { view: viewName(st.view) })}
         />
       </ScreenFrame>
       <Caption>
-        Example data: the UIDs, timings and numbers are made up. Your board prints its own.
+        {t("preview.example")}
       </Caption>
       <Terminal
         log={term}
         title="$ uv run pio device monitor"
         onCommand={(line) => act(() => lab.run(line))}
       />
-      <ButtonRow aria-label="Quick commands">
+      <ButtonRow aria-label={t("preview.quick")}>
         {QUICK[labId].map((c) => (
           <Button key={c} onClick={() => act(() => lab.run(c))}>
             {c}

@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import type { LineExplanation } from "@/domain/code/explain";
 import type { GlossaryEntry } from "@/domain/code/glossary";
 import { RichText } from "@/ui/RichText";
@@ -29,40 +30,49 @@ export function LineLens({
   onJump,
   onBack,
 }: LineLensProps) {
+  const { t } = useTranslation("code");
   const { jump, continues } = explanation;
   return (
-    <article className={styles.card} aria-label={`Line ${line + 1}`}>
+    <article className={styles.card} aria-label={t("lens.label", { line: line + 1 })}>
       <p className={styles.eyebrow}>
-        Line {line + 1}
+        {t("lens.eyebrow", { line: line + 1 })}
         {onBack ? (
           <button type="button" className={styles.back} onClick={onBack}>
-            ← back to the stop
+            {t("lens.back")}
           </button>
         ) : null}
       </p>
-      <pre className={styles.lensCode}>{text.trim() || " "}</pre>
+      <pre className={styles.lensCode} dir="ltr">{text.trim() || " "}</pre>
       <p className={styles.say}>
         {explanation.text ? (
           <RichText text={explanation.text} />
         ) : (
-          "An empty line: it only gives the code room to breathe."
+          t("lens.empty")
         )}
       </p>
       {continues !== undefined ? (
         <button type="button" className={styles.link} onClick={() => onLine(continues)}>
-          Read from line {continues + 1}, where it starts →
+          {t("lens.readFrom", { line: continues + 1 })}
         </button>
       ) : null}
       {jump ? (
         <button type="button" className={styles.link} onClick={() => onJump(jump.path, jump.line)}>
-          See where <code>{jump.name}</code> is defined ({jump.path.split("/").at(-1)}, line{" "}
-          {jump.line + 1}) →
+          <Trans
+            t={t}
+            i18nKey="lens.definedAt"
+            values={{
+              name: jump.name,
+              file: jump.path.split("/").at(-1) ?? jump.path,
+              line: jump.line + 1,
+            }}
+            components={{ code: <code /> }}
+          />
         </button>
       ) : null}
       {wordIds.length ? (
         <div className={styles.fresh}>
-          <p className={styles.freshLabel}>Words on this line</p>
-          <TermChips ids={wordIds} entries={entries} onPick={onTerm} label="Words on this line" />
+          <p className={styles.freshLabel}>{t("lens.words")}</p>
+          <TermChips ids={wordIds} entries={entries} onPick={onTerm} label={t("lens.words")} />
         </div>
       ) : null}
     </article>

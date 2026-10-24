@@ -15,5 +15,5 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--muted);
-  margin-left: auto;
+  margin-inline-start: auto;
 }

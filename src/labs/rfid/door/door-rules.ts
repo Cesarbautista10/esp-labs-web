@@ -26,9 +26,21 @@ export interface DoorClock {
   readonly hour: number;
 }
 
+export type RuleKey =
+  | "unknown"
+  | "blocked"
+  | "admin"
+  | "lockdown"
+  | "clock"
+  | "expired"
+  | "hours"
+  | "uses";
+
 export interface DoorRule {
-  readonly key: string;
+  readonly key: RuleKey;
+  /** The question the panel shows is doorRules.rules.<key>.name in the labs-rfid catalogue. */
   readonly name: string;
+  /** What the firmware says when this rule denies (screen, log and serial: stays English). */
   readonly says: string;
   check(c: DoorCard, k: DoorClock): boolean;
 }
@@ -80,7 +92,6 @@ export interface RuleStep {
   readonly rule: DoorRule;
   /** pass, stop (the rule that decides), or skip (never reached). */
   readonly state: "pass" | "stop" | "skip";
-  readonly text: string;
 }
 
 /** Every rule in order, as the board walks them for one tap. */
@@ -88,12 +99,8 @@ export function ruleTrail(card: DoorCard, clock: DoorClock): RuleStep[] {
   let reached = true;
   return DOOR_RULES.map((rule) => {
     const ok = rule.check(card, clock);
-    const state = !reached ? "skip" : ok ? "pass" : "stop";
+    const state: RuleStep["state"] = !reached ? "skip" : ok ? "pass" : "stop";
     if (reached && !ok) reached = false;
-    return {
-      rule,
-      state,
-      text: state === "skip" ? "not checked" : ok ? "yes" : `no → ${rule.says}`,
-    };
+    return { rule, state };
   });
 }

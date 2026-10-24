@@ -1,20 +1,13 @@
 import { explainLine } from "@/domain/code/explain";
-import type { ActId, Scene } from "@/domain/code/story";
+import type { Scene } from "@/domain/code/story";
 import { commentText, type TourStop } from "@/domain/code/tour";
 import type { Rich } from "@/domain/lesson";
 import { explainContext, type CodeFile, type LabCode } from "../lab-code";
 
 // Words for a scene: where we are in the program, why we got here, and what the code does.
-// Pure, so the wording can be tested and improved without touching the screen.
-
-export const ACT_INFO: Readonly<Record<ActId, { title: string; blurb: string }>> = {
-  start: { title: "Power on", blurb: "What runs once, when the board starts." },
-  forever: { title: "Again and again", blurb: "What loop() repeats, thousands of times a second." },
-  more: {
-    title: "When asked",
-    blurb: "Code that runs when something calls it: a view, a command, a handler.",
-  },
-};
+// Pure, so the wording can be tested and improved without touching the screen: the sentences come
+// from the "code" catalogue through the lab's translate function. Act titles and blurbs are
+// catalogue entries too (story.acts.<act>), read by the components.
 
 export interface SceneText {
   readonly title: string;
@@ -53,29 +46,36 @@ function noteAbove(file: CodeFile, scene: Scene): string | undefined {
 }
 
 function leadFor(scene: Scene, lab: LabCode): Rich {
+  const { t } = lab;
   const { fn, trail, act } = scene;
   const parent = trail.at(-1);
   if (!parent) {
-    if (act === "start" && fn.name === "setup")
-      return `The board has just powered up. The first code it runs is ${call("setup")}, once.`;
-    if (act === "forever" && fn.name === "loop")
-      return `Set-up is done. From now on the board runs ${call("loop")} over and over, as fast as it can.`;
+    if (act === "start" && fn.name === "setup") return t("story.lead.setup");
+    if (act === "forever" && fn.name === "loop") return t("story.lead.loop");
     const callers = lab.symbols.callers(fn);
     return callers.length
-      ? `Not reached from ${call("setup")} or ${call("loop")} directly: ${callers
-          .slice(0, 3)
-          .map((c) => call(c.qualified))
-          .join(", ")} ${callers.length === 1 ? "uses" : "use"} it.`
-      : `Nothing calls ${call(fn.qualified)} by name: it is handed over as a value (a view to draw, a command to run, a handler), and runs when that moment comes.`;
+      ? t("story.lead.indirect", {
+          count: callers.length,
+          callers: callers
+            .slice(0, 3)
+            .map((c) => call(c.qualified))
+            .join(", "),
+        })
+      : t("story.lead.handedOver", { name: call(fn.qualified) });
   }
-  const line = scene.calledAt
-    ? ` on line ${scene.calledAt.line + 1} of ${code(fileName(scene.calledAt.path))}`
-    : "";
-  const moved = parent.path !== fn.path;
-  const where = moved
-    ? ` That code lives in another file, ${code(fileName(fn.path))}${fn.role === "shared" ? ", shared by several labs" : ""}.`
-    : "";
-  return `${call(parent.qualified)} calls ${call(fn.qualified)}${line}.${where}`;
+  const names = { caller: call(parent.qualified), callee: call(fn.qualified) };
+  const lead = scene.calledAt
+    ? t("story.lead.callsAt", {
+        ...names,
+        line: scene.calledAt.line + 1,
+        file: code(fileName(scene.calledAt.path)),
+      })
+    : t("story.lead.calls", names);
+  if (parent.path === fn.path) return lead;
+  const file = code(fileName(fn.path));
+  return fn.role === "shared"
+    ? t("story.lead.movedShared", { lead, file })
+    : t("story.lead.moved", { lead, file });
 }
 
 export function narrate(scene: Scene, lab: LabCode, file: CodeFile): SceneText {
@@ -84,9 +84,9 @@ export function narrate(scene: Scene, lab: LabCode, file: CodeFile): SceneText {
   const note = noteAbove(file, scene);
   const title =
     scene.depth === 0 && scene.fn.name === "setup"
-      ? "Power on: setup()"
+      ? lab.t("story.title.setup")
       : scene.depth === 0 && scene.fn.name === "loop"
-        ? "Forever: loop()"
+        ? lab.t("story.title.loop")
         : (stop?.title ?? `${scene.fn.qualified}()`);
   return {
     title,

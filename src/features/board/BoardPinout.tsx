@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { useLocaleInfo } from "@/i18n/use-locale";
 import { classifyPin, HEADER, pinIndex, pinLabel, type PinClass } from "@/domain/board";
 import type { PinSide, PinUse } from "@/domain/lesson";
 import { useRgbState } from "./board-signals";
@@ -36,19 +38,24 @@ interface BoardPinoutProps {
 /** The ESP32-S3 DevKitC as a live pinout: pins the lesson uses are tagged with their role. */
 export function BoardPinout({ pins, usb, boot }: BoardPinoutProps) {
   const used = new Map(pins.map((u) => [`${u.side}${pinIndex(u)}`, u]));
+  const { t } = useTranslation();
+  const { tag } = useLocaleInfo();
+  const uses = new Intl.ListFormat(tag, { type: "unit" }).format(
+    pins.map((p) => t("board.pinout.use", { role: p.role, pin: p.pin })),
+  );
 
   return (
     <svg
       className={styles.board}
       viewBox="0 0 440 640"
+      // The board has a physical left and right: it never mirrors.
+      direction="ltr"
       role="img"
       aria-labelledby="board-title board-desc"
     >
-      <title id="board-title">ESP32-S3 DevKitC pinout</title>
+      <title id="board-title">{t("board.pinout.title")}</title>
       <desc id="board-desc">
-        {pins.length
-          ? `This lesson uses: ${pins.map((p) => `${p.role} on ${p.pin}`).join(", ")}.`
-          : "This lesson uses no header pins."}
+        {pins.length ? t("board.pinout.uses", { uses }) : t("board.pinout.none")}
       </desc>
       <rect
         x={BX}

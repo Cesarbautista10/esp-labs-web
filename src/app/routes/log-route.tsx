@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { benchLogQuery, benchStatusQuery } from "@/features/bench/queries";
 import { LogPage } from "@/features/bench/LogPage";
 
@@ -10,9 +11,10 @@ export const logLoader = (queryClient: QueryClient) => async () => {
 };
 
 export function Component() {
+  const { t } = useTranslation();
   return (
     <>
-      <title>Bench log · ESP32-S3 Bench Guide</title>
+      <title>{t("titles.log")}</title>
       <LogPage />
     </>
   );

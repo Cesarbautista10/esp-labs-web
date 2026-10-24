@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import type { Rich } from "@/domain/lesson";
 import { type Block, type FileAnalysis, ownerOf, type Statement } from "./analyze";
 import { lineText } from "./tokenize";
@@ -5,6 +6,9 @@ import { lineText } from "./tokenize";
 // Tap a line, read what it does. Rules look at the statement a line belongs to and say it in
 // plain words; the glossary then explains each C++ word or library call on the line. Rules are
 // ordered from specific to general, and every line gets *something*, so nothing stays a mystery.
+// The words come from the "code" catalogue through ctx.t, so this module stays free of i18n state.
+
+export type ExplainT = TFunction<"code">;
 
 /** Where a function or type is defined in the lab, so a call can point at it. */
 export interface Definition {
@@ -19,6 +23,8 @@ export interface ExplainContext {
   readonly defined: ReadonlyMap<string, Definition>;
   /** Short known meanings for calls and headers (from the glossary), by call or header name. */
   readonly known?: (name: string) => Rich | undefined;
+  /** Translates the explainer's sentences (the "code" namespace). */
+  readonly t: ExplainT;
 }
 
 export interface LineExplanation {
@@ -50,45 +56,43 @@ export const code = (s: string) => {
   return `<code>${esc(t.length > MAX ? `${t.slice(0, MAX - 1)}…` : t)}</code>`;
 };
 
-const SPECIAL_FUNCTIONS: Readonly<Record<string, Rich>> = {
-  setup: `Starts ${code("setup()")}: it runs <b>once</b>, right after the board powers up or resets. Getting things ready goes here.`,
-  loop: `Starts ${code("loop()")}: after setup, the board runs it <b>again and again, forever</b>. Everything the program keeps doing lives here.`,
-  main: `Starts ${code("main()")}: where the program begins.`,
-};
+const SPECIAL_FUNCTIONS = new Set(["setup", "loop", "main"] as const);
+const isSpecial = (name: string): name is "setup" | "loop" | "main" =>
+  (SPECIAL_FUNCTIONS as ReadonlySet<string>).has(name);
 
-const CLOSE: Partial<Record<Block["kind"], (b: Block) => Rich>> = {
-  function: (b) =>
+const CLOSE: Partial<Record<Block["kind"], (b: Block, t: ExplainT) => Rich>> = {
+  function: (b, t) =>
     b.name === "setup" && b.depth === 0
-      ? `End of ${code("setup()")}: next, the board starts running ${code("loop()")}.`
+      ? t("explain.close.setup")
       : b.name === "loop" && b.depth === 0
-        ? `End of ${code("loop()")}: the board jumps straight back to the top of ${code("loop()")} and runs it again.`
-        : `End of ${code(`${b.name}()`)}: when the board gets here, it goes back to whoever called it.`,
-  namespace: (b) =>
+        ? t("explain.close.loop")
+        : t("explain.close.function", { name: code(`${b.name}()`) }),
+  namespace: (b, t) =>
     b.name
-      ? `End of the ${code(b.name)} group of names.`
-      : "End of the private section of this file.",
-  class: (b) => `End of the ${code(b.name)} class.`,
-  struct: (b) => `End of the ${code(b.name)} description.`,
-  enum: (b) => `End of the list of ${code(b.name)} values.`,
-  if: () => "End of the lines that run only when the check above was true.",
-  else: () => `End of the ${code("else")} part.`,
-  for: () => "End of the loop: go back up for the next round.",
-  while: () => "End of the loop: go back up and check the condition again.",
-  do: () => "End of the loop body.",
-  switch: () => `End of the ${code("switch")}.`,
-  case: () => "End of this case.",
-  lambda: () => "End of the small inline function.",
-  try: () => "End of the protected block.",
+      ? t("explain.close.namespace", { name: code(b.name) })
+      : t("explain.close.privateNamespace"),
+  class: (b, t) => t("explain.close.class", { name: code(b.name) }),
+  struct: (b, t) => t("explain.close.struct", { name: code(b.name) }),
+  enum: (b, t) => t("explain.close.enum", { name: code(b.name) }),
+  if: (_, t) => t("explain.close.if"),
+  else: (_, t) => t("explain.close.else"),
+  for: (_, t) => t("explain.close.for"),
+  while: (_, t) => t("explain.close.while"),
+  do: (_, t) => t("explain.close.do"),
+  switch: (_, t) => t("explain.close.switch"),
+  case: (_, t) => t("explain.close.case"),
+  lambda: (_, t) => t("explain.close.lambda"),
+  try: (_, t) => t("explain.close.try"),
 };
 
 /** "a, b" → readable list of a function's parameters. */
-function describeParams(params: string): string {
+function describeParams(params: string, t: ExplainT): string {
   const p = params.trim();
-  if (!p || p === "void") return "takes nothing";
+  if (!p || p === "void") return t("explain.params.none");
   const parts = splitTop(p);
   return parts.length === 1
-    ? `takes ${code(parts[0] ?? "")}`
-    : `takes ${parts.length} things: ${parts.map(code).join(", ")}`;
+    ? t("explain.params.one", { param: code(parts[0] ?? "") })
+    : t("explain.params.many", { count: parts.length, list: parts.map(code).join(", ") });
 }
 
 /** Splits on commas that are not inside (), <>, [] or {}. */
@@ -119,30 +123,42 @@ function insideParens(s: string, from = s.indexOf("(")): string {
   return s.slice(from + 1);
 }
 
-function describeType(t: string): string {
-  const type = t
+type TypeWord = "nothing" | "text" | "bool" | "int" | "float" | "char" | "string" | "auto";
+
+const strippedType = (t: string) =>
+  t
     .replace(
       /\b(?:static|inline|constexpr|const|volatile|extern|IRAM_ATTR|virtual|explicit)\b/g,
       "",
     )
     .replace(/\s+/g, " ")
     .trim();
+
+/** A plain word for a C++ type, or null when the type is best shown as code. */
+function typeWordOf(t: string): TypeWord | null {
+  const type = strippedType(t);
   if (/^void$/.test(type)) return "nothing";
   if (/^const char ?\*$|^char ?\*$/.test(type.replace(/\s/g, " ")) || /char\s*\*/.test(type))
-    return "a piece of text";
-  if (/^bool$/.test(type)) return "true or false";
+    return "text";
+  if (/^bool$/.test(type)) return "bool";
   if (/^u?int\d+_t$|^(?:unsigned |signed )?(?:int|long|short|long long)$|^size_t$/.test(type))
-    return "a whole number";
-  if (/^(?:float|double)$/.test(type)) return "a decimal number";
-  if (/^char$/.test(type)) return "a single character";
-  if (/^String$/.test(type)) return "text";
-  if (/^auto$/.test(type)) return "a value whose type the compiler works out";
-  return code(type);
+    return "int";
+  if (/^(?:float|double)$/.test(type)) return "float";
+  if (/^char$/.test(type)) return "char";
+  if (/^String$/.test(type)) return "string";
+  if (/^auto$/.test(type)) return "auto";
+  return null;
 }
 
-function functionHeader(stmt: Statement, b: Block): Rich {
-  const special = SPECIAL_FUNCTIONS[b.name];
-  if (special && b.depth === 0) return special;
+/** "a whole number" (or "whole numbers" with plural), else the type as code. */
+function describeType(type: string, t: ExplainT, plural = false): string {
+  const word = typeWordOf(type);
+  if (!word) return code(strippedType(type));
+  return plural ? t(`explain.types.${word}`) : t(`explain.type.${word}`);
+}
+
+function functionHeader(stmt: Statement, b: Block, t: ExplainT): Rich {
+  if (isSpecial(b.name) && b.depth === 0) return t(`explain.special.${b.name}`);
   const header = b.header;
   const nameAt = header.indexOf(`${b.name.split("::").at(-1) ?? b.name}(`);
   const before =
@@ -154,48 +170,51 @@ function functionHeader(stmt: Statement, b: Block): Rich {
       : "";
   const params = describeParams(
     insideParens(header, nameAt + (b.name.split("::").at(-1)?.length ?? 0)),
+    t,
   );
   const after = header.slice(header.lastIndexOf(")") + 1);
   const notes: string[] = [];
-  if (/\bconst\b/.test(after)) notes.push("only reads the object, never changes it");
-  if (/\bstatic\b/.test(before)) notes.push("belongs to the type itself, not to one object");
-  if (/IRAM_ATTR/.test(before))
-    notes.push("kept in fast internal RAM so an interrupt can run it instantly");
-  if (/\boverride\b/.test(after)) notes.push("replaces a function the parent class declared");
-  const extra = notes.length ? ` (it ${notes.join("; it ")})` : "";
+  if (/\bconst\b/.test(after)) notes.push(t("explain.fn.note.const"));
+  if (/\bstatic\b/.test(before)) notes.push(t("explain.fn.note.static"));
+  if (/IRAM_ATTR/.test(before)) notes.push(t("explain.fn.note.iram"));
+  if (/\boverride\b/.test(after)) notes.push(t("explain.fn.note.override"));
   const short = b.name.split("::").at(-1) ?? b.name;
-  if (/~\s*$/.test(before)) {
-    return `The destructor of ${code(short)}: runs automatically when a ${code(short)} is thrown away, to tidy up after it.`;
-  }
+  if (/~\s*$/.test(before)) return t("explain.fn.destructor", { name: code(short) });
   if (
     !before ||
     /^(?:explicit|constexpr|inline)?$/.test(before) ||
     before.split(" ").at(-1) === short
   ) {
-    const init = /\)\s*:/.test(header)
-      ? ", and fills its members from the values after the colon"
-      : "";
-    return `The constructor of ${code(short)}: runs when a new ${code(short)} is made; it ${params}${init}.`;
+    return /\)\s*:/.test(header)
+      ? t("explain.fn.constructorInit", { name: code(short), params })
+      : t("explain.fn.constructor", { name: code(short), params });
   }
-  const returns = describeType(before);
+  const returns = describeType(before, t);
   void stmt;
-  return `Defines the function ${code(`${short}()`)}: it ${params} and gives back ${returns}${extra}.`;
+  const name = code(`${short}()`);
+  return notes.length
+    ? t("explain.fn.defineNotes", {
+        name,
+        params,
+        returns,
+        notes: notes.join(t("explain.fn.noteSeparator")),
+      })
+    : t("explain.fn.define", { name, params, returns });
 }
 
-function blockHeader(stmt: Statement, b: Block, file: FileAnalysis): Rich {
+function blockHeader(stmt: Statement, b: Block, file: FileAnalysis, t: ExplainT): Rich {
   const cond = insideParens(b.header);
   switch (b.kind) {
     case "function":
-      return functionHeader(stmt, b);
+      return functionHeader(stmt, b, t);
     case "if":
       return b.header.startsWith("else")
-        ? `Otherwise, checks ${code(cond)}: the lines inside run only if it is true.`
-        : `Checks ${code(cond)}: the lines inside run only if it is true.`;
+        ? t("explain.block.elseIf", { cond: code(cond) })
+        : t("explain.block.if", { cond: code(cond) });
     case "else":
-      return "Otherwise (when the check above was false), runs these lines instead.";
+      return t("explain.block.else");
     case "for": {
-      if (/^\s*;\s*;\s*$/.test(cond))
-        return "Repeats the lines inside forever (until something breaks out).";
+      if (/^\s*;\s*;\s*$/.test(cond)) return t("explain.block.forever");
       const range = /^(.*?)\s:\s(.+)$/.exec(cond);
       if (range && !cond.includes(";")) {
         const name =
@@ -203,56 +222,60 @@ function blockHeader(stmt: Statement, b: Block, file: FileAnalysis): Rich {
             ?.trim()
             .split(/[\s*&]+/)
             .at(-1) ?? "item";
-        return `Repeats the lines inside once for every item in ${code(range[2] ?? "")}, calling the current one ${code(name)}.`;
+        return t("explain.block.forEach", { list: code(range[2] ?? ""), name: code(name) });
       }
       const [init, test, step] = cond.split(";").map((p) => p.trim());
-      return `A counting loop: starts with ${code(init ?? "")}, keeps going while ${code(test ?? "")}, and does ${code(step ?? "")} after each round.`;
+      return t("explain.block.counting", {
+        init: code(init ?? ""),
+        test: code(test ?? ""),
+        step: code(step ?? ""),
+      });
     }
     case "while":
       return /^(?:true|1)$/.test(cond.trim())
-        ? "Repeats the lines inside forever (until something breaks out)."
-        : `Repeats the lines inside as long as ${code(cond)} stays true.`;
+        ? t("explain.block.forever")
+        : t("explain.block.while", { cond: code(cond) });
     case "do":
-      return "Runs the lines inside once, then repeats them while the check at the end holds.";
+      return t("explain.block.do");
     case "switch":
-      return `Picks which ${code("case")} below to run, depending on the value of ${code(cond)}.`;
+      return t("explain.block.switch", { cond: code(cond) });
     case "namespace":
       return b.name
-        ? `Groups the names below under ${code(`${b.name}::`)} so they don't clash with others.`
-        : "Opens a private section: what is defined until its closing brace can only be used inside this file.";
+        ? t("explain.block.namespace", { name: code(`${b.name}::`) })
+        : t("explain.block.privateNamespace");
     case "struct": {
       const members = /\{(.*)\}/.exec(lineText(file.lines[b.open] ?? []))?.[1];
       return members
-        ? `Describes ${code(b.name)}, a bundle of values: ${code(members)}.`
-        : `Describes a new kind of value, ${code(b.name)}: a bundle of variables (its members) kept together.`;
+        ? t("explain.block.structMembers", { name: code(b.name), members: code(members) })
+        : t("explain.block.struct", { name: code(b.name) });
     }
     case "class": {
       const base = /:\s*(?:public|private|protected)?\s*([\w:<>]+)/.exec(b.header)?.[1];
       return base
-        ? `Defines the class ${code(b.name)}, built on ${code(base)}: it gets everything ${code(base)} has, plus what is added here.`
-        : `Defines the class ${code(b.name)}: some data plus the functions that work on it, packed together.`;
+        ? t("explain.block.classBase", { name: code(b.name), base: code(base) })
+        : t("explain.block.class", { name: code(b.name) });
     }
     case "enum": {
       const list = /\{([^}]*)\}/.exec(lineText(file.lines[b.open] ?? []))?.[1];
       return list
-        ? `Lists every possible ${code(b.name)}: ${code(list.trim())}. A ${code(b.name)} can only ever be one of these.`
-        : `Starts the list of every possible ${code(b.name)} value.`;
+        ? t("explain.block.enumList", { name: code(b.name), list: code(list.trim()) })
+        : t("explain.block.enum", { name: code(b.name) });
     }
     case "union":
-      return `Defines ${code(b.name)}: several views of the same bytes in memory.`;
+      return t("explain.block.union", { name: code(b.name) });
     case "try":
-      return "Runs the lines inside and catches errors they throw.";
+      return t("explain.block.try");
     case "case":
-      return describeCase(b.header);
+      return describeCase(b.header, t);
     default:
-      return "Opens a block: the lines until the matching closing brace belong together.";
+      return t("explain.block.other");
   }
 }
 
-function describeCase(text: string): Rich {
-  if (/^default\b/.test(text)) return `When none of the cases match, start here.`;
+function describeCase(text: string, t: ExplainT): Rich {
+  if (/^default\b/.test(text)) return t("explain.block.default");
   const value = /^case\s+(.+?)\s*:$/.exec(text.trim())?.[1] ?? text;
-  return `When the value is ${code(value)}, start here.`;
+  return t("explain.block.case", { value: code(value) });
 }
 
 /** "a[i + 1] |= x" → target, compound operator ("|", "" for plain "="), value; null if no top-level "=". */
@@ -284,19 +307,38 @@ function splitAssignment(s: string): { target: string; op: string; value: string
 }
 
 /** Adds a call's arguments to a known meaning: "Pauses the program… Here: <code>1500</code>." */
-const withArgs = (known: Rich, args: string) =>
-  args.trim() ? `${known} Here: ${code(args)}.` : known;
+const withArgs = (known: Rich, args: string, t: ExplainT) =>
+  args.trim() ? t("explain.call.knownArgs", { known, args: code(args) }) : known;
 
 /** "Stops here…" → "stops here…", to continue a sentence. */
 const lowerFirst = (text: Rich) =>
   /^[A-Z][a-z]/.test(text) ? text[0]?.toLowerCase() + text.slice(1) : text;
 
+/** The catalogue key for each compound assignment operator ("+=" → "plus"). */
+const ASSIGN_KEY = {
+  "+": "plus",
+  "-": "minus",
+  "*": "times",
+  "/": "divide",
+  "%": "mod",
+  "|": "or",
+  "&": "and",
+  "^": "xor",
+  "<<": "shiftLeft",
+  ">>": "shiftRight",
+} as const;
+const isAssignOp = (op: string): op is keyof typeof ASSIGN_KEY => Object.hasOwn(ASSIGN_KEY, op);
+
 /** Statements that are not block headers. */
 function plainStatement(text: string, ctx: ExplainContext, within?: Block): LineExplanation {
+  const { t } = ctx;
   const s = text.replace(/;$/, "").trim();
   if (within?.kind === "enum") {
     return {
-      text: `The possible ${code(within.name)} values: ${code(s.replace(/,$/, ""))}. Each name stands for a number the compiler picks.`,
+      text: t("explain.decl.enumValues", {
+        name: code(within.name),
+        values: code(s.replace(/,$/, "")),
+      }),
     };
   }
   const callOf = (name: string): LineExplanation | undefined => {
@@ -309,54 +351,54 @@ function plainStatement(text: string, ctx: ExplainContext, within?: Block): Line
   let m = /^#\s*include\s*([<"])([^>"]+)[>"]/.exec(s);
   if (m) {
     const known = ctx.known?.(m[2] ?? "");
+    const file = code(m[2] ?? "");
     if (m[1] === '"') {
       const base = m[2]?.split("/").at(-1) ?? "";
       const def = ctx.defined.get(`file:${base}`);
       return {
-        text: `Pastes in our own file ${code(m[2] ?? "")}, so this file can use what it defines.${known ? ` ${known}` : ""}`,
+        text: known
+          ? t("explain.pre.includeOwnKnown", { file, known })
+          : t("explain.pre.includeOwn", { file }),
         ...(def ? { jump: { name: base, ...def } } : {}),
       };
     }
     return {
-      text: `Brings in ${code(m[2] ?? "")}${known ? `: ${known}` : ", a library that comes with the tools, so this file can use what it declares."}`,
+      text: known ? t("explain.pre.includeKnown", { file, known }) : t("explain.pre.include", { file }),
     };
   }
-  if (/^#\s*pragma\s+once/.test(s))
-    return {
-      text: "Makes sure this file is pasted in only once per build, even if several files include it.",
-    };
+  if (/^#\s*pragma\s+once/.test(s)) return { text: t("explain.pre.pragmaOnce") };
   m = /^#\s*define\s+(\w+)(\([^)]*\))?\s*(.*)$/.exec(s);
   if (m) {
     return m[2]
       ? {
-          text: `Defines the macro ${code(`${m[1]}${m[2]}`)}: before compiling, each use is replaced by ${code(m[3] ?? "")}.`,
+          text: t("explain.pre.macro", {
+            name: code(`${m[1]}${m[2]}`),
+            value: code(m[3] ?? ""),
+          }),
         }
       : {
-          text: `Gives ${code(m[3] || "nothing")} the name ${code(m[1] ?? "")}: before compiling, every ${code(m[1] ?? "")} is swapped for it.`,
+          text: t("explain.pre.define", {
+            value: code(m[3] || "nothing"),
+            name: code(m[1] ?? ""),
+          }),
         };
   }
   m = /^#\s*(ifdef|ifndef|if|elif)\s+(.*)$/.exec(s);
   if (m) {
-    const cond =
-      m[1] === "ifdef"
-        ? `${m[2]} is defined`
-        : m[1] === "ifndef"
-          ? `${m[2]} is not defined`
-          : (m[2] ?? "");
+    const what = m[2] ?? "";
+    if (m[1] === "ifdef") return { text: t("explain.pre.ifdef", { name: code(what) }) };
+    if (m[1] === "ifndef") return { text: t("explain.pre.ifndef", { name: code(what) }) };
     return {
-      text: `${m[1] === "elif" ? "Otherwise, the" : "The"} lines up to the next ${code("#else")} / ${code("#endif")} are compiled only if ${code(cond)}.`,
+      text:
+        m[1] === "elif"
+          ? t("explain.pre.elif", { cond: code(what) })
+          : t("explain.pre.if", { cond: code(what) }),
     };
   }
-  if (/^#\s*else/.test(s)) return { text: "Otherwise, these lines are compiled instead." };
-  if (/^#\s*endif/.test(s)) return { text: `Ends the ${code("#if")} section above.` };
-  if (/^#\s*(?:error|warning)/.test(s))
-    return {
-      text: "Stops the build with this message if this line is reached (a guard against a wrong setting).",
-    };
-  if (/^#/.test(s))
-    return {
-      text: "An instruction for the preprocessor, which edits the code before it is compiled.",
-    };
+  if (/^#\s*else/.test(s)) return { text: t("explain.pre.else") };
+  if (/^#\s*endif/.test(s)) return { text: t("explain.pre.endif") };
+  if (/^#\s*(?:error|warning)/.test(s)) return { text: t("explain.pre.error") };
+  if (/^#/.test(s)) return { text: t("explain.pre.other") };
 
   // One-line control statements without braces: "if (x) return;", "for (...) total += v;"
   m = /^(if|while|for)\s*\(/.exec(s);
@@ -365,27 +407,25 @@ function plainStatement(text: string, ctx: ExplainContext, within?: Block): Line
     const body = s.slice(s.indexOf(cond) + cond.length + 1).trim();
     if (body) {
       const then = lowerFirst(plainStatement(body, ctx).text);
-      if (m[1] === "if") return { text: `If ${code(cond)} is true, it ${then}` };
-      if (m[1] === "while") return { text: `While ${code(cond)} is true, it keeps going: ${then}` };
-      return { text: `Repeats (${code(cond)}): each round, it ${then}` };
+      if (m[1] === "if") return { text: t("explain.short.if", { cond: code(cond), then }) };
+      if (m[1] === "while") return { text: t("explain.short.while", { cond: code(cond), then }) };
+      return { text: t("explain.short.for", { cond: code(cond), then }) };
     }
   }
   m = /^else\s+(.+)$/.exec(s);
   if (m) {
-    const rest = plainStatement(m[1] ?? "", ctx).text;
+    const then = lowerFirst(plainStatement(m[1] ?? "", ctx).text);
     return {
       text: m[1]?.startsWith("if")
-        ? `Otherwise, ${lowerFirst(rest)}`
-        : `Otherwise, it ${lowerFirst(rest)}`,
+        ? t("explain.short.elseIf", { then })
+        : t("explain.short.else", { then }),
     };
   }
 
   // Simple jumps
-  if (s === "break") return { text: `Leaves the current loop or ${code("switch")} right away.` };
-  if (s === "continue")
-    return { text: "Skips the rest of this round and moves on to the next one." };
-  if (s === "return")
-    return { text: "Stops this function here and goes back to whoever called it." };
+  if (s === "break") return { text: t("explain.jump.break") };
+  if (s === "continue") return { text: t("explain.jump.continue") };
+  if (s === "return") return { text: t("explain.jump.return") };
   m = /^return\s+(.+)$/.exec(s);
   if (m) {
     const value = m[1] ?? "";
@@ -393,36 +433,37 @@ function plainStatement(text: string, ctx: ExplainContext, within?: Block): Line
     const jump = call ? callOf(call)?.jump : undefined;
     if (/\?/.test(value) && /:/.test(value))
       return {
-        text: `Gives back one of two values, depending on the check before the ${code("?")}: ${code(value)}.`,
+        text: t("explain.jump.returnChoice", { value: code(value) }),
         ...(jump ? { jump } : {}),
       };
-    return { text: `Stops here and gives back ${code(value)}.`, ...(jump ? { jump } : {}) };
+    return {
+      text: t("explain.jump.returnValue", { value: code(value) }),
+      ...(jump ? { jump } : {}),
+    };
   }
   if (/^(?:public|private|protected)\s*:$/.test(s)) {
     return s.startsWith("public")
-      ? { text: "Everything below can be used from outside the class." }
-      : { text: "Everything below is internal: only the class's own functions can touch it." };
+      ? { text: t("explain.misc.public") }
+      : { text: t("explain.misc.private") };
   }
-  if (/^(?:case\b|default\s*:)/.test(s)) return { text: describeCase(s) };
+  if (/^(?:case\b|default\s*:)/.test(s)) return { text: describeCase(s, t) };
   m = /^using\s+namespace\s+([\w:]+)/.exec(s);
   if (m)
     return {
-      text: `Lets this file use names from ${code(m[1] ?? "")} without writing ${code(`${m[1]}::`)} each time.`,
+      text: t("explain.misc.usingNamespace", {
+        name: code(m[1] ?? ""),
+        prefix: code(`${m[1]}::`),
+      }),
     };
   m = /^using\s+(\w+)\s*=\s*(.+)$/.exec(s);
-  if (m) return { text: `Gives ${code(m[2] ?? "")} a shorter name: ${code(m[1] ?? "")}.` };
-  if (/^typedef\b/.test(s)) return { text: "Gives an existing type a new name." };
-  if (/^template\s*</.test(s))
-    return { text: "Starts a template: the code that follows works for any type filled in later." };
-  if (/^static_assert\b/.test(s))
-    return {
-      text: "A check done while compiling: the build fails with the message if it is false.",
-    };
-  m = /^(?:enum\s+(?:class\s+)?|struct\s+|class\s+)(\w+)$/.exec(s);
   if (m)
-    return { text: `Announces that ${code(m[1] ?? "")} exists; it is fully described elsewhere.` };
-  if (/^delete\b/.test(s))
-    return { text: "Frees memory that was taken earlier with <code>new</code>." };
+    return { text: t("explain.misc.using", { type: code(m[2] ?? ""), name: code(m[1] ?? "") }) };
+  if (/^typedef\b/.test(s)) return { text: t("explain.misc.typedef") };
+  if (/^template\s*</.test(s)) return { text: t("explain.misc.template") };
+  if (/^static_assert\b/.test(s)) return { text: t("explain.misc.staticAssert") };
+  m = /^(?:enum\s+(?:class\s+)?|struct\s+|class\s+)(\w+)$/.exec(s);
+  if (m) return { text: t("explain.misc.forward", { name: code(m[1] ?? "") }) };
+  if (/^delete\b/.test(s)) return { text: t("explain.misc.delete") };
 
   // Several variables at once: "float x, y, z", "int16_t a[320], b[320]".
   m =
@@ -431,10 +472,12 @@ function plainStatement(text: string, ctx: ExplainContext, within?: Block): Line
     );
   if (m && !/^(?:return|else|delete)$/.test(m[2] ?? "")) {
     const names = (m[3] ?? "").split(",").map((n) => n.trim());
-    const arrays = names.some((n) => n.includes("["));
-    const what = describeType(m[2] ?? "");
+    const count = names.length;
+    const list = names.map((n) => code(n)).join(", ");
     return {
-      text: `Makes ${names.length} variables, ${names.map((n) => code(n)).join(", ")}: each ${arrays ? `a list of values of type ${code(m[2] ?? "")}` : `is ${what}`}.`,
+      text: names.some((n) => n.includes("["))
+        ? t("explain.decl.severalArrays", { count, names: list, type: code(m[2] ?? "") })
+        : t("explain.decl.several", { count, names: list, what: describeType(m[2] ?? "", t) }),
     };
   }
 
@@ -448,53 +491,56 @@ function plainStatement(text: string, ctx: ExplainContext, within?: Block): Line
   if (decl && startsLikeType && !/[+\-*/%|&^]=|==/.test(decl[2] ?? "")) {
     const quals = decl[1] ?? "";
     const type = (decl[2] ?? "").trim();
-    const name = decl[3] ?? "";
+    const name = code(decl[3] ?? "");
     const array = decl[4];
     const value = decl[6] ?? decl[7] ?? decl[8];
-    const typeWord = describeType(type);
     const what = array
-      ? `a list (array) of ${typeWord === code(type) ? code(type) : `${typeWord}s`}`
-      : typeWord;
+      ? t("explain.decl.arrayOf", { items: describeType(type, t, true) })
+      : describeType(type, t);
     const typeJump = ctx.defined.get(type.replace(/[*&\s]|const/g, ""));
     const jump = typeJump ? { jump: { name: type, ...typeJump } } : {};
     const member =
       within && (within.kind === "struct" || within.kind === "class") ? within : undefined;
     if (/constexpr/.test(quals)) {
-      if (member)
-        return {
-          text: `A fixed setting of ${code(member.name)}: ${code(name)} = ${code(value ?? "")}, worked out when compiling.`,
-          ...jump,
-        };
+      const fixed = { name, value: code(value ?? "") };
       return {
-        text: `A fixed value, ${code(name)} = ${code(value ?? "")}, worked out when compiling: it can never change while the board runs.`,
+        text: member
+          ? t("explain.decl.memberConstant", { owner: code(member.name), ...fixed })
+          : t("explain.decl.constant", fixed),
         ...jump,
       };
     }
-    const staticNote = /static/.test(quals)
-      ? " Because it is <code>static</code>, it keeps its value between calls (and lives as long as the program)."
-      : "";
+    // Because it is static, it keeps its value between calls (and lives as long as the program).
+    const withStatic = (said: Rich): Rich =>
+      /static/.test(quals) ? t("explain.decl.staticNote", { text: said }) : said;
     // "const char *p": the characters are read-only, the pointer itself can still change.
     const pointerToConst = /\*/.test(type) && !/\*\s*const/.test(type);
     if (member && value === undefined) {
       return {
-        text: `Every ${code(member.name)} carries its own ${code(name)}: ${what}.`,
+        text: t("explain.decl.member", { owner: code(member.name), name, what }),
         ...jump,
       };
     }
     if (/const/.test(quals + type) && !(pointerToConst && !/const/.test(quals))) {
       return {
-        text: `${code(name)}: ${what} that never changes after this line${value ? `, set to ${code(value)}` : ""}.${staticNote}`,
+        text: withStatic(
+          value
+            ? t("explain.decl.constValue", { name, what, value: code(value) })
+            : t("explain.decl.const", { name, what }),
+        ),
         ...jump,
       };
     }
-    if (value === undefined) return { text: `Makes ${code(name)}, ${what}.${staticNote}`, ...jump };
+    if (value === undefined) return { text: withStatic(t("explain.decl.make", { name, what })), ...jump };
     if (decl[8] !== undefined || decl[7] !== undefined)
       return {
-        text: `Makes ${code(name)}, ${what}, built from ${code(value || "nothing")}.${staticNote}`,
+        text: withStatic(
+          t("explain.decl.makeFrom", { name, what, value: code(value || "nothing") }),
+        ),
         ...jump,
       };
     return {
-      text: `Makes a variable ${code(name)} (${what}) and puts ${code(value)} in it.${staticNote}`,
+      text: withStatic(t("explain.decl.makeSet", { name, what, value: code(value) })),
       ...jump,
     };
   }
@@ -502,33 +548,28 @@ function plainStatement(text: string, ctx: ExplainContext, within?: Block): Line
   // Assignment and arithmetic shortcuts
   const assign = splitAssignment(s);
   if (assign) {
-    const { target, op, value } = assign;
-    const verb: Record<string, string> = {
-      "+": `Adds ${code(value)} to ${code(target)}.`,
-      "-": `Takes ${code(value)} away from ${code(target)}.`,
-      "*": `Multiplies ${code(target)} by ${code(value)}.`,
-      "/": `Divides ${code(target)} by ${code(value)}.`,
-      "%": `Keeps only the remainder of ${code(target)} divided by ${code(value)}.`,
-      "|": `Switches on, in ${code(target)}, the bits that are on in ${code(value)}.`,
-      "&": `Keeps, in ${code(target)}, only the bits that are also on in ${code(value)}.`,
-      "^": `Flips, in ${code(target)}, the bits that are on in ${code(value)}.`,
-      "<<": `Shifts the bits of ${code(target)} left by ${code(value)}.`,
-      ">>": `Shifts the bits of ${code(target)} right by ${code(value)}.`,
-    };
-    const call = /^(\w+)\s*\(/.exec(value)?.[1];
+    const { op } = assign;
+    const parts = { target: code(assign.target), value: code(assign.value) };
+    const call = /^(\w+)\s*\(/.exec(assign.value)?.[1];
     const jump = call ? callOf(call)?.jump : undefined;
     return {
-      text: op
-        ? (verb[op] ?? `Updates ${code(target)}.`)
-        : `Stores ${code(value)} in ${code(target)}.`,
+      text: !op
+        ? t("explain.assign.store", parts)
+        : isAssignOp(op)
+          ? t(`explain.assign.${ASSIGN_KEY[op]}`, parts)
+          : t("explain.assign.update", parts),
       ...(jump ? { jump } : {}),
     };
   }
   m = /^(?:\+\+|--)\s*([\w.\->[\]]+)$|^([\w.\->[\]]+)\s*(?:\+\+|--)$/.exec(s);
-  if (m)
+  if (m) {
+    const target = code(m[1] ?? m[2] ?? "");
     return {
-      text: `${s.includes("++") ? "Adds 1 to" : "Takes 1 away from"} ${code(m[1] ?? m[2] ?? "")}.`,
+      text: s.includes("++")
+        ? t("explain.assign.increment", { target })
+        : t("explain.assign.decrement", { target }),
     };
+  }
 
   // Calls: obj.method(...), ns::fn(...), fn(...)
   m =
@@ -539,35 +580,43 @@ function plainStatement(text: string, ctx: ExplainContext, within?: Block): Line
     const qualified = /^([\w]+)\s*(\.|->|::)\s*(\w+)\s*\(/.exec(s);
     const plain = /^(\w+)\s*\(/.exec(s);
     const args = insideParens(s);
-    const argText = args.trim() ? ` with ${code(args)}` : "";
+    const withArgsCode = args.trim() ? code(args) : null;
     if (qualified) {
       const [, obj, sep, method] = qualified;
       const known =
         ctx.known?.(`${obj}${sep === "::" ? "::" : "."}${method}`) ?? ctx.known?.(method ?? "");
-      if (known) return { text: withArgs(known, args) };
+      if (known) return { text: withArgs(known, args, t) };
       const def = FRAMEWORK_OBJECTS.has(obj ?? "") ? undefined : ctx.defined.get(method ?? "");
+      const who = { object: code(obj ?? ""), method: code(`${method}()`) };
       return {
-        text: `Asks ${code(obj ?? "")} to do ${code(`${method}()`)}${argText}.`,
+        text: withArgsCode
+          ? t("explain.call.askWith", { ...who, args: withArgsCode })
+          : t("explain.call.ask", who),
         ...(def ? { jump: { name: method ?? "", ...def } } : {}),
       };
     }
     if (plain) {
       const name = plain[1] ?? "";
+      const fn = code(`${name}()`);
       const def = ctx.defined.get(name);
       if (def && def.kind === "function")
         return {
-          text: `Runs our own function ${code(`${name}()`)}${argText}.`,
+          text: withArgsCode
+            ? t("explain.call.ownWith", { name: fn, args: withArgsCode })
+            : t("explain.call.own", { name: fn }),
           jump: { name, ...def },
         };
       const known = ctx.known?.(name);
-      if (known) return { text: withArgs(known, args) };
-      return { text: `Calls ${code(`${name}()`)}${argText}.` };
+      if (known) return { text: withArgs(known, args, t) };
+      return {
+        text: withArgsCode
+          ? t("explain.call.otherWith", { name: fn, args: withArgsCode })
+          : t("explain.call.other", { name: fn }),
+      };
     }
   }
   if (/^\}?\s*\w*\s*;?$/.test(s) && s.length < 3) return { text: "" };
-  return {
-    text: `Does the work written here: ${code(s)}. Tap the highlighted words to learn them.`,
-  };
+  return { text: t("explain.fallback", { code: code(s) }) };
 }
 
 /** Explains one line (0-based). Blank lines get an empty text. */
@@ -575,10 +624,11 @@ export function explainLine(ctx: ExplainContext, line: number): LineExplanation 
   const first = explainFirst(ctx, line);
   if (first.continues !== undefined || !first.text) return first;
   // More statements starting on the same line ("case X: return 1;", "} else {" is one idea).
-  const { file } = ctx;
+  const { file, t } = ctx;
   const index = file.statementOf[line] ?? -1;
-  const extra: Rich[] = [];
-  for (let k = index + 1; k < file.statements.length && extra.length < 2; k++) {
+  let text = first.text;
+  let added = 0;
+  for (let k = index + 1; k < file.statements.length && added < 2; k++) {
     const next = file.statements[k];
     if (!next || next.start !== line) break;
     const prev = file.statements[k - 1];
@@ -588,33 +638,31 @@ export function explainLine(ctx: ExplainContext, line: number): LineExplanation 
     // "enum class Mode { Off, On };": the header already listed the values.
     if (ownerOf(file, line)?.kind === "enum" || prev?.opens?.kind === "enum") continue;
     const said = next.opens
-      ? blockHeader(next, next.opens, file)
+      ? blockHeader(next, next.opens, file, t)
       : plainStatement(next.text, ctx).text;
-    if (said) extra.push(lowerFirst(said));
+    if (said) {
+      text = t("explain.then", { first: text, next: lowerFirst(said) });
+      added++;
+    }
   }
-  return extra.length
-    ? { ...first, text: `${first.text} Then it ${extra.join(" Then it ")}` }
-    : first;
+  return added ? { ...first, text } : first;
 }
 
 function explainFirst(ctx: ExplainContext, line: number): LineExplanation {
-  const { file } = ctx;
+  const { file, t } = ctx;
   const kind = file.kinds[line];
   if (kind === "blank" || kind === undefined) return { text: "" };
   if (kind === "comment") {
     const chapter = file.chapters.get(line);
-    if (chapter)
-      return { text: `A heading for the next part of the file: <b>${esc(chapter)}</b>.` };
-    return {
-      text: "A note for people reading the code. The compiler skips it, so it changes nothing on the board.",
-    };
+    if (chapter) return { text: t("explain.chapter", { chapter: esc(chapter) }) };
+    return { text: t("explain.comment") };
   }
   const index = file.statementOf[line] ?? -1;
   const stmt = file.statements[index];
   if (!stmt) return { text: "" };
   if (stmt.start < line && !stmt.closes) {
     return {
-      text: `Continues the statement that starts on line ${stmt.start + 1}.`,
+      text: t("explain.continues", { line: stmt.start + 1 }),
       continues: stmt.start,
     };
   }
@@ -623,25 +671,26 @@ function explainFirst(ctx: ExplainContext, line: number): LineExplanation {
     // "} else {" and "} while (x);" close one block and open the next.
     const next = file.statements[index + 1];
     if (next && next.start === line && next.opens)
-      return { text: blockHeader(next, next.opens, file) };
-    const closeText = CLOSE[b.kind]?.(b);
+      return { text: blockHeader(next, next.opens, file, t) };
+    const closeText = CLOSE[b.kind]?.(b, t);
     const variable =
       next && next.start === line && /^\w+(?:\[[^\]]*\])?;?$/.test(next.text)
         ? next.text.replace(/;$/, "")
         : null;
     if (variable && (b.kind === "struct" || b.kind === "class" || b.kind === "enum")) {
       return {
-        text: `${closeText ?? ""} And it makes ${code(variable)}, a variable of this new type, right here.`,
+        text: t("explain.close.andVariable", { close: closeText ?? "", name: code(variable) }),
       };
     }
     if (b.kind === "do" && next?.start === line)
-      return { text: `End of the loop body: repeat while ${code(insideParens(next.text))}.` };
-    return { text: closeText ?? "Closes the block opened above." };
+      return { text: t("explain.close.doWhile", { cond: code(insideParens(next.text)) }) };
+    return { text: closeText ?? t("explain.close.block") };
   }
-  if (stmt.opens) return { text: blockHeader(stmt, stmt.opens, file), ...jumpFor(stmt.opens, ctx) };
+  if (stmt.opens)
+    return { text: blockHeader(stmt, stmt.opens, file, t), ...jumpFor(stmt.opens, ctx) };
   const explained = plainStatement(stmt.text, ctx, ownerOf(file, line));
   if (!explained.text && explained.jump)
-    return { ...explained, text: `Runs our own function ${code(`${explained.jump.name}()`)}.` };
+    return { ...explained, text: t("explain.call.own", { name: code(`${explained.jump.name}()`) }) };
   return explained;
 }
 

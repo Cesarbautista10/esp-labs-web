@@ -1,6 +1,7 @@
 // S4 panel: voice-activated recording, step by step, over a 9 s scene.
 import type { ScopePalette } from "@/lib/canvas";
-import { display, levelColour, mono, textWriter } from "../../kit/draw";
+import { display, labelWriter, levelColour, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import { type TriggerAction, VoiceTrigger } from "../../model/trigger";
 
 /** 9 s, one point per 20 ms. */
@@ -34,15 +35,17 @@ export function drawRecorder(
   cursor: number,
   trig: number,
   hold: number,
+  tr: SoundT,
 ): string {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const small = mono(10);
-  const tr = new VoiceTrigger({ startDb: trig, holdMs: hold });
-  tr.arm(true);
+  const vt = new VoiceTrigger({ startDb: trig, holdMs: hold });
+  vt.arm(true);
   const clips: Clip[] = [];
   let open: { from: number; trig: number } | null = null;
   for (let ms = 0; ms <= cursor; ms += FR) {
-    const r = tr.push(pts[ms / FR] ?? 0, ms);
+    const r = vt.push(pts[ms / FR] ?? 0, ms);
     if (r && r.action === "start") open = { from: r.from, trig: ms };
     else if (r) {
       clips.push({ ...r, trig: open?.trig ?? r.from });
@@ -85,8 +88,8 @@ export function drawRecorder(
   g.lineTo(x0 + w, yOf(trig * 0.6));
   g.stroke();
   g.setLineDash([]);
-  T(x0 - 4, yOf(trig) + 4, "start", C.ink, small, "right");
-  T(x0 - 4, yOf(trig * 0.6) + 4, "quiet", C.muted, small, "right");
+  W(x0 - 4, yOf(trig) + 4, tr("recorder.start"), C.ink, small, "right");
+  W(x0 - 4, yOf(trig * 0.6) + 4, tr("recorder.quiet"), C.muted, small, "right");
   g.fillStyle = C.ink;
   g.fillRect(xOf(cursor), y0 - 6, 1.5, h + 12);
   for (let s = 0; s <= 9; s++) T(xOf(s * 1000), y0 + h + 14, `${s} s`, C.muted, small, "center");
@@ -96,35 +99,35 @@ export function drawRecorder(
   g.globalAlpha = 0.25;
   g.fillRect(ringFrom, y0 + h + 22, xOf(cursor) - ringFrom, 8);
   g.globalAlpha = 1;
-  T(
+  W(
     ringFrom + 4,
     y0 + h + 44,
-    "the ring: the last 4 s are always there (so the pre-roll is free)",
+    tr("recorder.ring"),
     C.violet,
     small,
   );
   // State, hold timer, results.
-  const rec = tr.state === "rec";
+  const rec = vt.state === "rec";
   T(
     x0,
     24,
-    rec ? `REC ${((cursor - tr.from) / 1000).toFixed(1)} s` : "ARMED",
+    rec ? `REC ${((cursor - vt.from) / 1000).toFixed(1)} s` : "ARMED",
     rec ? C.coral : C.teal,
     display(16),
   );
   if (rec) {
-    const quiet = cursor - tr.lastLoud;
+    const quiet = cursor - vt.lastLoud;
     const k = Math.min(1, quiet / hold);
     g.strokeStyle = C.dim;
     g.strokeRect(160.5, 12.5, 160, 10);
     g.fillStyle = C.amber;
     g.fillRect(161, 13, 158 * k, 9);
-    T(
+    W(
       330,
       22,
       quiet > 100
-        ? `quiet ${(quiet / 1000).toFixed(1)} of ${(hold / 1000).toFixed(1)} s: hold`
-        : "loud: the hold restarts",
+        ? tr("recorder.holding", { quiet: quiet / 1000, hold: hold / 1000 })
+        : tr("recorder.loud"),
       C.muted,
       small,
     );
@@ -133,13 +136,12 @@ export function drawRecorder(
     const saved = clips.filter((x, k) => k <= i && x.action === "save").length;
     const text =
       c.action === "save"
-        ? `clip ${saved} saved: ${((c.to - c.from) / 1000).toFixed(1)} s`
-        : `bang at ${(c.trig / 1000).toFixed(1)} s dropped (too short)`;
-    T(680 - 10, 18 + i * 14, text, c.action === "save" ? C.coral : C.muted, small, "right");
+        ? tr("recorder.saved", { n: saved, s: (c.to - c.from) / 1000 })
+        : tr("recorder.dropped", { s: c.trig / 1000 });
+    W(680 - 10, 18 + i * 14, text, c.action === "save" ? C.coral : C.muted, small, "right");
   });
-  if (rec)
-    return "Recording. The clip started half a second before the trigger (amber): the ring buffer still had it. A pause shorter than the hold keeps the sentence in one clip.";
+  if (rec) return tr("recorder.caption.rec");
   return clips.some((c) => c.action === "save")
-    ? "Saved: the clip ends half a second after the last loud moment, not after the whole hold. The door bang was loud too, but under 0.4 s: dropped."
-    : "Armed: listening, keeping nothing but the ring. Louder than the start line begins a clip.";
+    ? tr("recorder.caption.saved")
+    : tr("recorder.caption.armed");
 }

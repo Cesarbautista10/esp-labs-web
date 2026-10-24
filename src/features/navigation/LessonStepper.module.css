@@ -43,8 +43,8 @@
   content: "";
   position: absolute;
   top: calc(var(--pad) / 2 + 4px);
-  left: 50%;
-  right: -50%;
+  inset-inline-start: 50%;
+  inset-inline-end: -50%;
   height: 3px;
   border-radius: 2px;
   background: var(--line);
@@ -110,7 +110,7 @@ a.step:hover .pad {
 }
 .mark {
   position: absolute;
-  right: -3px;
+  inset-inline-end: -3px;
   bottom: -3px;
   display: grid;
   place-items: center;

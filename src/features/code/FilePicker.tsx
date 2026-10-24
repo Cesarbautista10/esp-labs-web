@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Level } from "@/features/settings/settings";
 import styles from "./FilePicker.module.css";
 import type { CodeFile } from "./lab-code";
@@ -20,6 +21,7 @@ export function FilePicker({
   readStops: ReadonlySet<string>;
   onPick: (path: string) => void;
 }) {
+  const { t } = useTranslation("code");
   const [open, setOpen] = useState(false);
   const [showShared, setShowShared] = useState(level !== "beginner");
   const own = files.filter((f) => f.role === "lab");
@@ -44,8 +46,9 @@ export function FilePicker({
         >
           <span className={styles.name}>{f.name}</span>
           <span className={styles.meta}>
-            {f.codeLineCount} lines
-            {f.stops.length ? ` · ${done}/${f.stops.length} stops` : ""}
+            {f.stops.length
+              ? t("files.linesAndStops", { lines: f.codeLineCount, done, count: f.stops.length })
+              : t("files.lines", { count: f.codeLineCount })}
           </span>
           <span className={styles.bar} aria-hidden="true">
             <span style={{ width: `${f.stops.length ? (done / f.stops.length) * 100 : 0}%` }} />
@@ -67,15 +70,15 @@ export function FilePicker({
         <span className={styles.icon} aria-hidden="true">
           ▤
         </span>
-        <span className={styles.current}>{file?.name ?? "Files"}</span>
+        <span className={styles.current}>{file?.name ?? t("files.toggle")}</span>
         <span className={styles.count}>
-          {index + 1}/{files.length}
+          {t("files.position", { index: index + 1, count: files.length })}
         </span>
         <span aria-hidden="true">{open ? "▴" : "▾"}</span>
       </button>
       {open ? (
         <div id="file-list" className={styles.list}>
-          <p className={styles.group}>This lab</p>
+          <p className={styles.group}>{t("files.thisLab")}</p>
           <ul>{own.map(row)}</ul>
           {shared.length ? (
             <>
@@ -85,15 +88,12 @@ export function FilePicker({
                 aria-expanded={showShared}
                 onClick={() => setShowShared((s) => !s)}
               >
-                Behind the scenes · {shared.length} shared {shared.length === 1 ? "file" : "files"}{" "}
+                {t("files.shared", { count: shared.length })}{" "}
                 {showShared ? "▴" : "▾"}
               </button>
               {showShared ? (
                 <>
-                  <p className={styles.groupNote}>
-                    Code several labs share: the screen, buttons, drivers. Read it when you are
-                    curious.
-                  </p>
+                  <p className={styles.groupNote}>{t("files.sharedNote")}</p>
                   <ul>{shared.map(row)}</ul>
                 </>
               ) : null}

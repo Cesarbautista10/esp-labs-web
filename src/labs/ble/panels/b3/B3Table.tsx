@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Button, ButtonRow } from "@/ui/Button";
@@ -17,6 +18,7 @@ const OP_STROKE: Readonly<Record<Op, string>> = {
 
 /** B3: the GATT table, operation by operation. */
 export function B3Table(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const reduce = useReducedMotion();
   // `seq` counts sends, so sending the same operation again replays it.
   const [sent, setSent] = useState<{ i: number; op: Op; seq: number }>({
@@ -57,7 +59,9 @@ export function B3Table(_: WidgetProps) {
   });
 
   const [ask, answer] =
-    spec.dir === "out" ? ["board → phone", "phone → board"] : ["phone → board", "board → phone"];
+    spec.dir === "out"
+      ? [t("table.toPhone"), t("table.toBoard")]
+      : [t("table.toBoard"), t("table.toPhone")];
   return (
     <div className={styles.wd}>
       <div className={styles.scroll}>
@@ -65,15 +69,16 @@ export function B3Table(_: WidgetProps) {
           ref={svgRef}
           viewBox="0 0 680 230"
           className={styles.full}
+          direction="ltr"
           role="img"
-          aria-label="The phone on the left, the board's GATT table on the right; a packet travels between them for the chosen operation."
+          aria-label={t("table.aria")}
         >
           <rect x={20} y={40} width={90} height={160} rx={14} className={own.phone} />
           <text x={65} y={125} textAnchor="middle" className={own.phoneLabel}>
-            phone
+            {t("table.phone")}
           </text>
           <text x={400} y={26} className={own.service}>
-            Bench service ba5e0000-… (board)
+            {t("table.service")}
           </text>
           {GATT_ROWS.map((r, i) => {
             const y = 40 + i * 36;
@@ -100,21 +105,19 @@ export function B3Table(_: WidgetProps) {
           <circle ref={dotRef} r={7} cx={-20} cy={-20} fill="var(--ble)" />
         </svg>
       </div>
-      <ButtonRow aria-label="Operations">
+      <ButtonRow aria-label={t("table.operations")}>
         {GATT_ROWS.flatMap((r, i) =>
           (Object.keys(r.ops) as Op[]).map((op) => (
             <Button key={`${op}-${r.name}`} onClick={() => send(i, op)}>
-              {op} {r.name}
+              {t(`table.ops.${op}.action`, { name: r.name })}
             </Button>
           )),
         )}
       </ButtonRow>
       {row ? (
         <p className={styles.field} aria-live="polite">
-          <b>
-            {sent.op} {row.name}
-          </b>
-          : {spec.what}.
+          <b>{t(`table.ops.${sent.op}.action`, { name: row.name })}</b>
+          {t("table.what", { what: t(`table.ops.${sent.op}.what`) })}
           <br />
           <code>
             {ask} {hxs(req)}
@@ -128,7 +131,7 @@ export function B3Table(_: WidgetProps) {
             </>
           ) : null}
           <br />
-          Value: {row.show(value)}
+          {t("table.value", { value: row.show(value, t) })}
         </p>
       ) : null}
     </div>

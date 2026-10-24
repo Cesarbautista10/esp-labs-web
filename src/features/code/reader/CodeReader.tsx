@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { analyze } from "@/domain/code/analyze";
 import { useSettings } from "@/features/settings/settings-store";
@@ -21,7 +22,7 @@ const log = createLogger("code");
 /** Stands in for a lab without files, so the modes never deal with "no file". */
 const NO_FILE: CodeFile = {
   path: "",
-  name: "no files",
+  name: "",
   role: "lab",
   group: "",
   analysis: analyze(""),
@@ -35,6 +36,7 @@ const NO_FILE: CodeFile = {
  * mode through ReaderContext; the modes (Tour, Story, Explore) own their own navigation.
  */
 export function CodeReader({ lab, lessonHref }: { lab: LabCode; lessonHref: string }) {
+  const { t } = useTranslation("code");
   const settings = useSettings();
   const simple = settings.view === "simple";
   const [params, setParams] = useSearchParams();
@@ -61,6 +63,8 @@ export function CodeReader({ lab, lessonHref }: { lab: LabCode; lessonHref: stri
     return () => window.removeEventListener("keydown", listener);
   }, []);
 
+  // Its name is the only text it carries (the React Compiler keeps this object per language).
+  const noFile: CodeFile = { ...NO_FILE, name: t("reader.noFiles") };
   const modes = modesFor(simple);
   const current = modes.find((m) => m.id === params.get("mode")) ?? modes[0];
   const update = (change: (p: URLSearchParams) => void) =>
@@ -87,7 +91,7 @@ export function CodeReader({ lab, lessonHref }: { lab: LabCode; lessonHref: stri
       });
       log.info("reader mode", { env: lab.env, mode });
     },
-    file: (path) => lab.files.find((f) => f.path === path) ?? lab.files[0] ?? NO_FILE,
+    file: (path) => lab.files.find((f) => f.path === path) ?? lab.files[0] ?? noFile,
     openFile(path, line) {
       update((p) => {
         p.set("file", path);
@@ -135,7 +139,7 @@ export function CodeReader({ lab, lessonHref }: { lab: LabCode; lessonHref: stri
         className={styles.reader}
         data-focus={focus}
         data-view={settings.view}
-        aria-label={`Code of ${lab.env}`}
+        aria-label={t("reader.label", { env: lab.env })}
       >
         {Mode ? <Mode key={current.id} /> : null}
       </section>
@@ -145,5 +149,6 @@ export function CodeReader({ lab, lessonHref }: { lab: LabCode; lessonHref: stri
 
 /** Holds the reader's place while the code and the phrasebook load. */
 export function ReaderSkeleton() {
-  return <div className={styles.skeleton} role="status" aria-label="Reading the code…" />;
+  const { t } = useTranslation("code");
+  return <div className={styles.skeleton} role="status" aria-label={t("reader.loading")} />;
 }

@@ -61,7 +61,8 @@
   border-top: 1px solid var(--pcb-edge);
 }
 .input label {
-  padding: 8px 0 8px 12px;
+  padding-block: 8px;
+  padding-inline: 12px 0;
   color: var(--scope-amber);
 }
 .input input {
@@ -70,7 +71,8 @@
   background: transparent;
   border: 0;
   color: var(--term-ink);
-  padding: 8px 12px 8px 8px;
+  padding-block: 8px;
+  padding-inline: 8px 12px;
   /* 16px stops iOS Safari zooming into the field. */
   font-size: 16px;
 }

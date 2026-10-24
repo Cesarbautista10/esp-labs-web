@@ -4,6 +4,7 @@ import { Button, ButtonRow } from "@/ui/Button";
 import { Caption } from "@/ui/Caption";
 import { Terminal, useTerminalLog } from "@/ui/terminal/Terminal";
 import { useSimulation } from "../simulation";
+import { labText, useLabT } from "./lab-text";
 import { ScreenCanvas } from "./ScreenCanvas";
 import type { LabAction, LabKit, LabState, ScreenSpec } from "./types";
 import styles from "./LabScreen.module.css";
@@ -23,7 +24,8 @@ export function LabScreen<S extends LabState, Spec extends ScreenSpec<S>>({
   spec,
   lesson,
 }: LabScreenProps<S, Spec>) {
-  if (!spec) return <Caption>Preview coming with this lab.</Caption>;
+  const t = useLabT(kit.ns);
+  if (!spec) return <Caption>{t("screen.previewSoon")}</Caption>;
   // A different lab is a different board: key resets the simulation.
   return <LabScreenRunning key={lesson.id} kit={kit} spec={spec} lesson={lesson} />;
 }
@@ -35,10 +37,11 @@ function LabScreenRunning<S extends LabState, Spec extends ScreenSpec<S>>({
 }: LabScreenProps<S, Spec> & { spec: Spec }) {
   const [sim, snapshot] = useSimulation(() => spec.init());
   const term = useTerminalLog();
+  const t = useLabT(kit.ns);
   const firmware = `${kit.firmware}-${lesson.id.toLowerCase()}`;
 
   const nextView: LabAction<S> = {
-    label: "button: next view",
+    label: (_, t) => t("screen.nextView"),
     run: (st) => {
       st.view = (st.view + 1) % spec.views.length;
     },
@@ -101,7 +104,7 @@ function LabScreenRunning<S extends LabState, Spec extends ScreenSpec<S>>({
             pressed={a.pressed?.(snapshot.state)}
             onClick={() => sim.update((st) => a.run(st, term))}
           >
-            {typeof a.label === "function" ? a.label(snapshot.state) : a.label}
+            {typeof a.label === "function" ? a.label(snapshot.state, t) : a.label}
           </Button>
         ))}
       </ButtonRow>
@@ -110,9 +113,9 @@ function LabScreenRunning<S extends LabState, Spec extends ScreenSpec<S>>({
         spec={spec}
         lesson={lesson}
         sim={sim}
-        label={`Simulated ${lesson.id} screen: ${spec.views.join(", ")} views`}
+        label={t("screen.label", { lesson: lesson.id, views: spec.views.join(", ") })}
       />
-      <Caption>{kit.previewCaption}</Caption>
+      <Caption>{labText(kit.previewCaption, t)}</Caption>
       <Terminal
         log={term}
         title="$ uv run pio device monitor"

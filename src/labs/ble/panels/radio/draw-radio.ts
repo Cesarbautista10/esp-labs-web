@@ -1,4 +1,5 @@
 import { drawText, MONO_FONT, type ScopePalette } from "@/lib/canvas";
+import { annotationDirection, type BleT } from "../../i18n";
 import { type AdvChannel, channelMHz, listening, type RadioSim, SCAN_EVERY } from "./radio-sim";
 
 export const RADIO_W = 680;
@@ -11,6 +12,7 @@ export function drawRadio(
   sim: RadioSim,
   windowPct: number,
   active: boolean,
+  t: BleT,
 ): void {
   const font = `11px ${MONO_FONT}`;
   const small = `9px ${MONO_FONT}`;
@@ -24,11 +26,12 @@ export function drawRadio(
   ) => drawText(g, x, y, s, col, f, align);
   const CH_COL: Readonly<Record<AdvChannel, string>> = { 37: C.blue, 38: C.teal, 39: C.amber };
   const { simMs } = sim;
+  g.direction = annotationDirection();
   g.fillStyle = C.paper;
   g.fillRect(0, 0, RADIO_W, RADIO_H);
   // Spectrum: 2400-2483.5 MHz.
   const fx = (f: number) => 20 + ((f - 2400) / 83.5) * 640;
-  T(20, 18, "2.4 GHz band: 40 Bluetooth LE channels, 2 MHz each", C.muted);
+  T(20, 18, t("radio.draw.band"), C.muted);
   for (const [n, f] of [
     [1, 2412],
     [6, 2437],
@@ -57,7 +60,7 @@ export function drawRadio(
   T(fx(2480), 138, "2480 MHz", C.muted, small, "right");
   // Timeline: the last 600 ms of (slowed-down) time.
   const tx = (t: number) => 110 + ((t - (simMs - 600)) / 600) * 560;
-  T(20, 160, "listening", C.ink);
+  T(20, 160, t("radio.draw.listening"), C.ink);
   for (let t0 = Math.floor((simMs - 600) / SCAN_EVERY) * SCAN_EVERY; t0 < simMs; t0 += SCAN_EVERY) {
     const l = listening(t0, windowPct);
     const w = (SCAN_EVERY * windowPct) / 100;
@@ -68,12 +71,12 @@ export function drawRadio(
       g.globalAlpha = 0.28;
       g.fillRect(a, 146, b - a, 22);
       g.globalAlpha = 1;
-      T(a + 3, 161, `ch ${l.ch}`, CH_COL[l.ch]);
+      T(a + 3, 161, t("radio.draw.channel", { ch: l.ch }), CH_COL[l.ch]);
     }
   }
   g.fillStyle = C.ink;
   g.fillRect(tx(simMs), 140, 1, 160);
-  sim.devices.forEach((d) => T(20, d.y + 4, d.name, C.ink));
+  sim.devices.forEach((d) => T(20, d.y + 4, t(`radio.devices.${d.name}`), C.ink));
   for (const p of sim.packets) {
     if (p.at > simMs) continue;
     const x = tx(p.at);
@@ -101,8 +104,12 @@ export function drawRadio(
   T(
     20,
     318,
-    `advertising events heard ${sim.heard} · missed ${sim.missed} · ${total ? Math.round((sim.heard * 100) / total) : 0} % caught`,
+    t("radio.draw.tally", {
+      heard: sim.heard,
+      missed: sim.missed,
+      caught: total ? Math.round((sim.heard * 100) / total) : 0,
+    }),
     C.ink,
   );
-  T(660, 318, "time slowed down 20x", C.muted, font, "right");
+  T(660, 318, t("radio.draw.slowed"), C.muted, font, "right");
 }

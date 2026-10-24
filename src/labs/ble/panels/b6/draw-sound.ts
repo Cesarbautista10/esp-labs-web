@@ -1,8 +1,10 @@
+import type { BleT } from "../../i18n";
 import type { SvgPainter } from "../svg";
 
 export type MediaKey = "play" | "next" | "up" | "down";
 export type Press = MediaKey | "direct";
 
+/** HID consumer usages, named as in the HID usage tables (they stay in English). */
 export const USAGE: Readonly<Record<MediaKey, string>> = {
   play: "0x00CD play/pause",
   next: "0x00B5 next track",
@@ -33,7 +35,13 @@ export class MediaScene {
 }
 
 /** Board → phone (BLE HID) → speaker (Classic A2DP), and the direct path that can't work. */
-export function drawSound(p: SvgPainter, st: MediaScene, now: number, reduce: boolean): void {
+export function drawSound(
+  p: SvgPainter,
+  st: MediaScene,
+  now: number,
+  reduce: boolean,
+  t: BleT,
+): void {
   const T = (x: number, y: number, s: string, fill: string, size = 12, weight = 400) =>
     p.add(
       "text",
@@ -62,7 +70,7 @@ export function drawSound(p: SvgPainter, st: MediaScene, now: number, reduce: bo
     "stroke-width": 2,
   });
   T(75, 100, "Bench B6", "var(--scope-ink)", 13, 600);
-  T(75, 118, "LE only", "var(--scope-muted)", 10);
+  T(75, 118, t("sound.draw.leOnly"), "var(--scope-muted)", 10);
   p.add("rect", {
     x: 280,
     y: 50,
@@ -73,16 +81,16 @@ export function drawSound(p: SvgPainter, st: MediaScene, now: number, reduce: bo
     stroke: "var(--ink)",
     "stroke-width": 2,
   });
-  T(325, 82, "phone", "var(--ink)", 12, 600);
-  T(325, 98, "or Mac", "var(--muted)", 10);
+  T(325, 82, t("sound.draw.phone"), "var(--ink)", 12, 600);
+  T(325, 98, t("sound.draw.orMac"), "var(--muted)", 10);
   T(
     325,
     124,
-    st.playing ? "▶ playing" : "❚❚ paused",
+    st.playing ? t("sound.draw.playing") : t("sound.draw.paused"),
     st.playing ? "var(--ok)" : "var(--muted)",
     11,
   );
-  T(325, 140, `vol ${st.volume}`, "var(--muted)", 10);
+  T(325, 140, t("sound.draw.volume", { value: st.volume }), "var(--muted)", 10);
   p.add("rect", {
     x: 540,
     y: 76,
@@ -93,8 +101,8 @@ export function drawSound(p: SvgPainter, st: MediaScene, now: number, reduce: bo
     stroke: "var(--copper)",
     "stroke-width": 2,
   });
-  T(600, 104, "JBL speaker", "var(--ink)", 12, 600);
-  T(600, 120, "Classic BT audio", "var(--muted)", 10);
+  T(600, 104, t("sound.draw.speaker"), "var(--ink)", 12, 600);
+  T(600, 120, t("sound.draw.classic"), "var(--muted)", 10);
   // Sound waves out of the speaker, size = volume.
   if (st.playing)
     for (let i = 0; i < 3; i++) {
@@ -117,7 +125,7 @@ export function drawSound(p: SvgPainter, st: MediaScene, now: number, reduce: bo
     "stroke-width": 2,
   });
   T(210, 95, "Bluetooth LE · HID", "var(--scope-blue)", 11, 600);
-  T(210, 124, "2-8 byte reports", "var(--muted)", 10);
+  T(210, 124, t("sound.draw.reports"), "var(--muted)", 10);
   p.add("line", {
     x1: 370,
     y1: 105,
@@ -129,7 +137,7 @@ export function drawSound(p: SvgPainter, st: MediaScene, now: number, reduce: bo
     "stroke-dashoffset": st.playing && !reduce ? -now / 30 : 0,
   });
   T(450, 95, "Classic BT · A2DP audio", "var(--copper)", 11, 600);
-  T(450, 124, "~ 300 kbit/s, nonstop", "var(--muted)", 10);
+  T(450, 124, t("sound.draw.rate"), "var(--muted)", 10);
   if (st.anim === "direct") {
     // A path that goes under the phone and stops dead.
     p.add("path", {
@@ -147,7 +155,7 @@ export function drawSound(p: SvgPainter, st: MediaScene, now: number, reduce: bo
       T(
         360,
         214,
-        "✕ different radio: LE packets mean nothing to an A2DP sink",
+        t("sound.draw.fail"),
         "var(--danger)",
         12,
         600,

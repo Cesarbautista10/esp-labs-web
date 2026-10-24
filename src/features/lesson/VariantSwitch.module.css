@@ -16,13 +16,13 @@
   border-bottom: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
 @media (min-width: 480px) {
   .variants button {
     border-bottom: 0;
-    border-right: 1px solid var(--line);
+    border-inline-end: 1px solid var(--line);
   }
 }
 .variants button:last-child {

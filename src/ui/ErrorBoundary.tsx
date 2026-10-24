@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { createLogger, errorData } from "@/lib/logger";
 import styles from "./ErrorBoundary.module.css";
 
@@ -42,14 +43,31 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <div role="alert" className={styles.fallback}>
-        <p>
-          <b>{this.props.name}</b> stopped working: {this.state.error.message}
-        </p>
-        <button type="button" onClick={() => this.setState({ error: null })}>
-          Try again
-        </button>
-      </div>
+      <Fallback
+        name={this.props.name}
+        message={this.state.error.message}
+        onRetry={() => this.setState({ error: null })}
+      />
     );
   }
+}
+
+/** What the reader sees instead of the broken region. A function, so it can use the translations. */
+function Fallback({ name, message, onRetry }: { name: string; message: string; onRetry: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div role="alert" className={styles.fallback}>
+      <p>
+        <Trans
+          t={t}
+          i18nKey="ui.errorBoundary.message"
+          values={{ name, message }}
+          components={{ b: <b /> }}
+        />
+      </p>
+      <button type="button" onClick={onRetry}>
+        {t("ui.errorBoundary.retry")}
+      </button>
+    </div>
+  );
 }

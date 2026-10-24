@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, scopePalette } from "@/lib/canvas";
 import { useReducedMotion } from "@/lib/media";
@@ -10,35 +11,21 @@ import { lockstep, type TimingSettings, TimingSim } from "./timing-sim";
 
 interface Slider {
   readonly key: "adv" | "si" | "win";
-  readonly label: string;
   readonly min: number;
   readonly max: number;
   readonly step: number;
-  readonly aria: string;
 }
 
+// Labels: timing.sliders.<key>.label / .aria.
 const SLIDERS: readonly Slider[] = [
-  {
-    key: "adv",
-    label: "advert every",
-    min: 20,
-    max: 1000,
-    step: 10,
-    aria: "Advertising interval in ms",
-  },
-  { key: "si", label: "scan interval", min: 30, max: 400, step: 10, aria: "Scan interval in ms" },
-  {
-    key: "win",
-    label: "window",
-    min: 5,
-    max: 100,
-    step: 5,
-    aria: "Scan window in percent of the scan interval",
-  },
+  { key: "adv", min: 20, max: 1000, step: 10 },
+  { key: "si", min: 30, max: 400, step: 10 },
+  { key: "win", min: 5, max: 100, step: 5 },
 ];
 
 /** B2: advertising timing against a scanner's listening windows. */
 export function B2Timing(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const reduce = useReducedMotion();
   const [values, setValues] = useState({ adv: 100, si: 100, win: 30 });
   const [delay, setDelay] = useState(true);
@@ -58,27 +45,30 @@ export function B2Timing(_: WidgetProps) {
     win: Math.round((values.si * values.win) / 100),
     delay,
   };
-  const shown = { adv: `${settings.adv} ms`, si: `${settings.si} ms`, win: `${settings.win} ms` };
+  const ms = (value: number) => t("timing.ms", { value });
+  const shown = { adv: ms(settings.adv), si: ms(settings.si), win: ms(settings.win) };
 
   useFrameLoop(canvasRef, ({ dt }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     // A quarter of real speed, so single events stay visible.
     sim.advance(playing ? Math.min(dt * 1000, 50) * 0.25 : 0, settings);
-    drawTiming(context2d(canvas), scopePalette(), sim, settings);
+    drawTiming(context2d(canvas), scopePalette(), sim, settings, t);
     const pct = sim.total ? Math.round((sim.caught / sim.total) * 100) : 0;
     const stuck = lockstep(settings);
-    if (countRef.current) countRef.current.textContent = `${sim.caught} of ${sim.total}`;
-    if (restRef.current)
-      restRef.current.textContent = ` advertising events heard (${pct} %). The scanner listens ${Math.round((settings.win / settings.si) * 100)} % of the time, one channel per scan interval${sim.firstCatch !== null ? `; first heard after ${Math.round(sim.firstCatch)} ms` : ""}. `;
-    if (warnRef.current)
-      warnRef.current.textContent = stuck
-        ? "No random delay and intervals that divide evenly:"
-        : "";
+    if (countRef.current)
+      countRef.current.textContent = t("timing.count", { caught: sim.caught, total: sim.total });
+    if (restRef.current) {
+      const listen = Math.round((settings.win / settings.si) * 100);
+      restRef.current.textContent = ` ${
+        sim.firstCatch !== null
+          ? t("timing.restFirst", { pct, listen, first: Math.round(sim.firstCatch) })
+          : t("timing.rest", { pct, listen })
+      } `;
+    }
+    if (warnRef.current) warnRef.current.textContent = stuck ? t("timing.stuck") : "";
     if (tailRef.current)
-      tailRef.current.textContent = stuck
-        ? " the two clocks stay in lockstep, so the same packets get missed forever. That's what advDelay prevents."
-        : "Longer interval = fewer chances = the phone notices the board later, but the battery lasts longer.";
+      tailRef.current.textContent = stuck ? ` ${t("timing.stuckWhy")}` : t("timing.longer");
   });
 
   return (
@@ -86,14 +76,14 @@ export function B2Timing(_: WidgetProps) {
       <div className={styles.ctl}>
         {SLIDERS.map((s) => (
           <label key={s.key}>
-            {s.label}
+            {t(`timing.sliders.${s.key}.label`)}
             <input
               type="range"
               min={s.min}
               max={s.max}
               step={s.step}
               value={values[s.key]}
-              aria-label={s.aria}
+              aria-label={t(`timing.sliders.${s.key}.aria`)}
               onChange={(e) => {
                 setValues((v) => ({ ...v, [s.key]: Number(e.target.value) }));
                 sim.reset();
@@ -112,9 +102,9 @@ export function B2Timing(_: WidgetProps) {
               sim.reset();
             }}
           />{" "}
-          random 0-10 ms advDelay
+          {t("timing.delay")}
         </label>
-        <Button aria-label={playing ? "Pause" : "Play"} onClick={() => setPlaying((p) => !p)}>
+        <Button aria-label={playing ? t("controls.pauseAria") : t("controls.playAria")} onClick={() => setPlaying((p) => !p)}>
           {playing ? "❚❚" : "▶"}
         </Button>
       </div>
@@ -124,8 +114,9 @@ export function B2Timing(_: WidgetProps) {
           width={TIMING_W}
           height={TIMING_H}
           className={styles.full}
+          dir="ltr"
           role="img"
-          aria-label="Timeline: the board's advertising events on channels 37, 38 and 39, the scanner's listening windows, caught packets in green and missed ones in grey."
+          aria-label={t("timing.aria")}
         />
       </div>
       <p className={styles.field}>

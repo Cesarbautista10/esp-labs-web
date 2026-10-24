@@ -6,6 +6,7 @@ import { createLogger, errorData } from "@/lib/logger";
 import { useReducedMotion } from "@/lib/media";
 import { ScreenFrame } from "@/ui/ScreenFrame";
 import type { Simulation } from "../simulation";
+import { labText, useLabT } from "./lab-text";
 import type { LabKit, LabState, ScreenSpec } from "./types";
 
 const log = createLogger("lab-screen");
@@ -34,6 +35,7 @@ export function ScreenCanvas<S extends LabState, Spec extends ScreenSpec<S>>({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const failed = useRef(false);
   const reduce = useReducedMotion();
+  const tr = useLabT(kit.ns);
 
   useFrameLoop(canvasRef, ({ now, dt }) => {
     const canvas = canvasRef.current;
@@ -77,12 +79,18 @@ export function ScreenCanvas<S extends LabState, Spec extends ScreenSpec<S>>({
 
   return (
     <ScreenFrame>
+      {/* The device screen is physical: it never mirrors. */}
       <canvas
+        dir="ltr"
         ref={canvasRef}
         width={SCREEN_W}
         height={SCREEN_H}
         role="img"
-        aria-label={tap && kit.tapHint ? `${label}. ${kit.tapHint}` : label}
+        aria-label={
+          tap && kit.tapHint
+            ? tr("screen.withHint", { label, hint: labText(kit.tapHint, tr) })
+            : label
+        }
         tabIndex={tap ? 0 : undefined}
         onPointerDown={tap}
         onKeyDown={onKeyDown}

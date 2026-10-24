@@ -14,7 +14,7 @@
 .check li:not(:last-child)::after {
   content: "";
   position: absolute;
-  left: 21px;
+  inset-inline-start: 21px;
   top: 34px;
   bottom: -8px;
   width: 2px;
@@ -28,7 +28,8 @@
   grid-template-columns: 30px minmax(0, 1fr);
   gap: 12px;
   align-items: start;
-  padding: 8px 8px 8px 7px;
+  padding-block: 8px;
+  padding-inline: 7px 8px;
   border-radius: var(--radius-m);
   cursor: pointer;
   transition: background 0.2s ease;
@@ -71,7 +72,7 @@
   content: "";
   width: 10px;
   height: 6px;
-  border-left: 2.5px solid var(--surface);
+  border-inline-start: 2.5px solid var(--surface);
   border-bottom: 2.5px solid var(--surface);
   transform: translateY(-2px) rotate(-45deg);
 }
@@ -103,9 +104,11 @@
 .note {
   font-size: 14px;
   color: var(--muted);
-  border-left: 3px solid var(--warn);
+  border-inline-start: 3px solid var(--warn);
   background: color-mix(in oklab, var(--warn) 6%, transparent);
-  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  border-radius: 0;
+  border-start-end-radius: var(--radius-s);
+  border-end-end-radius: var(--radius-s);
   padding: 8px 12px;
   margin: 12px 0 0;
 }

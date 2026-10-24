@@ -19,13 +19,11 @@ export interface FieldState {
   slice: boolean;
   /** WUPA symbol on the air right now, -1 = none. */
   sym: number;
-  cap: readonly [string, string];
+  /** The caption on show: field3d.captions.<cap>. */
+  cap: FieldCaption;
 }
 
-export const FIELD_CAPTION = [
-  "The field",
-  "The antenna is a flat coil on the board. 13.56 million times a second its current reverses, and so does the magnetic field around it: the lines leave the coil's centre, curve around and come back. Here it reverses every 2 seconds.",
-] as const;
+export type FieldCaption = "field" | "send" | "wake" | "dark" | "answer" | "quiet";
 
 export const initialField = (): FieldState => ({
   dist: 25,
@@ -33,39 +31,26 @@ export const initialField = (): FieldState => ({
   talk: null,
   slice: false,
   sym: -1,
-  cap: FIELD_CAPTION,
+  cap: "field",
 });
 export const dbOf = (st: FieldState) => FIELD.gains[st.gain] ?? 33;
 
 type Phase = "idle" | "send" | "wait" | "answer" | "done";
 
-function phaseCaption(phase: Phase, talk: Talk): readonly [string, string] | null {
-  if (phase === "send")
-    return [
-      "The reader sends WUPA",
-      "100 % ASK: for each bit the chip switches its field off for about 3 µs, at the start (Z) or in the middle (X) of the bit, or not at all (Y). 7 bits plus start and end take about 85 µs; here a third of a second each. The card keeps its power through the gaps.",
-    ];
-  if (phase === "wait")
-    return talk.powered
-      ? [
-          "The card wakes up and waits",
-          "Its chip powered up from the field and decoded WUPA. Every card waits exactly the same time (about 86 µs) before answering, so all cards in the field answer at once.",
-        ]
-      : [
-          "The card stays dark",
-          "At this height the field is too weak to run the card's chip. More gain doesn't help here: gain makes the reader a better listener, it doesn't send more power.",
-        ];
-  if (phase === "answer" && talk.powered)
-    return talk.heard
-      ? [
-          "The card answers: ATQA 04 00",
-          "The card can't transmit. It switches a small load on its coil 847,000 times a second (fc/16); the reader's antenna feels its own field wobble and decodes 2 bytes. The chip raises RxIRq, the IRQ wire drops, the reader task wakes.",
-        ]
-      : [
-          "The card answers… too quietly",
-          "The card is powered and answering, but at this gain the reader can't tell its tiny load changes from noise. Turn the gain up, or bring the card closer.",
-        ];
+function phaseCaption(phase: Phase, talk: Talk): FieldCaption | null {
+  if (phase === "send") return "send";
+  if (phase === "wait") return talk.powered ? "wake" : "dark";
+  if (phase === "answer" && talk.powered) return talk.heard ? "answer" : "quiet";
   return null;
+}
+
+/** The scene's labels, translated by the component. */
+export interface FieldLabels {
+  readonly coil: string;
+  readonly chip: string;
+  readonly pins: string;
+  readonly cardCoil: string;
+  readonly cardChip: string;
 }
 
 // Talk timeline (seconds from the click): WUPA symbols, the card's wait, the answer.
@@ -84,7 +69,12 @@ interface FieldLine {
 }
 
 /** Builds the scene on the stage and animates it from `sim.state`. */
-export function buildFieldScene(T: ThreeModule, S: Stage3d, sim: Simulation<FieldState>): void {
+export function buildFieldScene(
+  T: ThreeModule,
+  S: Stage3d,
+  sim: Simulation<FieldState>,
+  labels: FieldLabels,
+): void {
   const C = palette3d();
   const st = sim.state;
   const col = (c: string) => new T.Color(c);
@@ -213,13 +203,13 @@ export function buildFieldScene(T: ThreeModule, S: Stage3d, sim: Simulation<Fiel
     return { m, mat };
   });
   const cardY = () => st.dist / 10 + 0.12;
-  S.label("antenna coil · 13.56 MHz", new T.Vector3(AX + 2.0, 0.05, 1.6));
-  S.label("MFRC522", new T.Vector3(-1.9, 0.15, 0.4));
-  S.label("8 pins → ESP32", new T.Vector3(-2.75, 0.1, -1.4));
+  S.label(labels.coil, new T.Vector3(AX + 2.0, 0.05, 1.6));
+  S.label(labels.chip, new T.Vector3(-1.9, 0.15, 0.4));
+  S.label(labels.pins, new T.Vector3(-2.75, 0.1, -1.4));
   const coilAt = new T.Vector3();
   const chipAt = new T.Vector3();
-  S.label("card coil: power + antenna", () => coilAt.set(AX + 3.75, cardY() + 0.05, -2.25));
-  S.label("card chip (no battery)", () => chipAt.set(AX + 2.9, cardY() + 0.1, 1.4));
+  S.label(labels.cardCoil, () => coilAt.set(AX + 3.75, cardY() + 0.05, -2.25));
+  S.label(labels.cardChip, () => chipAt.set(AX + 2.9, cardY() + 0.1, 1.4));
 
   let flow = 0;
   let lastPhase: Phase = "idle";

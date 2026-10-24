@@ -1,6 +1,11 @@
 import type { FileAnalysis } from "@/domain/code/analyze";
 import { analyze } from "@/domain/code/analyze";
-import { type Definition, definitionsOf, type ExplainContext } from "@/domain/code/explain";
+import {
+  type Definition,
+  definitionsOf,
+  type ExplainContext,
+  type ExplainT,
+} from "@/domain/code/explain";
 import type { Glossary } from "@/domain/code/glossary";
 import { buildSymbolIndex, type SymbolIndex } from "@/domain/code/symbols";
 import {
@@ -38,6 +43,8 @@ export interface LabCode {
   readonly symbols: SymbolIndex;
   readonly glossary: Glossary;
   readonly problems: readonly TourProblem[];
+  /** The language the automatic tours were written in; line explanations use it too. */
+  readonly t: ExplainT;
 }
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -71,13 +78,14 @@ export function buildLabCode(
   doc: FirmwareEnvDoc,
   glossary: Glossary,
   tour: LabTourSpec | undefined,
+  t: ExplainT,
 ): LabCode {
   const analysed = doc.files.map((f) => ({ ...f, analysis: analyze(f.text) }));
   const defined = definitionsOf(analysed);
   const known = knownFrom(glossary);
   const problems: TourProblem[] = [];
   const files = analysed.map((f): CodeFile => {
-    const ctx: ExplainContext = { file: f.analysis, defined, known };
+    const ctx: ExplainContext = { file: f.analysis, defined, known, t };
     const spec = tour?.files.find((t) => t.path === f.path);
     let stops: readonly TourStop[];
     if (spec) {
@@ -100,7 +108,7 @@ export function buildLabCode(
   const summary = headerSummary(files[0]);
   const bigPicture = tour?.bigPicture ?? esc(summary || doc.about);
   const symbols = buildSymbolIndex(files);
-  return { env: doc.env, bigPicture, files, defined, symbols, glossary, problems };
+  return { env: doc.env, bigPicture, files, defined, symbols, glossary, problems, t };
 }
 
 /** Context for explaining lines of one file of a lab. */
@@ -108,6 +116,7 @@ export const explainContext = (lab: LabCode, file: CodeFile): ExplainContext => 
   file: file.analysis,
   defined: lab.defined,
   known: knownFrom(lab.glossary),
+  t: lab.t,
 });
 
 /** Stops a level shows: Beginner keeps the essential ones. */

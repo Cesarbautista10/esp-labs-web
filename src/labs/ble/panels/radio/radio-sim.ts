@@ -10,7 +10,7 @@ export const channelMHz = (ch: number): number =>
   ch === 37 ? 2402 : ch === 38 ? 2426 : ch === 39 ? 2480 : ch <= 10 ? 2404 + ch * 2 : 2406 + ch * 2;
 
 export interface Advertiser {
-  readonly name: string;
+  readonly name: "phone" | "speaker" | "keyboard";
   readonly every: number;
   next: number;
   /** Row on the timeline. */

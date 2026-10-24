@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import type { GlossaryEntry, GlossaryTopic } from "@/domain/code/glossary";
 import type { Level } from "@/features/settings/settings";
 import styles from "./panels.module.css";
@@ -17,6 +18,7 @@ interface PhrasebookProps {
 
 /** Every C++ word and library call explained, grouped by topic, with the ones you met lit up. */
 export function Phrasebook({ entries, topics, met, here, level, picked, onPick }: PhrasebookProps) {
+  const { t } = useTranslation("code");
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<"here" | "all">("here");
   const q = query.trim().toLowerCase();
@@ -33,7 +35,13 @@ export function Phrasebook({ entries, topics, met, here, level, picked, onPick }
   return (
     <div className={styles.book}>
       <p className={styles.bookHead}>
-        <b>{metCount}</b> of {entries.length} words met
+        <Trans
+          t={t}
+          i18nKey="book.met"
+          values={{ met: metCount }}
+          count={entries.length}
+          components={{ b: <b /> }}
+        />
         <span className={styles.meter} aria-hidden="true">
           <span style={{ width: `${(metCount / Math.max(1, entries.length)) * 100}%` }} />
         </span>
@@ -46,20 +54,20 @@ export function Phrasebook({ entries, topics, met, here, level, picked, onPick }
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Find a word"
-          aria-label="Find a word"
+          placeholder={t("book.find")}
+          aria-label={t("book.find")}
           className={styles.search}
         />
-        <div className={styles.scope} role="group" aria-label="Which words">
+        <div className={styles.scope} role="group" aria-label={t("book.scope")}>
           <button type="button" aria-pressed={scope === "here"} onClick={() => setScope("here")}>
-            In this file
+            {t("book.here")}
           </button>
           <button type="button" aria-pressed={scope === "all"} onClick={() => setScope("all")}>
-            All
+            {t("book.all")}
           </button>
         </div>
       </div>
-      {visible.length === 0 ? <p className={styles.hint}>No words match.</p> : null}
+      {visible.length === 0 ? <p className={styles.hint}>{t("book.none")}</p> : null}
       {[...byTopic].map(([topic, list]) => (
         <section key={topic} className={styles.topic} aria-label={topics[topic].title}>
           <h4>{topics[topic].title}</h4>

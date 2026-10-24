@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/ui/Button";
 import type { WidgetProps } from "@/widgets/types";
 import { CanvasPanel } from "../canvas-panel/CanvasPanel";
@@ -14,6 +15,7 @@ const STEPS: readonly (readonly [string, number])[] = [
 /** S2 panel: what a decibel is. */
 export function SoundDecibels(_: WidgetProps) {
   // Tenths of a dB above the quiet, like the original slider.
+  const { t: tr } = useTranslation("labs-sound");
   const [tenths, setTenths] = useState(200);
   const db = tenths / 10;
   const ratio = Math.pow(10, db / 20);
@@ -21,12 +23,12 @@ export function SoundDecibels(_: WidgetProps) {
   return (
     <CanvasPanel
       h={250}
-      label="Two waves: the room's quiet and a louder sound you choose, with a decibel ruler showing that +6 dB doubles the height and +20 dB is ten times."
+      label={tr("decibels.label")}
       controls={
         <>
           <Range
-            label="how loud"
-            ariaLabel="Decibels above the quiet, times ten"
+            label={tr("decibels.howLoud")}
+            ariaLabel={tr("decibels.howLoudLabel")}
             min={0}
             max={600}
             value={tenths}
@@ -40,7 +42,7 @@ export function SoundDecibels(_: WidgetProps) {
           ))}
         </>
       }
-      onFrame={({ g, C, t, reduce, caption }) => caption(drawDecibels(g, C, db, reduce ? 0 : t))}
+      onFrame={({ g, C, t, reduce, caption }) => caption(drawDecibels(g, C, db, reduce ? 0 : t, tr))}
     />
   );
 }

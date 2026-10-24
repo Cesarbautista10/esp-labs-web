@@ -1,36 +1,21 @@
 // MIFARE Classic access conditions: bytes 6-8 of a sector trailer hold three bits (C1 C2 C3) per
 // block, each stored twice, once inverted, so the card can tell a broken trailer.
 
-export const DATA_RULE = [
-  "read and write with key A or B; increment, decrement (transport setting)",
-  "read, decrement with A or B; no writes (a value that can only go down)",
-  "read with A or B; never written again",
-  "read and write with key B only",
-  "read with A or B, write with B",
-  "read with key B only; never written",
-  "read with A or B; write and increment with B; decrement with A or B (value block)",
-  "nothing, ever",
-] as const;
-
-export const TRAILER_RULE = [
-  "key A writes both keys; access bits fixed; key B readable (so it can't be a key)",
-  "key A writes keys and access bits (transport setting)",
-  "nothing can change any more; key B readable",
-  "key B writes keys and access bits",
-  "key B writes the keys; access bits fixed",
-  "key B writes the access bits; keys fixed",
-  "nothing can change any more",
-  "nothing can change any more",
-] as const;
+/** Condition 0..7 → its explanation key (access.data.<id> or access.trailer.<id>). */
+export const RULE_IDS = ["c0", "c1", "c2", "c3", "c4", "c5", "c6", "c7"] as const;
+export type RuleId = (typeof RULE_IDS)[number];
+export const ruleId = (c: number): RuleId => RULE_IDS[c] ?? "c0";
 
 /** Per block 0..3 (3 = the trailer), the condition C1C2C3 as a number 0..7. */
 export type Conditions = readonly [number, number, number, number];
 
-export const PRESETS: Readonly<Record<string, Conditions>> = {
-  "factory FF 07 80": [0, 0, 0, 1],
-  "value blocks": [0, 6, 6, 3],
-  "read-only, forever": [2, 2, 2, 6],
-};
+/** Labelled access.presets.<key>. */
+export const PRESETS = {
+  factory: [0, 0, 0, 1],
+  values: [0, 6, 6, 3],
+  readOnly: [2, 2, 2, 6],
+} as const satisfies Readonly<Record<string, Conditions>>;
+export type PresetKey = keyof typeof PRESETS;
 
 /** [C1, C2, C3] of one block. */
 export const bitsOf = (cond: Conditions, block: number): [number, number, number] => {

@@ -18,8 +18,12 @@ import { LessonTabs } from "@/features/lesson/LessonTabs";
 import { SectionNav } from "@/features/lesson/SectionNav";
 import { LessonStepper } from "@/features/navigation/LessonStepper";
 import { TrackNav } from "@/features/navigation/TrackNav";
+import { currentLocale } from "@/i18n/i18n";
+import { useLocale } from "@/i18n/use-locale";
+import { useTranslation } from "react-i18next";
 import { progress, useTicks, useVariants } from "@/features/progress/progress-store";
 import { useActiveSection } from "@/lib/active-section";
+import type { RouteErrorReason } from "../route-errors";
 
 // Loaders make sure a lesson's content is in the query cache before the page renders (no
 // spinner, no waterfall); components then read it from the cache with useSuspenseQuery.
@@ -29,8 +33,10 @@ export const trackLoader =
   (queryClient: QueryClient) =>
   async ({ params, request }: LoaderFunctionArgs) => {
     const track = findTrack(params.trackId ?? "");
-    if (!track || track.planned) throw data(`No theme called “${params.trackId}”`, { status: 404 });
-    const lessons = await queryClient.query(trackLessonsQuery(track.id));
+    if (!track || track.planned) throw data({ reason: "noTheme", id: params.trackId ?? "" } satisfies RouteErrorReason, {
+        status: 404,
+      });
+    const lessons = await queryClient.query(trackLessonsQuery(track.id, currentLocale()));
     const entry = entryLesson(lessons, progress.ticks.get());
     const code = new URL(request.url).searchParams.get("view") === "code";
     return redirect(`/lessons/${entry?.id ?? DEFAULT_LESSON_ID}${code ? "/code" : ""}`);
@@ -42,11 +48,13 @@ export const lessonLoader =
   async ({ params }: LoaderFunctionArgs) => {
     const lessonId = params.lessonId ?? "";
     const trackId = trackOfLesson(lessonId);
-    if (!trackId) throw data(`No lesson called “${lessonId}”`, { status: 404 });
-    const lessons = await queryClient.query(trackLessonsQuery(trackId));
+    if (!trackId) throw data({ reason: "noLesson", id: lessonId } satisfies RouteErrorReason, { status: 404 });
+    const lessons = await queryClient.query(trackLessonsQuery(trackId, currentLocale()));
     const lesson = lessons.find((l) => l.id === lessonId);
     if (!lesson || !isActive(lesson))
-      throw data(`Lesson ${lessonId} is planned, not written yet`, { status: 404 });
+      throw data({ reason: "plannedLesson", id: lessonId } satisfies RouteErrorReason, {
+        status: 404,
+      });
     progress.lastLesson.set(lessonId);
     return { lessonId, trackId };
   };
@@ -55,7 +63,7 @@ export const lessonLoader =
 export function useRouteLesson() {
   const { lessonId, trackId } =
     useLoaderData<Awaited<ReturnType<ReturnType<typeof lessonLoader>>>>();
-  const { data: lessons } = useSuspenseQuery(trackLessonsQuery(trackId));
+  const { data: lessons } = useSuspenseQuery(trackLessonsQuery(trackId, useLocale()));
   const variants = useVariants();
   const [params, setParams] = useSearchParams();
   const base = lessons.find((l) => l.id === lessonId);
@@ -82,9 +90,10 @@ export function LessonRoute() {
   const sections = lessonSections(lesson);
   // The pinout is its own section on phones (it comes after the lesson there).
   const active = useActiveSection([...sections.map((s) => s.id), "sec-board"]);
+  const { t } = useTranslation();
   return (
     <BoardSignalsProvider>
-      <title>{`${lesson.id} · ${lesson.title} · ESP32-S3 Bench Guide`}</title>
+      <title>{t("titles.lesson", { id: lesson.id, title: lesson.title })}</title>
       <TrackNav activeTrack={trackId} />
       <LessonStepper lessons={lessons} currentId={lesson.id} color={track?.color ?? "--copper"} />
       <LessonTabs lesson={lesson} current="lab">

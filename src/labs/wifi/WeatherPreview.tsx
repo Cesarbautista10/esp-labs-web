@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, SCREEN_H, SCREEN_W, scopePalette } from "@/lib/canvas";
 import { useReducedMotion } from "@/lib/media";
@@ -26,7 +27,7 @@ import {
 } from "./weather-model";
 import styles from "./wifi.module.css";
 
-const VIEW_CHOICES = WEATHER_VIEWS.map((v, i) => ({ key: i, label: `${i + 1} ${v}` }));
+const MONITOR = "$ uv run pio device monitor";
 const ANSWER_MS = 2400;
 
 /** W3 preview: weather views and the Bench Oracle, with example data. */
@@ -36,6 +37,12 @@ export function WeatherPreview(_: WidgetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const answerTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const reduce = useReducedMotion();
+  const { t } = useTranslation("labs-wifi");
+  // The firmware names its views in English; the picker names them in the reader's language.
+  const viewChoices = WEATHER_VIEWS.map((v, i) => ({
+    key: i,
+    label: t("preview.viewChoice", { n: i + 1, view: t(`views.${v}`) }),
+  }));
 
   const print = (lines: readonly LogLine[]) => printLog(term, lines);
 
@@ -90,32 +97,31 @@ export function WeatherPreview(_: WidgetProps) {
           width={SCREEN_W}
           height={SCREEN_H}
           role="img"
-          aria-label="Simulated weather and oracle screen, example data"
+          aria-label={t("weather.screen")}
+          dir="ltr"
         />
       </ScreenFrame>
       <div className={styles.bootRow}>
         <PushButton
           label="BUTTON"
-          aria-label="Push button: click next view, double-click refresh or new haiku"
+          aria-label={t("weather.button")}
           doubleMs={320}
           onPress={onPress}
         />
         <ChoiceGroup
-          label="Views"
-          choices={VIEW_CHOICES}
+          label={t("preview.views")}
+          choices={viewChoices}
           value={snapshot.state.view}
           onChange={(i) => sim.update((st) => print(setWeatherView(st, i, `view ${i + 1}`)))}
         />
         <Button onClick={() => ask(UMBRELLA, "ask should I take an umbrella?")}>
-          ask: umbrella? (example)
+          {t("weather.umbrella")}
         </Button>
       </div>
       <Caption>
-        Example city, weather and oracle answers, not live. Click = next view, double-click =
-        refresh (oracle view: a new haiku). Your board shows your city and real answers from the
-        model you pick.
+        {t("weather.caption")}
       </Caption>
-      <Terminal log={term} title="$ uv run pio device monitor   (expected output, example data)" />
+      <Terminal log={term} title={t("terminal.expectedData", { command: MONITOR })} />
     </div>
   );
 }

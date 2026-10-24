@@ -1,0 +1,71 @@
+{
+  "hero": {
+    "kicker": "ESP32-S3 · N16R8 · guide d'établi",
+    "title": "ESP32 <part>Labs</part>",
+    "motto": {
+      "wire": "Câble",
+      "flash": "Flashe",
+      "watch": "Observe",
+      "read": "Lis le code"
+    }
+  },
+  "hud": {
+    "title": "Labos qui marchent",
+    "strip": "Tous les labos, par thème",
+    "works": "sur la carte",
+    "done": "faits par toi",
+    "built": "prêts à tester"
+  },
+  "continue": {
+    "resumed": "Reprends où tu t'es arrêté",
+    "start": "Commence ici",
+    "continue": "Continuer le labo",
+    "open": "Ouvrir le labo",
+    "code": "Lire son code"
+  },
+  "board": {
+    "title": "Découvre la carte",
+    "intro": "Six pièces que tu retrouveras labo après labo. Fais glisser la carte pour la tourner ; choisis une pièce pour l'allumer et voir quels labos l'utilisent.",
+    "model": "Modèle 3D de l'ESP32-S3 DevKitC-1 : le module avec son antenne, deux ports USB-C, les boutons BOOT et RST, la LED RGB et deux rangées de broches. Fais glisser pour la tourner.",
+    "fallback": "Chaque pièce est décrite dans les cartes.",
+    "usedIn": "Utilisée dans ",
+    "more_one": "+{{count}} labo",
+    "more_other": "+{{count}} labos",
+    "more_many": "+{{count}} labos",
+    "parts": {
+      "usb": {
+        "title": "Ports USB-C",
+        "text": "COM flashe la carte et transporte le moniteur série. USB est le port propre au S3."
+      },
+      "buttons": {
+        "title": "BOOT et RST",
+        "text": "RST relance ton programme. BOOT est le GPIO 0 : un bouton libre une fois la carte lancée."
+      },
+      "rgb": {
+        "title": "LED RGB",
+        "text": "Une WS2812 sur le GPIO 48 : 16 millions de couleurs avec une seule broche de données."
+      },
+      "module": {
+        "title": "Module ESP32-S3",
+        "text": "Deux cœurs à 240 MHz, 16 Mo de flash et 8 Mo de PSRAM sous le capot métallique."
+      },
+      "antenna": {
+        "title": "Antenne imprimée",
+        "text": "Le Wi-Fi 4 et le Bluetooth 5 partent de ce zigzag de cuivre : garde-le loin du métal."
+      },
+      "headers": {
+        "title": "Barrettes de broches",
+        "text": "44 broches : 3V3, 5V, GND et les GPIO où tu câbles écrans, lecteurs et micros."
+      }
+    }
+  },
+  "map": {
+    "title": "Tous les labos"
+  },
+  "track": {
+    "planned": "prévu",
+    "working": "<b>{{working}}</b>/{{total}}<span> fonctionnent</span>",
+    "state": ", {{state}}",
+    "loading": "Chargement…"
+  }
+}

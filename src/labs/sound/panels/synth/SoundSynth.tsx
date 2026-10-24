@@ -1,4 +1,5 @@
 import { type PointerEvent, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/ui/Button";
 import { ChoiceGroup } from "@/ui/ChoiceGroup";
 import type { WidgetProps } from "@/widgets/types";
@@ -57,6 +58,7 @@ function canvasPoint(e: PointerEvent<HTMLCanvasElement>) {
 /** S7 panel: a synth to play with (in the browser, after a click). */
 export function SoundSynth(_: WidgetProps) {
   useBrowserAudio();
+  const { t: tr } = useTranslation("labs-sound");
   const [wave, setWave] = useState<SynthWave>("triangle");
   const sim = useRef<SynthSim | null>(null);
   const [infoRef, writeInfo] = useLiveText();
@@ -76,21 +78,21 @@ export function SoundSynth(_: WidgetProps) {
   return (
     <CanvasPanel
       h={H}
-      label="The wave's shape, its harmonics up to 8 kHz with the ones that fold back at 16 kHz in red, and the ADSR envelope with four handles to drag."
+      label={tr("synth.label")}
       controls={
         <>
           <ChoiceGroup
-            label="Wave"
+            label={tr("synth.wave")}
             value={wave}
             onChange={setWave}
-            choices={WAVES.map((w) => ({ key: w, label: w }))}
+            choices={WAVES.map((w) => ({ key: w, label: tr(`synth.waves.${w}`) }))}
           />
           <Spacer />
           <LiveText spanRef={infoRef} />
           <div
             className={`${shared.keys} ${styles.full}`}
             role="group"
-            aria-label="Keys: play a note"
+            aria-label={tr("synth.keys")}
           >
             {NOTES.map((n) => (
               <Button key={n} onClick={(e) => play(n, e.timeStamp)}>
@@ -127,9 +129,9 @@ export function SoundSynth(_: WidgetProps) {
         writeInfo(
           `${wave} · ${s.hz.toFixed(1)} Hz · adsr ${env.a.toFixed(0)} ${env.d.toFixed(0)} ${(env.s * 100).toFixed(0)}% ${env.r.toFixed(0)}`,
         );
-        const aliased = drawSynth(g, C, wave, s.hz, env, s.drag, s.dotAt);
+        const aliased = drawSynth(g, C, wave, s.hz, env, s.drag, s.dotAt, tr);
         if (s.dotAt !== null && performance.now() - s.dotAt > NOTE_MS + 200) s.dotAt = null;
-        caption(synthCaption(wave, aliased));
+        caption(synthCaption(wave, aliased, tr));
       }}
     />
   );

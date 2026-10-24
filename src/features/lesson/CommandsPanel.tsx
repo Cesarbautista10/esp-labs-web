@@ -1,65 +1,35 @@
-import type { CommandPlace, CommandState, CommandStep } from "@/domain/lesson";
+import { useTranslation } from "react-i18next";
+import type { CommandStep } from "@/domain/lesson";
 import { RichText } from "@/ui/RichText";
 import styles from "./CommandsPanel.module.css";
 
-// What should be on, near or connected to the board while a command runs.
-const STATE_LABEL: Record<CommandState, string> = {
-  off: "card away",
-  any: "card: doesn't matter",
-  on: "card on the reader",
-  both: "card + tag together",
-  still: "card on, held still",
-  move: "card on, then move it",
-  bnone: "no phone needed",
-  bscan: "phone: scanner app open",
-  bconn: "phone connected",
-  bpair: "phone paired",
-  bhost: "paired as keyboard/MIDI",
-  bperiph: "your keyboard/mouse on",
-  squiet: "room quiet",
-  ssound: "make some noise",
-  sany: "sound: doesn't matter",
-  smusic: "music near the mic",
-};
-
-const PLACE_LABEL: Record<CommandPlace, string> = {
-  mac: "Mac terminal",
-  button: "push button / BOOT",
-  hands: "with your hands",
-  app: "in the app",
-  phone: "on your phone",
-  serial: "serial monitor",
-};
-
-/** Shown under the section title. */
-export const COMMANDS_INTRO =
-  "Type these in the serial monitor (<code>uv run pio device monitor</code>) unless the grey tag says otherwise. The coloured tag says what should be near the board while it runs.";
-
 /** "Commands, in order": what to type, where, and what you should see. */
 export function CommandsPanel({ commands }: { commands: readonly CommandStep[] }) {
+  const { t } = useTranslation("lesson");
   return (
     <ol className={styles.cmds}>
       {commands.map((c, i) => (
         <li key={`${i}-${c.command}`}>
           <div className={styles.head}>
-            <code className={styles.prompt}>{c.command}</code>
-            <span className={styles.where}>{PLACE_LABEL[c.where ?? "serial"]}</span>
+            <code className={styles.prompt} dir="ltr">{c.command}</code>
+            <span className={styles.where}>{t(`commands.place.${c.where ?? "serial"}`)}</span>
             <span className={styles.state} data-state={c.card}>
-              {STATE_LABEL[c.card]}
+              {/* What should be on, near or connected to the board while it runs. */}
+              {t(`commands.state.${c.card}`)}
             </span>
           </div>
           <dl>
-            <dt>Does</dt>
+            <dt>{t("commands.does")}</dt>
             <dd>
               <RichText text={c.does} />
             </dd>
-            <dt>You should see</dt>
+            <dt>{t("commands.see")}</dt>
             <dd>
               <RichText text={c.see} />
             </dd>
             {c.fix ? (
               <>
-                <dt>If not</dt>
+                <dt>{t("commands.fix")}</dt>
                 <dd>
                   <RichText text={c.fix} />
                 </dd>

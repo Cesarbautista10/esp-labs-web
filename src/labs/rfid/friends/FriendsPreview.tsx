@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useBoardRgb } from "@/features/board/board-signals";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, SCREEN_H, SCREEN_W, scopePalette } from "@/lib/canvas";
@@ -10,7 +11,7 @@ import { Terminal, useTerminalLog } from "@/ui/terminal/Terminal";
 import type { WidgetProps } from "@/widgets/types";
 import { useSimulation } from "../../shared/simulation";
 import { useTimers } from "../lab/use-timers";
-import { FRIEND_CAST } from "./cast";
+import { FRIEND_CAST, type FriendId } from "./cast";
 import {
   announce,
   drawFriendsScreen,
@@ -26,10 +27,11 @@ const LED_MS = 1500;
 
 /** R8 preview: the friends screen, taps, moving a friend in from the app, and the serial monitor. */
 export function FriendsPreview(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
   const term = useTerminalLog();
   const after = useTimers();
   const [sim, snapshot] = useSimulation(initialFriends);
-  const [who, setWho] = useState(FRIEND_CAST[0]?.id ?? "fox");
+  const [who, setWho] = useState<FriendId>(FRIEND_CAST[0]?.id ?? "fox");
   const [cardNo, setCardNo] = useState(1);
   const setRgb = useBoardRgb();
   const reduce = useReducedMotion();
@@ -83,50 +85,66 @@ export function FriendsPreview(_: WidgetProps) {
   const st = snapshot.state;
   return (
     <div className={styles.sim}>
-      <ButtonRow aria-label="Taps">
-        <Button onClick={() => tap(0)}>tap: White card</Button>
-        <Button onClick={() => tap(1)}>tap: Key tag</Button>
-        <Button onClick={() => tap("new")}>tap: a new card</Button>
+      <ButtonRow aria-label={t("friends.taps")}>
+        <Button onClick={() => tap(0)}>{t("friends.tapWhite")}</Button>
+        <Button onClick={() => tap(1)}>{t("friends.tapTag")}</Button>
+        <Button onClick={() => tap("new")}>{t("friends.tapNew")}</Button>
       </ButtonRow>
-      <ButtonRow aria-label="The app and the push button">
+      <ButtonRow aria-label={t("friends.app")}>
         <span className={styles.move}>
-          app: move
-          <select aria-label="Which friend" value={who} onChange={(e) => setWho(e.target.value)}>
-            {FRIEND_CAST.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          onto card
-          <select
-            aria-label="Which card"
-            value={cardNo}
-            onChange={(e) => setCardNo(Number(e.target.value))}
-          >
-            {st.cards.map((c) => (
-              <option key={c.number} value={c.number}>
-                {c.number}
-              </option>
-            ))}
-          </select>
+          <Trans
+            t={t}
+            i18nKey="friends.move"
+            components={{
+              friend: (
+                <select
+                  aria-label={t("friends.whichFriend")}
+                  value={who}
+                  onChange={(e) => {
+                    const id = FRIEND_CAST.find((f) => f.id === e.target.value)?.id;
+                    if (id) setWho(id);
+                  }}
+                >
+                  {FRIEND_CAST.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              ),
+              card: (
+                <select
+                  aria-label={t("friends.whichCard")}
+                  value={cardNo}
+                  onChange={(e) => setCardNo(Number(e.target.value))}
+                >
+                  {st.cards.map((c) => (
+                    <option key={c.number} value={c.number}>
+                      {c.number}
+                    </option>
+                  ))}
+                </select>
+              ),
+            }}
+          />
         </span>
-        <Button onClick={give}>move in</Button>
+        <Button onClick={give}>{t("friends.moveIn")}</Button>
         <Button onClick={() => sim.update((s) => (s.view = (s.view + 1) % FRIENDS_VIEWS.length))}>
-          button: next view
+          {t("friends.nextView")}
         </Button>
       </ButtonRow>
       <ScreenFrame>
         <canvas
+          dir="ltr"
           ref={canvasRef}
           width={SCREEN_W}
           height={SCREEN_H}
           role="img"
-          aria-label={`Simulated friends screen: ${FRIENDS_VIEWS[st.view]} view`}
+          aria-label={t("friends.screen", { view: t(`views.${FRIENDS_VIEWS[st.view] ?? "stage"}`) })}
         />
       </ScreenFrame>
       <Caption>
-        Example data. The board draws the same shapes (characters.h); the app shows them in 3D.
+        {t("friends.example")}
       </Caption>
       <Terminal log={term} title="$ uv run pio device monitor" />
     </div>

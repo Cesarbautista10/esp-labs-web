@@ -1,26 +1,29 @@
 import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { RichText } from "@/ui/RichText";
 import { Button, ButtonRow } from "@/ui/Button";
 import type { WidgetProps } from "@/widgets/types";
 import {
   BIT_MAP,
   bitsOf,
   type Conditions,
-  DATA_RULE,
   decodeAccess,
   encodeAccess,
   locksForever,
   PRESETS,
-  TRAILER_RULE,
+  type PresetKey,
+  ruleId,
   withCondition,
 } from "../protocol/access-bits";
 import { hx, hxs, parseHexBytes } from "../protocol/bytes";
 import styles from "./panels.module.css";
 
 const BYTE_NOTE = ["~C2 | ~C1", "C1 | ~C3", "C3 | C2"] as const;
-const blockName = (b: number) => (b === 3 ? "the trailer" : `block ${b}`);
 
 /** R4 panel: decode and build a sector trailer's access bits (bytes 6-8). */
 export function RfidAccess(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
+  const blockName = (b: number) => (b === 3 ? t("access.theTrailer") : t("access.rowBlock", { n: b }));
   const [cond, setCond] = useState<Conditions>([0, 0, 0, 1]);
   const [text, setText] = useState("FF 07 80");
   const [inconsistent, setInconsistent] = useState(false);
@@ -57,14 +60,14 @@ export function RfidAccess(_: WidgetProps) {
   return (
     <div className={styles.wd}>
       <ButtonRow className={styles.alignEnd}>
-        {Object.entries(PRESETS).map(([name, preset]) => (
-          <Button key={name} onClick={() => apply(preset)}>
-            {name}
+        {(Object.keys(PRESETS) as PresetKey[]).map((key) => (
+          <Button key={key} onClick={() => apply(PRESETS[key])}>
+            {t(`access.presets.${key}`)}
           </Button>
         ))}
         <span className={styles.inputs}>
           <label htmlFor={inputId}>
-            or type bytes 6–8
+            {t("access.typeBytes")}
             <input
               id={inputId}
               className={styles.field}
@@ -80,65 +83,64 @@ export function RfidAccess(_: WidgetProps) {
         <table className={styles.abTable}>
           <thead>
             <tr>
-              <th>Block</th>
+              <th>{t("access.colBlock")}</th>
               <th>C1</th>
               <th>C2</th>
               <th>C3</th>
-              <th>What it allows</th>
+              <th>{t("access.colAllows")}</th>
             </tr>
           </thead>
           <tbody>
             {[0, 1, 2, 3].map((b) => (
               // Hovering or focusing a row lights up where its 3 bits (and their inverted copies) live.
               <tr key={b} onMouseEnter={() => setHl(b)} onFocus={() => setHl(b)}>
-                <td className={styles.mono}>{b === 3 ? "trailer" : `block ${b}`}</td>
+                <td className={styles.mono}>{b === 3 ? t("access.rowTrailer") : t("access.rowBlock", { n: b })}</td>
                 {bitsOf(cond, b).map((v, k) => (
                   <td key={k} className={styles.c}>
                     <input
                       type="checkbox"
                       checked={v === 1}
                       onChange={(e) => toggle(b, k, e.target.checked)}
-                      aria-label={`C${k + 1} of ${blockName(b)}`}
+                      aria-label={t("access.bitOf", { n: k + 1, block: blockName(b) })}
                     />
                   </td>
                 ))}
-                <td>{(b === 3 ? TRAILER_RULE : DATA_RULE)[cond[b] ?? 0]}</td>
+                <td>{t(`access.${b === 3 ? "trailer" : "data"}.${ruleId(cond[b] ?? 0)}`)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className={styles.abBytes}>
+      <div className={styles.abBytes} dir="ltr">
         {bytes.map((v, i) => (
           <div key={i} className={styles.abByte}>
-            <b>byte {6 + i}</b>
+            <b>{t("access.byte", { n: 6 + i })}</b>
             <span className={styles.hex}>{hx(v)}</span>
             <div className={styles.bits}>
               {(BIT_MAP[i] ?? []).map(([n, b, inv], k) => (
                 <i
                   key={k}
                   className={`${inv ? styles.inv : ""} ${b === hl ? styles.hl : ""}`}
-                  title={`${inv ? "inverted " : ""}C${n} of ${blockName(b)}`}
+                  title={t(inv ? "access.invertedBitOf" : "access.bitOf", { n, block: blockName(b) })}
                 >
                   {(v >> (7 - k)) & 1}
                 </i>
               ))}
             </div>
-            <small>{BYTE_NOTE[i]} · each half: blocks 3 2 1 0</small>
+            <small>{t("access.byteNote", { bits: BYTE_NOTE[i] })}</small>
           </div>
         ))}
       </div>
       <div aria-live="polite">
         {inconsistent ? (
           <div className={styles.warnBox}>
-            <b>Inconsistent:</b> the inverted copies don't match. A card refuses such a trailer, or
-            locks the sector.
+            <RichText text={t("access.inconsistent")} />
           </div>
         ) : locksForever(trailer) ? (
           <div className={styles.warnBox}>
-            <b>Never write this to a card.</b> With trailer setting{" "}
-            {trailer.toString(2).padStart(3, "0")} no key can change this sector's keys again. The
-            lab's firmware never writes trailers at all.
+            <RichText
+              text={t("access.locked", { bits: trailer.toString(2).padStart(3, "0") })}
+            />
           </div>
         ) : null}
       </div>

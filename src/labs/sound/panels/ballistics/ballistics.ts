@@ -1,12 +1,13 @@
 // S2 panel: a sound scene replayed through the level meter (fast, slow, peak hold, floor).
 import type { ScopePalette } from "@/lib/canvas";
-import { mono, textWriter } from "../../kit/draw";
+import { labelWriter, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import { LevelMeter } from "../../model/level";
 
 export type SceneKey = "talk" | "fan";
 
+/** A scene's label lives in the catalogue under ballistics.scenes.<key>. */
 interface Scene {
-  readonly label: string;
   readonly len: number;
   /** RMS per 4 ms frame (int16 units) at `s` seconds. The quiet is 20. */
   rms(s: number): number;
@@ -14,7 +15,6 @@ interface Scene {
 
 export const SCENES: Readonly<Record<SceneKey, Scene>> = {
   talk: {
-    label: "talk, then a clap",
     len: 14,
     rms: (s) => {
       let r = 20 + Math.random() * 6;
@@ -28,7 +28,6 @@ export const SCENES: Readonly<Record<SceneKey, Scene>> = {
     },
   },
   fan: {
-    label: "a fan switches on for 30 s",
     len: 44,
     rms: (s) =>
       20 +
@@ -79,8 +78,14 @@ export class Replay {
 
 type Key = "inst" | "fast" | "slow" | "floor";
 
-export function drawBallistics(g: CanvasRenderingContext2D, C: ScopePalette, r: Replay): string {
+export function drawBallistics(
+  g: CanvasRenderingContext2D,
+  C: ScopePalette,
+  r: Replay,
+  tr: SoundT,
+): string {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const sc = SCENES[r.scene];
   const small = mono(10);
   g.fillStyle = C.paper;
@@ -121,26 +126,24 @@ export function drawBallistics(g: CanvasRenderingContext2D, C: ScopePalette, r: 
   g.fillRect(xOf(r.s), 26, 1, 216);
   const last = r.pts.at(-1) ?? { fast: -96, floor: 0 };
   const legend: readonly (readonly [string, string])[] = [
-    ["instant (4 ms)", C.muted],
-    ["fast 125 ms", C.pink],
-    ["slow 1 s", C.amber],
-    ["floor", C.teal],
-    ["peak hold", C.ink],
+    [tr("ballistics.legend.inst"), C.muted],
+    [tr("ballistics.legend.fast"), C.pink],
+    [tr("ballistics.legend.slow"), C.amber],
+    [tr("ballistics.legend.floor"), C.teal],
+    [tr("ballistics.legend.peak"), C.ink],
   ];
   legend.forEach(([l, col], i) => {
     g.fillStyle = col;
     g.fillRect(x0 + i * 120, 258, 14, 4);
-    T(x0 + i * 120 + 20, 264, l, C.ink, small);
+    W(x0 + i * 120 + 20, 264, l, C.ink, small);
   });
-  T(
+  W(
     x0 + w,
     18,
-    `${r.s.toFixed(1)} s · ${Math.max(0, last.fast - last.floor).toFixed(0)} dB above the quiet`,
+    tr("ballistics.now", { s: r.s, db: Math.max(0, last.fast - last.floor) }),
     C.ink,
     undefined,
     "right",
   );
-  return r.scene === "fan"
-    ? "The fan adds a steady hum. The floor (teal) climbs 0.5 dB a second until the hum becomes the new quiet, so S2 stops calling it loud. When the fan stops, the floor drops at once. The clap at the end still stands out."
-    : "Fast (pink) follows the syllables; slow (amber) shows the average loudness of the talk. The clap's instant level is far above both: a 4 ms bang barely moves a 1 s average. The peak hold (white ticks) keeps it 1.5 s, then falls 20 dB a second.";
+  return tr(`ballistics.caption.${r.scene}`);
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/ui/Button";
 import { ChoiceGroup } from "@/ui/ChoiceGroup";
 import type { WidgetProps } from "@/widgets/types";
@@ -10,6 +11,7 @@ import {
   captureVoice,
 } from "../../audio/mic-capture";
 import { useBrowserAudio } from "../../audio/use-browser-audio";
+import type { SoundT } from "../../kit/i18n";
 import { applyVoiceFx, cannedVoice, fxSpeed, VOICE_FX, type VoiceFx } from "../../model/voice-fx";
 import { CanvasPanel } from "../canvas-panel/CanvasPanel";
 import shared from "../panel.module.css";
@@ -30,21 +32,21 @@ interface ParrotSim {
   recAt: number | null;
 }
 
-const FAILED: Readonly<Record<CaptureFailure, string>> = {
-  unsupported: "No microphone access in this browser: the example voice works the same.",
-  denied:
-    "The microphone wasn't allowed (by you, the browser or this page's host). The example voice works the same.",
-  unreadable: "Couldn't read that recording: the example voice is still here.",
-};
+/** The caption, resolved at render so it follows the language. */
+type Caption = (tr: SoundT) => string;
+
+const failed =
+  (reason: CaptureFailure): Caption =>
+  (tr) =>
+    tr(`parrot.failed.${reason}`);
 
 /** S8 panel: the parrot, in your browser. Your microphone only opens on the record click. */
 export function SoundParrot(_: WidgetProps) {
   useBrowserAudio();
   const [fx, setFx] = useState<VoiceFx>("chipmunk");
   const [recording, setRecording] = useState(false);
-  const [caption, setCaption] = useState(
-    "An example voice is loaded. Your own voice is optional: the microphone starts only when you press record, stops after 3 s, and the sound never leaves this page.",
-  );
+  const { t: tr } = useTranslation("labs-sound");
+  const [caption, setCaption] = useState<Caption>(() => (t: SoundT) => t("parrot.intro"));
   const sim = useRef<ParrotSim | null>(null);
   // Aborted on unmount: stops a recording in progress and what the parrot is saying.
   const life = useRef<AbortController | null>(null);
@@ -62,7 +64,7 @@ export function SoundParrot(_: WidgetProps) {
     // A click: browser sound may start here.
     browserAudio.setOn(true);
     if (!browserAudio.start()) {
-      setCaption("This browser has no Web Audio.");
+      setCaption(() => (t: SoundT) => t("parrot.noAudio"));
       return;
     }
     const s = get();
@@ -82,7 +84,7 @@ export function SoundParrot(_: WidgetProps) {
     const signal = life.current?.signal;
     if (s.recAt !== null || !signal) return;
     if (!canCapture()) {
-      setCaption(FAILED.unsupported);
+      setCaption(() => failed("unsupported"));
       return;
     }
     try {
@@ -91,17 +93,16 @@ export function SoundParrot(_: WidgetProps) {
         () => {
           s.recAt = performance.now();
           setRecording(true);
-          setCaption("Recording from your microphone for 3 s… (the red dot shows it)");
+          setCaption(() => (t: SoundT) => t("parrot.recording"));
         },
         signal,
       );
       s.voice = { samples: voice.samples, rate: voice.rate };
-      setCaption(
-        `Recorded ${voice.seconds.toFixed(1)} s, kept in this page only (made louder, like the board does). Pick a voice and press ▶.`,
-      );
+      const seconds = voice.seconds;
+      setCaption(() => (t: SoundT) => t("parrot.recorded", { s: seconds }));
     } catch (error) {
       if (!signal.aborted)
-        setCaption(FAILED[error instanceof CaptureError ? error.reason : "unreadable"]);
+        setCaption(() => failed(error instanceof CaptureError ? error.reason : "unreadable"));
     } finally {
       s.recAt = null;
       if (!signal.aborted) setRecording(false);
@@ -111,27 +112,27 @@ export function SoundParrot(_: WidgetProps) {
   return (
     <CanvasPanel
       h={H}
-      label="The recording on top and what the parrot plays below, with a playhead."
-      caption={caption}
+      label={tr("parrot.label")}
+      caption={caption(tr)}
       controls={
         <>
           <ChoiceGroup
-            label="Voice"
+            label={tr("parrot.voice")}
             value={fx}
             onChange={setFx}
-            choices={VOICE_FX.map(([f]) => ({ key: f, label: f }))}
+            choices={VOICE_FX.map(([f]) => ({ key: f, label: tr(`parrot.fx.${f}`) }))}
             className={styles.full}
           />
-          <Button onClick={play}>▶ the parrot says it</Button>
-          <Button onClick={() => void record()}>🎙 record 3 s with my microphone</Button>
+          <Button onClick={play}>{tr("parrot.play")}</Button>
+          <Button onClick={() => void record()}>{tr("parrot.record")}</Button>
           {recording ? <span className={shared.rec}>● REC</span> : null}
           <Button
             onClick={() => {
               get().voice = cannedVoice();
-              setCaption("The example voice: two syllables made of harmonics shaped like vowels.");
+              setCaption(() => (t: SoundT) => t("parrot.example"));
             }}
           >
-            use the example voice
+            {tr("parrot.useExample")}
           </Button>
         </>
       }
@@ -155,7 +156,11 @@ export function SoundParrot(_: WidgetProps) {
         drawParrot(g, C, {
           heard: s.voice.samples,
           says: p ? p.out : shown.out,
-          saysLabel: `what the parrot says (${fx}${speed !== 1 ? `, ×${speed} speed` : ""})`,
+          heardLabel: tr("parrot.heard"),
+          saysLabel:
+            speed !== 1
+              ? tr("parrot.saysSpeed", { fx: tr(`parrot.fx.${fx}`), speed })
+              : tr("parrot.says", { fx: tr(`parrot.fx.${fx}`) }),
           playhead,
           recSecs: s.recAt !== null ? (performance.now() - s.recAt) / 1000 : null,
         });

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { WiringTable as Wiring } from "@/domain/lesson";
 import { RichText } from "@/ui/RichText";
 import styles from "./tables.module.css";
@@ -14,7 +15,8 @@ function PinChip({ text }: { text: string }) {
 
 /** From where to where, one row per wire. The section around it carries the title. */
 export function WiringTable({ wiring }: { wiring: Wiring }) {
-  const head = wiring.head ?? ["From", "To", "Notes"];
+  const { t } = useTranslation("lesson");
+  const head = wiring.head ?? [t("wiring.from"), t("wiring.to"), t("wiring.notes")];
   return (
     <div className={styles.scroll}>
       <table className={styles.table}>

@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { lessonPart, TRACK_PART } from "@/content/icons";
 import type { LessonEntry } from "@/domain/lesson";
 import { lessonState, tallyStates, type Ticks } from "@/domain/progress";
 import type { Track } from "@/domain/track";
 import { StateGlyph } from "@/features/progress/LessonState";
-import { STATE_INFO } from "@/features/progress/state-info";
+import { useTrackText } from "@/features/navigation/use-track-text";
 import { PartIcon } from "@/ui/parts/PartIcon";
 import styles from "./TrackCard.module.css";
 
@@ -24,6 +25,8 @@ export function TrackCard({
   const tally = tallyStates(open, ticks);
   const working = tally.done + tally.works;
   const share = open.length ? working / open.length : 0;
+  const { t } = useTranslation("home");
+  const { title, blurb } = useTrackText()(track);
 
   return (
     <section
@@ -49,18 +52,20 @@ export function TrackCard({
         </span>
         <div className={styles.titles}>
           <h3 id={`track-${track.id}`}>
-            {track.planned ? track.title : <Link to={`/tracks/${track.id}`}>{track.title}</Link>}
+            {track.planned ? title : <Link to={`/tracks/${track.id}`}>{title}</Link>}
           </h3>
-          <p>{track.blurb}</p>
+          <p>{blurb}</p>
         </div>
         <p className={styles.count}>
           {track.planned ? (
-            "planned"
+            t("track.planned")
           ) : (
-            <>
-              <b>{working}</b>/{open.length}
-              <span> working</span>
-            </>
+            <Trans
+              t={t}
+              i18nKey="track.working"
+              values={{ working, total: open.length }}
+              components={{ b: <b />, span: <span /> }}
+            />
           )}
         </p>
       </header>
@@ -78,7 +83,9 @@ export function TrackCard({
                 </span>
                 <span className={styles.id}>{l.id}</span>
                 <span className={styles.name}>{l.title}</span>
-                <span className="visually-hidden">, {STATE_INFO[state].label}</span>
+                <span className="visually-hidden">
+                  {t("track.state", { state: t(`states.${state}.label`, { ns: "common" }) })}
+                </span>
               </>
             );
             return (
@@ -97,7 +104,7 @@ export function TrackCard({
           })}
         </ol>
       ) : !track.planned && !lessons ? (
-        <p className={styles.loading}>Loading…</p>
+        <p className={styles.loading}>{t("track.loading")}</p>
       ) : null}
     </section>
   );

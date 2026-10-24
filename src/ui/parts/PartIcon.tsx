@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { PARTS, type PartName } from "./registry";
 import styles from "./parts.module.css";
 
@@ -17,9 +18,10 @@ export function PartIcon({
   label?: string | true;
   className?: string;
 }) {
-  const part: { draw: () => ReactNode; label: string; scale?: number } = PARTS[name];
-  const { draw: Draw, label: own, scale = 1 } = part;
-  const name_ = label === true ? own : label;
+  const { t } = useTranslation("parts");
+  const part: { draw: () => ReactNode; scale?: number } = PARTS[name];
+  const { draw: Draw, scale = 1 } = part;
+  const name_ = label === true ? t(`names.${name}`) : label;
   return (
     <svg
       className={`${styles.icon} ${className ?? ""}`}

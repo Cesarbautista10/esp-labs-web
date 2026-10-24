@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { prefersReducedMotion } from "@/lib/media";
 import { Button, ButtonRow } from "@/ui/Button";
 import type { WidgetProps } from "@/widgets/types";
@@ -13,6 +14,7 @@ import { useStage3d } from "@/ui/stage3d/use-stage";
 
 /** R2 panel: the reader's field in 3D, a card at a chosen height and gain, and one wake-up. */
 export function RfidField3d(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
   const [sim, snapshot] = useSimulation(initialField);
   const [spinning, setSpinning] = useState(() => !prefersReducedMotion());
   const ids = useId();
@@ -24,7 +26,14 @@ export function RfidField3d(_: WidgetProps) {
       el: 0.5,
       ground: { w: 11, d: 8, y: -0.17 },
     },
-    (T, stage) => buildFieldScene(T, stage, sim),
+    (T, stage) =>
+      buildFieldScene(T, stage, sim, {
+        coil: t("field3d.labels.coil"),
+        chip: t("field3d.labels.chip"),
+        pins: t("field3d.labels.pins"),
+        cardCoil: t("field3d.labels.cardCoil"),
+        cardChip: t("field3d.labels.cardChip"),
+      }),
   );
   const st = snapshot.state;
   const db = FIELD.gains[st.gain] ?? 33;
@@ -40,12 +49,12 @@ export function RfidField3d(_: WidgetProps) {
         labelsRef={labelsRef}
         stageRef={stageRef}
         status={status}
-        label="3D view: the RC522 board with its antenna coil, the magnetic field lines around it, and a card held above it. Drag to turn."
-        fallback="The chart and controls below still work."
+        label={t("field3d.stage")}
+        fallback={t("field3d.fallback")}
       />
       <div className={styles.ctl}>
         <label htmlFor={`${ids}d`}>
-          Card height above the antenna <output htmlFor={`${ids}d`}>{st.dist} mm</output>
+          {t("field3d.height")} <output htmlFor={`${ids}d`}>{st.dist} mm</output>
           <input
             id={`${ids}d`}
             type="range"
@@ -57,7 +66,7 @@ export function RfidField3d(_: WidgetProps) {
           />
         </label>
         <label htmlFor={`${ids}g`}>
-          Receiver gain (RFCfgReg) <output htmlFor={`${ids}g`}>{db} dB</output>
+          {t("field3d.gain")} <output htmlFor={`${ids}g`}>{db} dB</output>
           <input
             id={`${ids}g`}
             type="range"
@@ -73,7 +82,7 @@ export function RfidField3d(_: WidgetProps) {
             disabled={!ready}
             onClick={() => sim.update((s) => sendWupa(s, performance.now() / 1000))}
           >
-            ▶ Send WUPA
+            {t("field3d.send")}
           </Button>
           <Button
             disabled={!ready}
@@ -85,40 +94,45 @@ export function RfidField3d(_: WidgetProps) {
               setSpinning(stage.view.spinning);
             }}
           >
-            Turn
+            {t("controls.turn")}
           </Button>
           <Button
             disabled={!ready}
             pressed={st.slice}
             onClick={() => sim.update((s) => (s.slice = !s.slice))}
           >
-            One slice
+            {t("field3d.slice")}
           </Button>
         </ButtonRow>
       </div>
       <div className={styles.pills} aria-live="polite">
         <span className={powered ? styles.yes : styles.no}>
-          {powered ? "card powered" : "card has no power"}
+          {powered ? t("field3d.powered") : t("field3d.unpowered")}
         </span>
         <span className={!powered ? "" : heard ? styles.yes : styles.no}>
           {!powered
-            ? "reader hears it: nothing to hear"
+            ? t("field3d.nothingToHear")
             : heard
-              ? "reader hears it"
-              : "reader can't hear it"}
+              ? t("field3d.heard")
+              : t("field3d.unheard")}
         </span>
-        <span>{`range at ${db} dB: about ${Math.round(rangeAt(db))} mm`}</span>
+        <span>{t("field3d.range", { db, mm: Math.round(rangeAt(db)) })}</span>
       </div>
-      <div className={styles.bitstrip} role="group" aria-label="What is on the air right now">
+      <div className={styles.bitstrip} role="group" aria-label={t("field3d.air")}
+        dir="ltr">
         {WUPA_SYMBOLS.map((s, j) => (
           <span key={j} className={j === st.sym ? styles.now : undefined}>
             {s.s}
-            <small>{s.t}</small>
+            <small>{t(`field3d.symbols.${s.what}`, { bit: s.bit, value: s.value })}</small>
           </span>
         ))}
       </div>
       <FieldChart dist={st.dist} db={db} />
-      <StepCaption title={st.cap[0]} text={st.cap[1]} token="--w-sda" />
+      <StepCaption
+        title={t(`field3d.captions.${st.cap}.title`)}
+        text={t(`field3d.captions.${st.cap}.text`)}
+        token="--w-sda"
+      />
     </div>
   );
 }

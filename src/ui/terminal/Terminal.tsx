@@ -6,6 +6,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./Terminal.module.css";
 import { TerminalLog } from "./terminal-log";
 
@@ -31,6 +32,7 @@ export function Terminal({ log, title, onCommand, height }: TerminalProps) {
   const outRef = useRef<HTMLDivElement>(null);
   const inputId = useId();
   const [draft, setDraft] = useState("");
+  const { t } = useTranslation();
 
   // Follow the newest line, like a real monitor.
   useLayoutEffect(() => {
@@ -46,7 +48,7 @@ export function Terminal({ log, title, onCommand, height }: TerminalProps) {
   }
 
   return (
-    <div className={styles.term}>
+    <div className={styles.term} dir="ltr">
       <div className={styles.bar}>
         <span>{title}</span>
         <span>115200 baud</span>
@@ -58,7 +60,7 @@ export function Terminal({ log, title, onCommand, height }: TerminalProps) {
         // eslint-disable-next-line jsx-a11y-x/no-noninteractive-tabindex -- focusable so keyboard users can reach it
         tabIndex={0}
         role="log"
-        aria-label="Simulated serial monitor"
+        aria-label={t("ui.terminal.label")}
         style={height ? { height } : undefined}
       >
         {lines.map((l) => (
@@ -81,8 +83,8 @@ export function Terminal({ log, title, onCommand, height }: TerminalProps) {
             autoCapitalize="off"
             spellCheck={false}
             enterKeyHint="send"
-            placeholder="type a command, press Enter"
-            aria-label="Command"
+            placeholder={t("ui.terminal.placeholder")}
+            aria-label={t("ui.terminal.command")}
           />
         </form>
       ) : null}

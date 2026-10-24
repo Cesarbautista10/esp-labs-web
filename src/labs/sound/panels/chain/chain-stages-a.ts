@@ -7,7 +7,7 @@ import type { StageCtx } from "./chain-types";
 const Y0 = 64;
 const H = 222;
 
-export function stageAir({ g, C, mic, t }: StageCtx): string {
+export function stageAir({ g, C, tr, mic, t }: StageCtx): string {
   const L = mic.level;
   const amp = 2 + Math.min(14, L.instAbove() / 3);
   for (let c = 0; c < 46; c++)
@@ -25,10 +25,10 @@ export function stageAir({ g, C, mic, t }: StageCtx): string {
     else g.moveTo(20 + c, yy);
   }
   g.stroke();
-  return `crowded = pressure up, sparse = down · ${L.instAbove().toFixed(0)} dB above the quiet right now`;
+  return tr("chain.air.value", { db: L.instAbove() });
 }
 
-export function stageCapsule({ g, C, T, mic, s, t }: StageCtx): string {
+export function stageCapsule({ g, C, T, W, tr, mic, s, t }: StageCtx): string {
   const mvNow = mic.lastMv - mic.biasMv;
   const bulge = Math.max(-26, Math.min(26, mvNow * 3));
   g.strokeStyle = C.card;
@@ -47,8 +47,8 @@ export function stageCapsule({ g, C, T, mic, s, t }: StageCtx): string {
     T(206 + bulge * 0.4, Y0 + 46 + k * 26, "+", C.amber, mono(12, true));
     T(246, Y0 + 46 + k * 26, "−", C.teal, mono(12, true));
   }
-  T(200, Y0 + 210, "diaphragm", C.muted, undefined, "center");
-  T(240, Y0 + 224, "plate", C.muted, undefined, "center");
+  W(200, Y0 + 210, tr("chain.capsule.diaphragm"), C.muted, undefined, "center");
+  W(240, Y0 + 224, tr("chain.capsule.plate"), C.muted, undefined, "center");
   for (let k = 0; k < 4; k++) {
     const xx = 60 + k * 30 + ((t * 60) % 30);
     g.strokeStyle = C.pink;
@@ -63,11 +63,11 @@ export function stageCapsule({ g, C, T, mic, s, t }: StageCtx): string {
   const mvs = new Float32Array(640);
   for (let i = 0; i < 640; i++) mvs[i] = ((s[i] ?? 0) / 16) * mic.mvPerStep();
   drawWave(g, 320, Y0 + 20, 340, 170, mvs, 640, 30, C.pink);
-  T(326, Y0 + 34, "capsule output, last 40 ms (±30 mV box)", C.muted);
-  return `capsule now: ${mvNow >= 0 ? "+" : ""}${mvNow.toFixed(2)} mV`;
+  W(326, Y0 + 34, tr("chain.capsule.box"), C.muted);
+  return tr("chain.capsule.value", { mv: mvNow });
 }
 
-export function stageAo({ g, C, T, mic, s }: StageCtx): string {
+export function stageAo({ g, C, T, W, tr, mic, s }: StageCtx): string {
   const mvNow = mic.lastMv - mic.biasMv;
   const yv = (v: number) => Y0 + H - 10 - (v / 3300) * (H - 20);
   g.strokeStyle = C.dim;
@@ -82,12 +82,7 @@ export function stageAo({ g, C, T, mic, s }: StageCtx): string {
     else g.moveTo(60 + c, yv(v));
   }
   g.stroke();
-  T(
-    70,
-    yv(mic.biasMv) - 8,
-    `bias ${(mic.biasMv / 1000).toFixed(2)} V: the wave is in this line, too small to see`,
-    C.ink,
-  );
+  W(70, yv(mic.biasMv) - 8, tr("chain.ao.bias", { v: mic.biasMv / 1000 }), C.ink);
   // Inset: x100.
   g.fillStyle = C.paper;
   g.fillRect(400, Y0 + 22, 250, 80);
@@ -96,11 +91,15 @@ export function stageAo({ g, C, T, mic, s }: StageCtx): string {
   const zoom = new Float32Array(640);
   for (let i = 0; i < 640; i++) zoom[i] = ((s[i] ?? 0) / 16) * mic.mvPerStep();
   drawWave(g, 402, Y0 + 24, 246, 76, zoom, 640, 30, C.amber);
-  T(406, Y0 + 36, "×100 around the bias (±30 mV)", C.amber);
-  return `AO now: ${(mic.lastMv / 1000).toFixed(4)} V = ${mic.biasMv} mV bias ${mvNow >= 0 ? "+" : "−"} ${Math.abs(mvNow).toFixed(2)} mV of sound`;
+  W(406, Y0 + 36, tr("chain.ao.zoom"), C.amber);
+  return tr(mvNow >= 0 ? "chain.ao.valuePlus" : "chain.ao.valueMinus", {
+    v: mic.lastMv / 1000,
+    bias: mic.biasMv,
+    mv: Math.abs(mvNow),
+  });
 }
 
-export function stageAdc({ g, C, T, mic, s }: StageCtx): string {
+export function stageAdc({ g, C, T, W, tr, mic, s }: StageCtx): string {
   const dc = mic.dc ?? 0;
   const raws = Array.from(s.slice(-40), (v) => Math.round(v / 16 + dc));
   const mid = Math.round(dc);
@@ -127,11 +126,6 @@ export function stageAdc({ g, C, T, mic, s }: StageCtx): string {
     g.arc(80 + i * 14.5, yr(r), 2.5, 0, 7);
     g.fill();
   });
-  T(
-    80,
-    Y0 + H - 4,
-    `40 samples = 2.5 ms · one dot every 62.5 µs · each line = one ADC step = ${mic.mvPerStep().toFixed(2)} mV`,
-    C.muted,
-  );
-  return `raw now: ${mic.lastRaw} of 0-4095 · attenuation ${attenName(mic.atten)}`;
+  W(80, Y0 + H - 4, tr("chain.adc.dots", { mv: mic.mvPerStep() }), C.muted);
+  return tr("chain.adc.value", { raw: mic.lastRaw, atten: attenName(mic.atten) });
 }

@@ -1,4 +1,6 @@
+/* eslint-disable i18next/no-literal-string -- literal text here is step sizes with units, not interface text. */
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { prefersReducedMotion } from "@/lib/media";
 import { Button } from "@/ui/Button";
 import type { WidgetProps } from "@/widgets/types";
@@ -15,6 +17,7 @@ interface Replay {
 
 /** S4 panel: voice-activated recording, step by step. */
 export function SoundRecorderTimeline(_: WidgetProps) {
+  const { t: tr } = useTranslation("labs-sound");
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
   const [trig, setTrig] = useState(15);
   const [hold, setHold] = useState(1200);
@@ -31,10 +34,12 @@ export function SoundRecorderTimeline(_: WidgetProps) {
   return (
     <CanvasPanel
       h={300}
-      label="Nine seconds of sound: a door bang and a sentence, the trigger and hold lines, and the recorder's state as the cursor moves: armed, recording, pre-roll and the clip that is kept or dropped."
+      label={tr("recorder.label")}
       controls={
         <>
-          <Button onClick={() => nudge(-100)}>◀ 0.1 s</Button>
+          <Button aria-label={tr("recorder.back")} onClick={() => nudge(-100)}>
+            ◀ 0.1 s
+          </Button>
           <Button
             onClick={() => {
               const r = replay();
@@ -42,12 +47,14 @@ export function SoundRecorderTimeline(_: WidgetProps) {
               setPlaying((p) => !p);
             }}
           >
-            {playing ? "❚❚ Pause" : "▶ Play"}
+            {playing ? tr("controls.pause") : tr("controls.play")}
           </Button>
-          <Button onClick={() => nudge(100)}>0.1 s ▶</Button>
+          <Button aria-label={tr("recorder.on")} onClick={() => nudge(100)}>
+            0.1 s ▶
+          </Button>
           <Range
-            label="trigger"
-            ariaLabel="Trigger level in dB above the quiet"
+            label={tr("recorder.trigger")}
+            ariaLabel={tr("recorder.triggerLabel")}
             min={5}
             max={35}
             value={trig}
@@ -55,8 +62,8 @@ export function SoundRecorderTimeline(_: WidgetProps) {
             output={`${trig} dB`}
           />
           <Range
-            label="hold"
-            ariaLabel="Hold time in milliseconds"
+            label={tr("recorder.hold")}
+            ariaLabel={tr("recorder.holdLabel")}
             min={300}
             max={3000}
             step={100}
@@ -75,7 +82,7 @@ export function SoundRecorderTimeline(_: WidgetProps) {
             setPlaying(false);
           }
         }
-        caption(drawRecorder(g, C, r.pts, r.cursor, trig, hold));
+        caption(drawRecorder(g, C, r.pts, r.cursor, trig, hold, tr));
       }}
     />
   );

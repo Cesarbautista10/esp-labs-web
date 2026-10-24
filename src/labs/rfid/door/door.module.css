@@ -40,7 +40,7 @@
 }
 .rulesList {
   margin: 0;
-  padding-left: 24px;
+  padding-inline-start: 24px;
   display: grid;
   gap: 4px;
   font-size: 14px;
@@ -211,7 +211,7 @@
 .cpMore {
   font: 11px var(--font-mono);
   color: var(--muted);
-  padding-left: 29px;
+  padding-inline-start: 29px;
 }
 .cpLegend {
   display: flex;
@@ -227,7 +227,7 @@
   border-radius: 3px;
   border: 1px solid var(--line);
   vertical-align: -2px;
-  margin-right: 4px;
+  margin-inline-end: 4px;
 }
 .cpLegend i.uid {
   border-color: var(--copper);
@@ -246,7 +246,7 @@
   gap: 4px;
 }
 .cpOut .now {
-  margin-right: 6px;
+  margin-inline-end: 6px;
 }
 .cpOut .now.warn {
   background: var(--warn);

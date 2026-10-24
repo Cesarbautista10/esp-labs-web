@@ -13,7 +13,7 @@ describe("content", () => {
   it.each(TRACKS.filter((t) => !t.planned))(
     "the $id table of contents matches its lessons file",
     async (track) => {
-      const lessons = await trackLessonsQuery(track.id).queryFn!({} as never);
+      const lessons = await trackLessonsQuery(track.id, "en").queryFn!({} as never);
       expect(lessons.map((l) => l.id)).toEqual(track.lessonIds);
       expect(lessons.every((l) => l.track === track.id)).toBe(true);
     },

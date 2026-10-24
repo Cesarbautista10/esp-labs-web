@@ -9,6 +9,12 @@ export interface Edge {
   readonly low: boolean;
 }
 
+/** A recognised gesture; the component words it (labs-display button.gestures.*). */
+export type Gesture =
+  | { readonly kind: "click"; readonly bounces: number }
+  | { readonly kind: "double" }
+  | { readonly kind: "long" };
+
 export const DEBOUNCE_MS = 25;
 export const LONG_MS = 600;
 export const GAP_MS = 280;
@@ -24,8 +30,8 @@ export class ButtonSignal {
   deb: Edge[] = [START];
   /** When the last press started (for the zoom box), null before the first press. */
   lastPressT: number | null = null;
-  /** The last recognised gesture, "" before the first one. */
-  lastEvent = "";
+  /** The last recognised gesture, null before the first one. */
+  lastEvent: Gesture | null = null;
 
   #down = false;
   #clicks = 0;
@@ -98,15 +104,15 @@ export class ButtonSignal {
     if (debLow && !this.#longFired && now - this.#pressedAt >= LONG_MS) {
       this.#longFired = true;
       this.#clicks = 0;
-      this.lastEvent = "Long press → auto-cycle on/off";
+      this.lastEvent = { kind: "long" };
     }
     if (!debLow && this.#clicks >= 2) {
       this.#clicks = 0;
-      this.lastEvent = "Double-click → previous scene";
+      this.lastEvent = { kind: "double" };
     }
     if (!debLow && this.#clicks === 1 && now - this.#releasedAt >= GAP_MS) {
       this.#clicks = 0;
-      this.lastEvent = `Click → next scene (${this.#bounceCount} bounces filtered)`;
+      this.lastEvent = { kind: "click", bounces: this.#bounceCount };
     }
     this.#forget(now);
     return last.low;

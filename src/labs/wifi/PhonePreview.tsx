@@ -1,4 +1,6 @@
+/* eslint-disable i18next/no-literal-string -- literal text here is the page the firmware serves, shown as the phone sees it, not interface text. */
 import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useBoardRgb } from "@/features/board/board-signals";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, SCREEN_H, SCREEN_W, scopePalette } from "@/lib/canvas";
@@ -12,6 +14,7 @@ import styles from "./wifi.module.css";
 
 // The colour picker's starting value (a colour as data: what the page sends, not a theme colour).
 const LED_START = "#00a078";
+const MONITOR = "$ uv run pio device monitor";
 
 /** W2 preview: the phone page at bench.local driving the board's screen and RGB LED. */
 export function PhonePreview(_: WidgetProps) {
@@ -25,6 +28,7 @@ export function PhonePreview(_: WidgetProps) {
   const rangeRef = useRef<HTMLInputElement>(null);
   const colorRef = useRef<HTMLInputElement>(null);
   const viewsId = useId();
+  const { t } = useTranslation("labs-wifi");
 
   useEffect(() => {
     term.line(
@@ -89,7 +93,8 @@ export function PhonePreview(_: WidgetProps) {
   return (
     <div className={styles.sim}>
       <div className={styles.phoneSim}>
-        <div className={styles.phone} role="group" aria-label="Simulated phone page">
+        {/* The page the firmware serves, so it stays as the board writes it (English, LTR). */}
+        <div className={styles.phone} role="group" aria-label={t("phone.page")} dir="ltr" lang="en">
           <div className={styles.phoneBar}>bench.local</div>
           <label className={styles.field}>
             Message
@@ -132,16 +137,16 @@ export function PhonePreview(_: WidgetProps) {
               width={SCREEN_W}
               height={SCREEN_H}
               role="img"
-              aria-label="Simulated board screen"
+              aria-label={t("phone.screen")}
+              dir="ltr"
             />
           </ScreenFrame>
           <Caption>
-            The board on the left of this page shows the LED colour too. Your real board does all of
-            this over Wi-Fi.
+            {t("phone.caption")}
           </Caption>
         </div>
       </div>
-      <Terminal log={term} title="$ uv run pio device monitor   (expected output)" />
+      <Terminal log={term} title={t("terminal.expected", { command: MONITOR })} />
     </div>
   );
 }

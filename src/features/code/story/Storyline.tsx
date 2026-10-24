@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import type { Story } from "@/domain/code/story";
 import styles from "./story.module.css";
-import { ACT_INFO } from "./narrate";
 
 /**
  * The whole story at a glance: acts, and inside them the scenes indented by call depth, like a
@@ -18,13 +18,14 @@ export function Storyline({
   seen: ReadonlySet<string>;
   onGo: (index: number) => void;
 }) {
+  const { t } = useTranslation("code");
   let n = 0;
   return (
-    <nav className={styles.storyline} aria-label="Storyline">
+    <nav className={styles.storyline} aria-label={t("story.storyline")}>
       {story.acts.map((act) => (
         <section key={act.id} className={styles.act} data-act={act.id}>
-          <h4 className={styles.actTitle}>{ACT_INFO[act.id].title}</h4>
-          <p className={styles.actBlurb}>{ACT_INFO[act.id].blurb}</p>
+          <h4 className={styles.actTitle}>{t(`story.acts.${act.id}.title`)}</h4>
+          <p className={styles.actBlurb}>{t(`story.acts.${act.id}.blurb`)}</p>
           <ol className={styles.scenes}>
             {act.scenes.map((scene) => {
               const index = n++;
@@ -38,7 +39,7 @@ export function Storyline({
                     onClick={() => onGo(index)}
                   >
                     <span className={styles.dot} aria-hidden="true" />
-                    <code>{scene.fn.qualified}()</code>
+                    <code dir="ltr">{scene.fn.qualified}()</code>
                     <span className={styles.file}>{scene.fn.path.split("/").at(-1)}</span>
                   </button>
                 </li>

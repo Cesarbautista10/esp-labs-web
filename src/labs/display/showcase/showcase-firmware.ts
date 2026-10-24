@@ -26,8 +26,6 @@ export const showSceneLine = (scene: number): LogLine => [
   "info",
 ];
 
-export const autoFlag = (auto: boolean) => `auto-cycle ${auto ? "on · 12 s per scene" : "off"}`;
-
 export const autoLines = (mode: ShowcaseMode, auto: boolean): LogLine[] => [
   [
     mode === "boot"
@@ -61,20 +59,8 @@ export const startLines = (mode: ShowcaseMode): LogLine[] => [
   ],
 ];
 
-export const COPY = {
-  boot: {
-    label: "BOOT",
-    aria: "BOOT button: click for next scene, hold for auto-cycle",
-    caption:
-      "Click BOOT for the next scene, hold 0.6 s to toggle auto-cycle, just like the real BOOT button.",
-  },
-  button: {
-    label: "BUTTON",
-    aria: "Push button: click for next scene, double-click for previous, hold for auto-cycle",
-    caption:
-      "Click BUTTON for the next scene, double-click for the previous one, hold 0.6 s to toggle auto-cycle, just like your push button.",
-  },
-} as const satisfies Record<ShowcaseMode, { label: string; aria: string; caption: string }>;
-
-export const PLACEHOLDER_NOTE =
-  "The dashboard here uses placeholder numbers; your board shows its real temperature, memory and frame times.";
+/** The button's printed name: the board's silkscreen (BOOT) or the part, so English. */
+export const BUTTON_LABEL = { boot: "BOOT", button: "BUTTON" } as const satisfies Record<
+  ShowcaseMode,
+  string
+>;

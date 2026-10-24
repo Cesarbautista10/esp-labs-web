@@ -107,7 +107,7 @@
   font: 700 14px var(--font-display);
 }
 .hudHead b {
-  margin-left: auto;
+  margin-inline-start: auto;
   font: 800 28px / 1 var(--font-display);
   font-stretch: 75%;
   letter-spacing: 0.02em;

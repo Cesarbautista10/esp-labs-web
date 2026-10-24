@@ -1,4 +1,5 @@
 import { type KeyboardEvent, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Caption } from "@/ui/Caption";
@@ -8,74 +9,31 @@ import own from "./BleJourney.module.css";
 
 type Flow = "in" | "out" | "both";
 
+type StageId = "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8";
+
+/** Each lab's place on the path; its title, role and sentence live in the catalogue. */
 interface Stage {
-  readonly id: string;
-  readonly t: string;
-  readonly role: string;
-  readonly what: string;
+  readonly id: StageId;
   readonly arrow: Flow;
   readonly lock?: boolean;
 }
 
 const STAGES: readonly Stage[] = [
-  { id: "B1", t: "Listen", role: "scanner", what: "hears every device's advertising", arrow: "in" },
-  { id: "B2", t: "Be seen", role: "broadcaster", what: "shouts its own live data", arrow: "out" },
-  {
-    id: "B3",
-    t: "Connect & talk",
-    role: "peripheral",
-    what: "is read and written by your phone",
-    arrow: "both",
-  },
-  {
-    id: "B4",
-    t: "Pair & trust",
-    role: "peripheral + keys",
-    what: "adds encryption, passkeys and bonds",
-    arrow: "both",
-    lock: true,
-  },
-  {
-    id: "B5",
-    t: "Phone app",
-    role: "peripheral",
-    what: "talks to your own web app over Web Bluetooth",
-    arrow: "both",
-  },
-  {
-    id: "B6",
-    t: "Keyboard & media",
-    role: "HID peripheral",
-    what: "types and changes the volume",
-    arrow: "out",
-    lock: true,
-  },
-  {
-    id: "B7",
-    t: "Music",
-    role: "MIDI peripheral",
-    what: "plays notes in GarageBand",
-    arrow: "both",
-  },
-  {
-    id: "B8",
-    t: "Host",
-    role: "central",
-    what: "lets your keyboard type onto it",
-    arrow: "in",
-    lock: true,
-  },
+  { id: "B1", arrow: "in" },
+  { id: "B2", arrow: "out" },
+  { id: "B3", arrow: "both" },
+  { id: "B4", arrow: "both", lock: true },
+  { id: "B5", arrow: "both" },
+  { id: "B6", arrow: "out", lock: true },
+  { id: "B7", arrow: "both" },
+  { id: "B8", arrow: "in", lock: true },
 ];
 
 const pos = (i: number) => ({ x: 50 + (i % 4) * 166, y: i < 4 ? 66 : 190 });
-const FLOW_TEXT: Readonly<Record<Flow, string>> = {
-  in: "into the board",
-  out: "out of the board",
-  both: "both ways",
-};
 
 /** B1: the whole track at a glance, from listening to hosting. */
 export function BleJourney({ lesson }: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const [pick, setPick] = useState(() =>
     Math.max(
       0,
@@ -116,10 +74,11 @@ export function BleJourney({ lesson }: WidgetProps) {
       <div className={styles.scroll}>
         <svg
           ref={svgRef}
+          direction="ltr"
           viewBox="0 0 680 260"
           className={styles.full}
           role="group"
-          aria-label="The eight Bluetooth labs as a path: what the board does in each and which way data flows."
+          aria-label={t("journey.aria")}
         >
           <path
             d="M 160 66 H 180 M 326 66 H 346 M 492 66 H 512 M 658 66 Q 672 66 672 128 Q 672 190 658 190 M 160 190 H 180 M 326 190 H 346 M 492 190 H 512"
@@ -133,7 +92,11 @@ export function BleJourney({ lesson }: WidgetProps) {
                 tabIndex={0}
                 role="button"
                 aria-pressed={i === pick}
-                aria-label={`${st.id} ${st.t}: ${st.what}`}
+                aria-label={t("journey.stageLabel", {
+                  id: st.id,
+                  title: t(`journey.stages.${st.id}.title`),
+                  what: t(`journey.stages.${st.id}.what`),
+                })}
                 className={own.stage}
                 onClick={() => setPick(i)}
                 onKeyDown={choose(i)}
@@ -151,10 +114,10 @@ export function BleJourney({ lesson }: WidgetProps) {
                   {st.id}
                 </text>
                 <text x={x + 2} y={y - 14} className={own.title}>
-                  {st.t}
+                  {t(`journey.stages.${st.id}.title`)}
                 </text>
                 <text x={x - 26} y={y + 4} className={own.role}>
-                  {st.role}
+                  {t(`journey.stages.${st.id}.role`)}
                 </text>
                 {st.lock ? (
                   <text x={x + 92} y={y + 4} className={own.role}>
@@ -176,9 +139,7 @@ export function BleJourney({ lesson }: WidgetProps) {
         </svg>
       </div>
       {s ? (
-        <Caption live>
-          {s.id} {s.t}: the board is the {s.role} and {s.what}. Data flows {FLOW_TEXT[s.arrow]}.
-        </Caption>
+        <Caption live>{t(`journey.stages.${s.id}.caption`)}</Caption>
       ) : null}
     </div>
   );

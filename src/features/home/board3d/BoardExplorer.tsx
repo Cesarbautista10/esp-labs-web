@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { lessonPart } from "@/content/icons";
 import type { LessonEntry } from "@/domain/lesson";
@@ -20,6 +21,7 @@ export function BoardExplorer({ lessons }: { lessons: readonly LessonEntry[] }) 
   const scene = useRef<BoardScene | null>(null);
   const [picked, setPicked] = useState<PartId | null>(null);
   const [hover, setHover] = useState<PartId | null>(null);
+  const { t } = useTranslation("home");
   const { boxRef, canvasRef, labelsRef, stageRef, status } = useStage3d(
     {
       target: { x: 0.1, y: -0.15, z: 0 },
@@ -62,8 +64,8 @@ export function BoardExplorer({ lessons }: { lessons: readonly LessonEntry[] }) 
       status={status}
       className={styles.explorer}
       viewClassName={styles.view}
-      label="3D model of the ESP32-S3 DevKitC-1: the module with its antenna, two USB-C ports, BOOT and RST buttons, the RGB LED and two rows of header pins. Drag to turn it."
-      fallback="Every part is described in the cards."
+      label={t("board.model")}
+      fallback={t("board.fallback")}
     >
       <ol className={styles.cards}>
         {BOARD_PARTS.map((part, i) => {
@@ -98,13 +100,13 @@ export function BoardExplorer({ lessons }: { lessons: readonly LessonEntry[] }) 
                   <span className={styles.num} aria-hidden="true">
                     {i + 1}
                   </span>
-                  {part.title}
+                  {t(`board.parts.${part.id}.title`)}
                 </span>
               </button>
-              <p className={styles.text}>{part.text}</p>
+              <p className={styles.text}>{t(`board.parts.${part.id}.text`)}</p>
               {uses.length ? (
                 <p className={styles.uses}>
-                  <span className="visually-hidden">Used in </span>
+                  <span className="visually-hidden">{t("board.usedIn")}</span>
                   {uses.slice(0, SHOWN).map((l) => (
                     <Link key={l.id} to={`/lessons/${l.id}`} title={l.title}>
                       <PartIcon name={lessonPart(l.id, l.track)} size={20} />
@@ -112,7 +114,9 @@ export function BoardExplorer({ lessons }: { lessons: readonly LessonEntry[] }) 
                     </Link>
                   ))}
                   {uses.length > SHOWN ? (
-                    <span className={styles.more}>+{uses.length - SHOWN} labs</span>
+                    <span className={styles.more}>
+                      {t("board.more", { count: uses.length - SHOWN })}
+                    </span>
                   ) : null}
                 </p>
               ) : null}

@@ -209,30 +209,30 @@ export const S7: SoundSpec<S7State> = {
   ],
   boot: ["  - start quiet: vol 20, then raise it"],
   captions: [
-    "wave: one note's waveform (four periods) and its spectrum 0-8 kHz. Same note, different wave = different timbre; the line under it says why.",
-    "keys: two octaves, C4 to B5. Notes light while they sound. Double-click = the next note of the scale, long press = the next chord.",
-    "envelope: the ADSR curve (attack, decay, sustain, release); a dot rides it while a single note plays.",
-    "tunes: the list on the left, a piano roll on the right scrolling past the amber playhead. Double-click plays the picked tune, long press picks the next.",
-    "fx: game sounds built from recipes (sweeps, noise, filters); the last one's whole waveform with a playhead.",
+    (t) => t("labs-sound:s7.captions.wave"),
+    (t) => t("labs-sound:s7.captions.keys"),
+    (t) => t("labs-sound:s7.captions.envelope"),
+    (t) => t("labs-sound:s7.captions.tunes"),
+    (t) => t("labs-sound:s7.captions.fx"),
   ],
   actions: [
-    { label: "wave next", run: (st, term) => void onCommand("wave next", st, term) },
+    { label: (_, t) => t("labs-sound:s7.actions.waveNext"), run: (st, term) => void onCommand("wave next", st, term) },
     {
-      label: "▶ tune picked",
+      label: (_, t) => t("labs-sound:s7.actions.tunePicked"),
       run(st, term) {
         onCommand(`tune ${tuneName(st)}`, st, term);
         st.view = 3;
       },
     },
     {
-      label: "▶ fx picked",
+      label: (_, t) => t("labs-sound:s7.actions.fxPicked"),
       run(st, term) {
         onCommand(`fx ${fxName(st)}`, st, term);
         st.view = 4;
       },
     },
     {
-      label: "long press (next)",
+      label: (_, t) => t("labs-sound:s7.actions.longPressNext"),
       run(st, term) {
         if (st.view === 3) st.tuneIdx = (st.tuneIdx + 1) % S7_TUNES.length;
         else if (st.view === 4) st.fxIdx = (st.fxIdx + 1) % S7_FX.length;

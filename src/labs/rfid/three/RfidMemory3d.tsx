@@ -1,11 +1,12 @@
 import { type CSSProperties, type MouseEvent, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { prefersReducedMotion } from "@/lib/media";
 import { Button, ButtonRow } from "@/ui/Button";
 import { Caption } from "@/ui/Caption";
 import type { WidgetProps } from "@/widgets/types";
 import { useSimulation } from "../../shared/simulation";
 import { hx } from "../protocol/bytes";
-import { blockKind, byteRole, exampleCard, KIND_TOKEN } from "../protocol/card-memory";
+import { blockKind, type BlockKind, byteRole, exampleCard, KIND_TOKEN } from "../protocol/card-memory";
 import panels from "../panels/panels.module.css";
 import { StepCaption } from "../panels/StepCaption";
 import styles from "./f3d.module.css";
@@ -19,15 +20,17 @@ import { StageBox } from "@/ui/stage3d/StageBox";
 import { useStage3d } from "@/ui/stage3d/use-stage";
 
 const OPEN_LEGEND = [
-  ["--danger", "key A (reads as 00)"],
-  ["--copper", "access bits"],
-  ["--gnd", "user byte"],
-  ["--w-sda", "key B · value"],
-  ["--w-cs", "UID + BCC"],
-  ["--ok", "your text"],
+  ["--danger", "keyA"],
+  ["--copper", "access"],
+  ["--gnd", "user"],
+  ["--w-sda", "keyB"],
+  ["--w-cs", "uid"],
+  ["--ok", "text"],
 ] as const;
 
 const swatch = (token: string) => ({ "--key": `var(${token})` }) as CSSProperties;
+
+type CaptionId = "auth" | "open" | "locked";
 
 // Takes the fields it reads, not the whole state: the state object is mutated in place, so the
 // React Compiler would keep a result computed from it.
@@ -35,27 +38,15 @@ function caption(
   sector: number,
   isOpen: boolean,
   handshake: MemoryState["anim"],
-): readonly [string, string] {
-  if (handshake)
-    return [
-      "3-pass authentication",
-      `The chip asks the card for sector ${handshake.s} with key A; the card sends a random challenge, the chip answers with its own, and both prove they know the key without ever sending it. From now on Crypto1 encrypts every frame.`,
-    ];
-  const s = sector;
-  const first = s * 4;
-  return isOpen
-    ? [
-        `Sector ${s}, open`,
-        `Authenticated with key A (the factory key FF FF FF FF FF FF). Blocks ${first}–${first + 3} can be read. Key A reads back as 00: the card never reveals it. Bytes 6–8 of the trailer are the access bits; byte 9 is free.`,
-      ]
-    : [
-        `Sector ${s}, locked`,
-        `Blocks ${first}–${first + 3} stay unreadable until the reader proves it knows this sector's key: press Authenticate.`,
-      ];
+): { readonly id: CaptionId; readonly values: Readonly<Record<string, number>> } {
+  if (handshake) return { id: "auth", values: { sector: handshake.s } };
+  const first = sector * 4;
+  return { id: isOpen ? "open" : "locked", values: { sector, first, last: first + 3 } };
 }
 
 /** R4 panel: the card's memory as 16 cabinets; authenticate a sector to read its blocks. */
 export function RfidMemory3d(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
   const [sim, snapshot] = useSimulation(initialMemory);
   const [spinning, setSpinning] = useState(() => !prefersReducedMotion());
   const pick = useRef<SectorPicker | null>(null);
@@ -68,13 +59,17 @@ export function RfidMemory3d(_: WidgetProps) {
       ground: { w: 18, d: 9, y: -0.05 },
     },
     (T, stage) => {
-      pick.current = buildMemoryScene(T, stage, sim);
+      pick.current = buildMemoryScene(T, stage, sim, {
+        maker: t("memory3d.labels.maker"),
+        trailer: t("memory3d.labels.trailer"),
+        last: t("memory3d.labels.last"),
+      });
     },
   );
   const st = snapshot.state;
   const first = st.sector * 4;
   const open = st.open.has(st.sector);
-  const [title, text] = caption(st.sector, open, st.handshake ? st.anim : null);
+  const cap = caption(st.sector, open, st.handshake ? st.anim : null);
   const ready = status === "ready";
 
   function choose(sector: number) {
@@ -110,8 +105,8 @@ export function RfidMemory3d(_: WidgetProps) {
         labelsRef={labelsRef}
         stageRef={stageRef}
         status={status}
-        label="3D view: the card's 16 sectors as cabinets of 4 blocks each, the top block of each being the sector trailer with a lock. Click a sector to open it."
-        fallback="The byte table below still works."
+        label={t("memory3d.stage")}
+        fallback={t("memory3d.fallback")}
         onClick={onCanvasClick}
       />
       <ButtonRow>
@@ -124,22 +119,22 @@ export function RfidMemory3d(_: WidgetProps) {
             })
           }
         >
-          After R5
+          {t("memory3d.after")}
         </Button>
         <select
           className={styles.select}
-          aria-label="Sector"
+          aria-label={t("memory3d.sector")}
           value={st.sector}
           onChange={(e) => choose(Number(e.target.value))}
         >
           {Array.from({ length: 16 }, (_, s) => (
             <option key={s} value={s}>
-              sector {s}
+              {t("memory3d.sectorN", { n: s })}
             </option>
           ))}
         </select>
         <Button disabled={status === "loading" || st.anim !== null} onClick={authenticate}>
-          🔑 Authenticate this sector
+          {t("memory3d.authenticate")}
         </Button>
         <Button
           disabled={!ready}
@@ -151,18 +146,21 @@ export function RfidMemory3d(_: WidgetProps) {
             setSpinning(stage.view.spinning);
           }}
         >
-          Turn
+          {t("controls.turn")}
         </Button>
       </ButtonRow>
       <p className={styles.legend}>
-        {Object.entries(KIND_TOKEN).map(([kind, token]) => (
+        {(Object.entries(KIND_TOKEN) as [BlockKind, string][]).map(([kind, token]) => (
           <span key={kind}>
             <i style={swatch(token)} />
-            {kind}
+            {t(`memory3d.kinds.${kind}`)}
           </span>
         ))}
       </p>
-      <StepCaption title={title} text={text} token={open ? "--rfid" : "--danger"} />
+      <StepCaption
+        title={t(`memory3d.captions.${cap.id}.title`, cap.values)}
+        text={t(`memory3d.captions.${cap.id}.text`, cap.values)}
+        token={open ? "--rfid" : "--danger"} />
       <div className={panels.memScroll}>
         <div className={panels.memSide}>
           {[0, 1, 2, 3].map((k) => {
@@ -170,12 +168,12 @@ export function RfidMemory3d(_: WidgetProps) {
             const b = st.blocks[i] ?? [];
             const kind = blockKind(b, i);
             return (
-              <div key={i} className={panels.memRow}>
+              <div key={i} className={panels.memRow} dir="ltr">
                 <b>{i}</b>
                 <div className={panels.memBytes}>
                   {b.map((x, j) =>
                     open ? (
-                      <i key={j} className={panels[byteRole(b, j, kind)] ?? ""} title={`byte ${j}`}>
+                      <i key={j} className={panels[byteRole(b, j, kind)] ?? ""} title={t("memory3d.byte", { n: j })}>
                         {hx(x)}
                       </i>
                     ) : (
@@ -188,16 +186,16 @@ export function RfidMemory3d(_: WidgetProps) {
           })}
           {open ? (
             <p className={styles.legend}>
-              {OPEN_LEGEND.map(([token, label]) => (
-                <span key={label}>
+              {OPEN_LEGEND.map(([token, key]) => (
+                <span key={key}>
                   <i style={swatch(token)} />
-                  {label}
+                  {t(`memory3d.legend.${key}`)}
                 </span>
               ))}
             </p>
           ) : (
             <Caption>
-              Locked: every sector has its own keys, so opening sector 1 doesn't open sector 2.
+              {t("memory3d.lockedNote")}
             </Caption>
           )}
         </div>

@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocaleInfo } from "@/i18n/use-locale";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Button } from "../Button";
@@ -22,7 +24,11 @@ const TOP = 64;
 const GAP = 40;
 const HOLD_MS = 1600;
 
-const formatMs = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${ms} ms`);
+// Units stay as on a datasheet (ms, s); the number follows the reader's language.
+const formatMs = (ms: number, tag: string) =>
+  ms >= 1000
+    ? `${new Intl.NumberFormat(tag, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(ms / 1000)} s`
+    : `${new Intl.NumberFormat(tag).format(ms)} ms`;
 
 /**
  * A steppable, animated sequence diagram: lanes, numbered messages, one explained step at a
@@ -36,6 +42,8 @@ export function SequenceDiagram({
   live,
 }: SequenceDiagramProps) {
   const reduce = useReducedMotion();
+  const { t } = useTranslation();
+  const { tag } = useLocaleInfo();
   const keys = Object.keys(flows);
   const [flowKey, setFlowKey] = useState(keys[0] ?? "");
   const [step, setStep] = useState(0);
@@ -91,7 +99,7 @@ export function SequenceDiagram({
     frameCount.current++;
     const frame = Math.floor(frameCount.current / 2);
     if (frames && frameCount.current % 2 === 0 && frameLabelRef.current)
-      frameLabelRef.current.textContent = `frame ${frame}`;
+      frameLabelRef.current.textContent = t("ui.sequence.frame", { frame });
     if (isLive && live && frameCount.current % 2 === 0 && liveRef.current) {
       liveRef.current.textContent = live(frame, ((now - stepStart.current) / 1000).toFixed(1));
     }
@@ -107,14 +115,19 @@ export function SequenceDiagram({
     if (playing && now - stepStart.current > duration + HOLD_MS) go(step + 1);
   });
 
-  const lanesLabel = flow.lanes.map(([name]) => name).join(", ");
+  const lanesLabel = new Intl.ListFormat(tag, { type: "unit" }).format(
+    flow.lanes.map(([name]) => name),
+  );
+  const from = flow.lanes[current.f]?.[0] ?? "";
+  const to = flow.lanes[current.t]?.[0] ?? "";
+  const position = { step: step + 1, total: flow.steps.length, from, to };
 
   return (
     <div className={styles.root}>
       <div className={styles.top}>
         {keys.length > 1 ? (
           <ChoiceGroup
-            label="Which flow"
+            label={t("ui.sequence.flow")}
             value={flowKey}
             onChange={pickFlow}
             choices={keys.map((k) => ({ key: k, label: flows[k]!.label }))}
@@ -122,14 +135,14 @@ export function SequenceDiagram({
         ) : (
           <span />
         )}
-        <div className={styles.controls} role="group" aria-label="Playback">
+        <div className={styles.controls} role="group" aria-label={t("ui.sequence.playback")}>
           <Button
             onClick={() => {
               setPlaying(false);
               go(step - 1);
             }}
           >
-            ◀ Back
+            {t("ui.sequence.back")}
           </Button>
           <Button
             onClick={() => {
@@ -137,7 +150,7 @@ export function SequenceDiagram({
               stepStart.current = performance.now();
             }}
           >
-            {playing ? "❚❚ Pause" : "▶ Play"}
+            {playing ? t("ui.sequence.pause") : t("ui.sequence.play")}
           </Button>
           <Button
             onClick={() => {
@@ -145,18 +158,20 @@ export function SequenceDiagram({
               go(step + 1);
             }}
           >
-            Next ▶
+            {t("ui.sequence.next")}
           </Button>
         </div>
       </div>
 
-      <div ref={scrollRef} className={styles.scroll}>
+      {/* The lanes are drawn left to right in every language, so the scroller (and its scrollLeft
+          math) stays left to right too. */}
+      <div ref={scrollRef} className={styles.scroll} dir="ltr">
         <svg
           ref={svgRef}
           className={styles.seq}
           viewBox={`0 0 ${W} ${H}`}
           role="img"
-          aria-label={`Sequence diagram: ${lanesLabel}. ${flow.steps.length} steps; the text below explains the current one.`}
+          aria-label={t("ui.sequence.label", { lanes: lanesLabel, count: flow.steps.length })}
         >
           <defs>
             <marker
@@ -278,9 +293,12 @@ export function SequenceDiagram({
 
       <div className={styles.caption} aria-live="polite">
         <p className={styles.stepLine}>
-          Step {step + 1} of {flow.steps.length} · {flow.lanes[current.f]?.[0]}
-          {isSelfCall(current) ? "" : ` → ${flow.lanes[current.t]?.[0]}`}
-          {current.ms ? ` · about ${formatMs(current.ms)}` : ""}
+          {current.ms
+            ? t(isSelfCall(current) ? "ui.sequence.step.selfTimed" : "ui.sequence.step.callTimed", {
+                ...position,
+                duration: formatMs(current.ms, tag),
+              })
+            : t(isSelfCall(current) ? "ui.sequence.step.self" : "ui.sequence.step.call", position)}
         </p>
         <h4>{current.title}</h4>
         <p className={styles.text}>{current.text}</p>

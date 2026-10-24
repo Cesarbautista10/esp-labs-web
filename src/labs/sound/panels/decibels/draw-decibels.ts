@@ -1,6 +1,7 @@
 // S2 panel drawing: two waves (the quiet and a louder sound) and a decibel ruler.
 import type { ScopePalette } from "@/lib/canvas";
-import { levelColour, mono, textWriter } from "../../kit/draw";
+import { labelWriter, levelColour, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import { sndLike } from "../../model/level";
 
 /** Draws the panel; returns the caption. `db` is dB above the quiet, `tt` the wave's phase time. */
@@ -9,8 +10,10 @@ export function drawDecibels(
   C: ScopePalette,
   db: number,
   tt: number,
+  tr: SoundT,
 ): string {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const ratio = Math.pow(10, db / 20);
   g.fillStyle = C.paper;
   g.fillRect(0, 0, 680, 250);
@@ -35,14 +38,14 @@ export function drawDecibels(
   wave(hl);
   g.lineWidth = 1;
   if (hq * ratio > 90)
-    T(24, 18, `(too tall to draw: really ${Math.round(hq * ratio)} px)`, C.amber);
-  T(24, 214, "grey = the quiet of your room · pink = this sound", C.muted);
+    W(24, 18, tr("decibels.tooTall", { px: Math.round(hq * ratio) }), C.amber);
+  W(24, 214, tr("decibels.legend"), C.muted);
   // The ruler: 0-60 dB, the doublings and the tens.
   const x0 = 460;
   const yOf = (d: number) => 220 - d * 3.3;
   g.fillStyle = C.dim;
   g.fillRect(x0, yOf(60), 2, yOf(0) - yOf(60));
-  const marks: readonly (readonly [number, string, string])[] = [
+  const marks: readonly (readonly [number, string, "quiet" | "rustle" | "talking" | "clap" | ""])[] = [
     [0, "×1", "quiet"],
     [6, "×2", ""],
     [12, "×4", "rustle"],
@@ -55,7 +58,7 @@ export function drawDecibels(
     g.fillStyle = C.muted;
     g.fillRect(x0 - 4, yOf(d), 10, 1);
     T(x0 + 12, yOf(d) + 4, `${d} dB  ${r}`, C.ink, mono(10));
-    if (w) T(x0 + 110, yOf(d) + 4, w, C.muted, mono(10));
+    if (w) W(x0 + 110, yOf(d) + 4, tr(`decibels.marks.${w}`), C.muted, mono(10));
   }
   g.fillStyle = levelColour(C, db);
   g.beginPath();
@@ -63,5 +66,11 @@ export function drawDecibels(
   g.lineTo(x0 - 16, yOf(db) - 6);
   g.lineTo(x0 - 16, yOf(db) + 6);
   g.fill();
-  return `${db.toFixed(1)} dB above the quiet: the wave is ${ratio.toFixed(ratio < 10 ? 2 : 0)} times taller (power ×${(ratio * ratio).toFixed(ratio < 10 ? 1 : 0)}). S2 calls this "${sndLike(db)}". Each +6 dB doubles the height; +20 dB is ten times.`;
+  // sndLike is what S2's screen prints: it stays in English, like the board.
+  return tr(ratio < 10 ? "decibels.caption" : "decibels.captionBig", {
+    db,
+    ratio,
+    power: ratio * ratio,
+    like: sndLike(db),
+  });
 }

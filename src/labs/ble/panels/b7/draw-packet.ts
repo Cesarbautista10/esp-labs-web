@@ -1,5 +1,6 @@
 import { hx } from "../../protocol/hex";
 import type { MidiByte, MidiRole } from "../../protocol/midi";
+import type { BleT } from "../../i18n";
 import type { SvgPainter } from "../svg";
 
 const COL: Readonly<Record<MidiRole, string>> = {
@@ -10,16 +11,16 @@ const COL: Readonly<Record<MidiRole, string>> = {
   vel: "var(--w-cs)",
   skip: "var(--line)",
 };
-const LEGEND: readonly [MidiRole, string][] = [
-  ["header", "header: top bit 1, then the clock's high bits"],
-  ["ts", "timestamp: top bit 1, low 7 bits of the ms clock"],
-  ["status", "status: what + channel (90 = note on, ch 1)"],
-  ["note", "note number (60 = middle C)"],
-  ["vel", "velocity (how hard)"],
-];
+// Legend rows, labels in the catalogue (packet.legend.<role>).
+const LEGEND: readonly Exclude<MidiRole, "skip">[] = ["header", "ts", "status", "note", "vel"];
 
 /** The last BLE-MIDI packet's bytes, revealed left to right (`k` 0..1), and the colour legend. */
-export function drawPacket(p: SvgPainter, bytes: readonly MidiByte[] | null, k: number): void {
+export function drawPacket(
+  p: SvgPainter,
+  bytes: readonly MidiByte[] | null,
+  k: number,
+  t: BleT,
+): void {
   p.clear();
   if (!bytes) {
     p.add(
@@ -32,7 +33,7 @@ export function drawPacket(p: SvgPainter, bytes: readonly MidiByte[] | null, k: 
         "font-size": 18,
         "font-family": "var(--font-body)",
       },
-      "Play a few notes: they gather into one packet.",
+      t("packet.empty"),
     );
     return;
   }
@@ -64,7 +65,7 @@ export function drawPacket(p: SvgPainter, bytes: readonly MidiByte[] | null, k: 
       x.b === null ? "-" : hx(x.b),
     );
   });
-  LEGEND.forEach(([r, s], i) => {
+  LEGEND.forEach((r, i) => {
     p.add("rect", { x: 10, y: 88 + i * 24, width: 16, height: 16, rx: 3, fill: COL[r] });
     p.add(
       "text",
@@ -75,7 +76,7 @@ export function drawPacket(p: SvgPainter, bytes: readonly MidiByte[] | null, k: 
         "font-size": 16,
         "font-family": "var(--font-body)",
       },
-      s,
+      t(`packet.legend.${r}`),
     );
   });
 }

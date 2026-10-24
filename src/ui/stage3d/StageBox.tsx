@@ -1,4 +1,5 @@
 import type { MouseEventHandler, ReactNode, RefObject } from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "@/ui/Icon";
 import type { Stage3d } from "./stage3d";
 import styles from "./StageBox.module.css";
@@ -41,24 +42,25 @@ export function StageBox({
   viewClassName,
   children,
 }: StageBoxProps) {
+  const { t } = useTranslation();
   return (
     <div ref={boxRef} className={`${styles.stage} ${className ?? ""}`} data-status={status}>
       <div className={`${styles.view} ${viewClassName ?? ""}`}>
         {/* Clicks pick a part of the model; every pick also has a button or menu outside it. */}
-        <canvas ref={canvasRef} role="img" aria-label={label} onClick={onClick} />
+        <canvas ref={canvasRef} dir="ltr" role="img" aria-label={label} onClick={onClick} />
         {status === "ready" ? (
-          <div className={styles.tools} role="toolbar" aria-label="Turn and zoom the 3D view">
+          <div className={styles.tools} role="toolbar" aria-label={t("ui.stage.toolbar")}>
             <button
               type="button"
               onClick={() => stageRef.current?.rotate(-STEP)}
-              aria-label="Turn left"
+              aria-label={t("ui.stage.turnLeft")}
             >
               <Icon name="rotateLeft" size={16} />
             </button>
             <button
               type="button"
               onClick={() => stageRef.current?.rotate(STEP)}
-              aria-label="Turn right"
+              aria-label={t("ui.stage.turnRight")}
             >
               <Icon name="rotateRight" size={16} />
             </button>
@@ -66,14 +68,14 @@ export function StageBox({
             <button
               type="button"
               onClick={() => stageRef.current?.zoom(1.18)}
-              aria-label="Zoom out"
+              aria-label={t("ui.stage.zoomOut")}
             >
               <Icon name="zoomOut" size={16} />
             </button>
             <button
               type="button"
               onClick={() => stageRef.current?.zoom(1 / 1.18)}
-              aria-label="Zoom in"
+              aria-label={t("ui.stage.zoomIn")}
             >
               <Icon name="zoomIn" size={16} />
             </button>
@@ -81,26 +83,27 @@ export function StageBox({
             <button
               type="button"
               onClick={() => stageRef.current?.recenter()}
-              aria-label="Back to the start view"
+              aria-label={t("ui.stage.recenter")}
             >
               <Icon name="recenter" size={16} />
             </button>
           </div>
         ) : null}
         <p className={styles.hint} aria-hidden="true">
-          drag to turn · pinch to zoom
+          {t("ui.stage.hint")}
         </p>
         {status !== "ready" ? (
           <p className={styles.load} role="status">
             {status === "loading"
-              ? "Loading the 3D view…"
-              : `The 3D view couldn't start in this browser (it needs WebGL). ${fallback}`}
+              ? t("ui.stage.loading")
+              : t("ui.stage.failed", { fallback })}
           </p>
         ) : null}
       </div>
       {children}
-      {/* Labels and leaders are positioned by the stage every frame; React leaves this box empty. */}
-      <div ref={labelsRef} className={styles.labels} aria-hidden="true" />
+      {/* Labels and leaders are positioned by the stage every frame (physical x, y), so the box stays
+          left to right; React leaves it empty. */}
+      <div ref={labelsRef} className={styles.labels} dir="ltr" aria-hidden="true" />
     </div>
   );
 }

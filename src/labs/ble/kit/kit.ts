@@ -11,8 +11,8 @@ import type { BleState } from "./state";
 export function bleKit<S extends BleState>(): LabKit<S> {
   return {
     firmware: "ble-lab",
-    previewCaption:
-      "Example data, drawn like the board does. The buttons stand in for the push button, your phone and the serial monitor.",
+    ns: "labs-ble",
+    previewCaption: (t) => t("labs-ble:kit.previewCaption"),
     chrome: (g, C, lesson, spec, view, st, t) =>
       drawBleChrome(g, C, lesson.id, spec.views, view, st, t),
     start: (st) => () => {

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useRef } from "react";
 import { hx } from "../../protocol/hex";
 import type { HidItem } from "../../protocol/hid";
@@ -13,6 +14,7 @@ interface Props {
 
 /** The Report Map, item by item, with the one that made the current field highlighted. */
 export function ReportItems({ bytes, items, fieldCount, lit }: Props) {
+  const { t } = useTranslation("labs-ble");
   const boxRef = useRef<HTMLDivElement>(null);
   const rows = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -26,19 +28,18 @@ export function ReportItems({ bytes, items, fieldCount, lit }: Props) {
   return (
     <div className={own.term}>
       <div className={own.bar}>
-        <span>Report Map items</span>
-        <span>
-          {bytes.length} bytes · {fieldCount} input fields
-        </span>
+        <span>{t("items.title")}</span>
+        <span>{t("items.size", { bytes: bytes.length, fields: fieldCount })}</span>
       </div>
       {/* Scrollable region: focusable so keyboard users can scroll it. */}
       <div
         ref={boxRef}
         className={own.items}
+        dir="ltr"
         // eslint-disable-next-line jsx-a11y-x/no-noninteractive-tabindex -- focusable so keyboard users can reach it
         tabIndex={0}
         role="region"
-        aria-label="Report Map items"
+        aria-label={t("items.title")}
       >
         {items.map((it, i) => (
           <div

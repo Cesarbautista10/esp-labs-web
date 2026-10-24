@@ -54,7 +54,7 @@
 }
 .between ol {
   margin: 0;
-  padding-left: 20px;
+  padding-inline-start: 20px;
   font-size: 13.5px;
   display: flex;
   flex-direction: column;

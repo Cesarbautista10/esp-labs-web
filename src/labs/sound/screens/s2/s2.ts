@@ -226,16 +226,16 @@ export const S2: SoundSpec<S2State> = {
     ["diary", "print the last 10 minutes, 10 s per row"],
   ],
   captions: [
-    "meter: with the INMP441, dB SPL big (unweighted, ±2 dB) on a 30-110 scale: 30 whisper, 60 talk, 85 hearing risk, 100 loud. With the KY-037, dB above your room's quiet, what that roughly sounds like, and a bar with the peak hold (white tick) and the alarm line (dotted red).",
-    "minute: the loudest moment of every quarter second, for the last 60 s, coloured by loudness; the dotted line is the alarm limit.",
-    "diary: ten minutes in 60 slots of 10 s: a thin line from the quietest to the loudest moment, a block at the average, a red cap where the alarm fired. Example history plus what you do now.",
-    "alarm: armed or ringing, the fuse filling while it is too loud (1 s by default), how many alarms and the loudest. Any button press silences it.",
+    (t) => t("labs-sound:s2.captions.meter"),
+    (t) => t("labs-sound:s2.captions.minute"),
+    (t) => t("labs-sound:s2.captions.diary"),
+    (t) => t("labs-sound:s2.captions.alarm"),
   ],
   actions: [
-    { label: "📢 loud music 3 s", run: (st) => st.mic.say("music", 3) },
-    { label: "speed fast/slow", run: (st, term) => void onCommand("speed", st, term) },
+    { label: (_, t) => t("labs-sound:s2.actions.loudMusic3S"), run: (st) => st.mic.say("music", 3) },
+    { label: (_, t) => t("labs-sound:s2.actions.speedFastSlow"), run: (st, term) => void onCommand("speed", st, term) },
     {
-      label: "button (silences)",
+      label: (_, t) => t("labs-sound:s2.actions.buttonSilences"),
       run(st, term) {
         if (st.alarm.active) {
           st.alarm.active = false;

@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, scopePalette } from "@/lib/canvas";
 import { useReducedMotion } from "@/lib/media";
@@ -13,6 +14,7 @@ type Mode = "passive" | "active";
 
 /** B1: three advertising channels and a scanner's listening window. */
 export function BleRadio(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const reduce = useReducedMotion();
   const [win, setWin] = useState(50);
   const [mode, setMode] = useState<Mode>("passive");
@@ -29,13 +31,13 @@ export function BleRadio(_: WidgetProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     if (playing) sim.step(Math.min(dt * 1000, 50) / 20, win);
-    drawRadio(context2d(canvas), scopePalette(), sim, win, mode === "active");
+    drawRadio(context2d(canvas), scopePalette(), sim, win, mode === "active", t);
   });
 
   return (
     <div className={styles.wd}>
       <div className={styles.ctl}>
-        <label htmlFor={winId}>listening window</label>
+        <label htmlFor={winId}>{t("radio.window")}</label>
         <input
           id={winId}
           type="range"
@@ -43,26 +45,26 @@ export function BleRadio(_: WidgetProps) {
           max={100}
           step={10}
           value={win}
-          aria-label="Scan window in percent of the interval"
+          aria-label={t("radio.windowAria")}
           onChange={(e) => {
             setWin(Number(e.target.value));
             sim.resetCounts();
           }}
         />
-        <span className={styles.mono}>{win} %</span>
+        <span className={styles.mono}>{t("radio.percent", { value: win })}</span>
         <select
           className={styles.select}
-          aria-label="Scan mode"
+          aria-label={t("radio.mode")}
           value={mode}
           onChange={(e) => {
             setMode(e.target.value === "active" ? "active" : "passive");
             sim.resetCounts();
           }}
         >
-          <option value="passive">passive scan</option>
-          <option value="active">active scan</option>
+          <option value="passive">{t("radio.passive")}</option>
+          <option value="active">{t("radio.active")}</option>
         </select>
-        <Button onClick={() => setPlaying((p) => !p)}>{playing ? "❚❚ Pause" : "▶ Play"}</Button>
+        <Button onClick={() => setPlaying((p) => !p)}>{playing ? t("controls.pause") : t("controls.play")}</Button>
       </div>
       <div className={styles.scroll}>
         <canvas
@@ -70,16 +72,14 @@ export function BleRadio(_: WidgetProps) {
           width={RADIO_W}
           height={RADIO_H}
           className={styles.full}
+          dir="ltr"
           role="img"
-          aria-label="The 2.4 GHz band with the 40 Bluetooth channels and three Wi-Fi channels, and below it a timeline of advertising packets on channels 37, 38 and 39 and the scanner's listening windows."
+          aria-label={t("radio.aria")}
         />
       </div>
       <Caption live>
-        The board listens {win} % of the time, one channel per 100 ms. Each device sends every
-        packet three times, once per channel, so a listener on any one channel still hears it.{" "}
-        {mode === "active"
-          ? "Active: every packet heard from a scannable device gets a scan request back, and the device answers with a second packet (more names, more data)."
-          : "Passive: the board never transmits."}
+        {t("radio.caption", { value: win })}{" "}
+        {mode === "active" ? t("radio.activeNote") : t("radio.passiveNote")}
       </Caption>
     </div>
   );

@@ -8,7 +8,7 @@
 .via {
   position: absolute;
   top: 10px;
-  left: calc(var(--spine-gap) * -1 - 16px);
+  inset-inline-start: calc(var(--spine-gap) * -1 - 16px);
   display: grid;
   place-items: center;
   width: 32px;
@@ -69,7 +69,7 @@
 }
 .id {
   position: absolute;
-  right: -7px;
+  inset-inline-end: -7px;
   bottom: -7px;
   padding: 1px 7px;
   border-radius: 999px;
@@ -203,7 +203,7 @@
   color: var(--muted);
   font: 600 12.5px var(--font-mono);
   cursor: pointer;
-  text-align: left;
+  text-align: start;
 }
 .meter:hover {
   color: var(--ink);

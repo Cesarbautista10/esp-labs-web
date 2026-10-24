@@ -60,7 +60,7 @@
 .hint {
   position: absolute;
   top: 8px;
-  right: 10px;
+  inset-inline-end: 10px;
   font: 11px var(--font-mono);
   color: var(--muted);
   margin: 0;

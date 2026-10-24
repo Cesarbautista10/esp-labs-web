@@ -1,5 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/use-locale";
 import { explainLine } from "@/domain/code/explain";
 import { lineText } from "@/domain/code/tokenize";
 import { useMetWords } from "../code-progress";
@@ -19,7 +21,6 @@ export interface MapSlot {
 }
 
 const TABS: readonly SideTab[] = ["guide", "map", "words"];
-const TAB_LABEL: Record<SideTab, string> = { guide: "Guide", map: "Map", words: "Words" };
 
 /**
  * The explanation panel. Full view: Guide (the mode's card, or the line lens), Map (or the mode's
@@ -34,9 +35,10 @@ export function SidePanel({
   guide: ReactNode;
   map?: MapSlot | undefined;
 }) {
+  const { t } = useTranslation("code");
   const reader = useReader();
   const { lab, settings, simple } = reader;
-  const { data: content } = useSuspenseQuery(codeContentQuery());
+  const { data: content } = useSuspenseQuery(codeContentQuery(useLocale()));
   const met = useMetWords();
   const selected = reader.selected?.path === file.path ? reader.selected.line : null;
   const ctx = explainContext(lab, file);
@@ -62,20 +64,20 @@ export function SidePanel({
   const tab = simple ? "guide" : reader.side;
 
   return (
-    <aside className={styles.side} aria-label="Explanation">
+    <aside className={styles.side} aria-label={t("side.label")}>
       <div className={styles.sideHead}>
         {simple ? (
-          <p className={styles.sideTitle}>Explanation</p>
+          <p className={styles.sideTitle}>{t("side.title")}</p>
         ) : (
-          <div className={styles.tabs} role="group" aria-label="Side panel">
-            {TABS.map((t) => (
+          <div className={styles.tabs} role="group" aria-label={t("side.tabs")}>
+            {TABS.map((id) => (
               <button
-                key={t}
+                key={id}
                 type="button"
-                aria-pressed={tab === t}
-                onClick={() => reader.setSide(t)}
+                aria-pressed={tab === id}
+                onClick={() => reader.setSide(id)}
               >
-                {t === "map" && map ? map.label : TAB_LABEL[t]}
+                {id === "map" && map ? map.label : t(`side.tab.${id}`)}
               </button>
             ))}
           </div>
@@ -84,7 +86,7 @@ export function SidePanel({
           type="button"
           className={styles.handle}
           aria-expanded={reader.sheetOpen}
-          aria-label={reader.sheetOpen ? "Hide the explanation" : "Show the explanation"}
+          aria-label={reader.sheetOpen ? t("side.hide") : t("side.show")}
           onClick={reader.toggleSheet}
         >
           {reader.sheetOpen ? "▾" : "▴"}

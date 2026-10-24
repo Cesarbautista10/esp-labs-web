@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { i18n } from "@/i18n/i18n";
 import { analyze } from "./analyze";
 import { definitionsOf, explainLine } from "./explain";
 import { createGlossary } from "./glossary";
@@ -57,7 +58,11 @@ describe("analyze", () => {
 
 describe("explainLine", () => {
   const file = analyze(SOURCE);
-  const ctx = { file, defined: definitionsOf([{ path: "main.cpp", analysis: file }]) };
+  const ctx = {
+    file,
+    defined: definitionsOf([{ path: "main.cpp", analysis: file }]),
+    t: i18n.getFixedT("en", "code"),
+  };
   const say = (line: number) => explainLine(ctx, line).text.replace(/<\/?code>/g, "`");
 
   it("says what lines do in plain words", () => {
@@ -74,7 +79,11 @@ describe("explainLine", () => {
 
 describe("tours", () => {
   const file = analyze(SOURCE);
-  const ctx = { file, defined: definitionsOf([{ path: "main.cpp", analysis: file }]) };
+  const ctx = {
+    file,
+    defined: definitionsOf([{ path: "main.cpp", analysis: file }]),
+    t: i18n.getFixedT("en", "code"),
+  };
 
   it("builds an automatic tour that leaves no line out", () => {
     const stops = autoStops("main.cpp", ctx, { lab: true });

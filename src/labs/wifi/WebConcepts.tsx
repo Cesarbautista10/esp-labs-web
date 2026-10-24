@@ -1,4 +1,6 @@
-import { type ReactNode, useRef } from "react";
+/* eslint-disable i18next/no-literal-string -- literal text here is firmware names, protocols and paths in the diagram, not interface text. */
+import { useRef } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useReducedMotion } from "@/lib/media";
 import type { WidgetProps } from "@/widgets/types";
 import { ScrollBox } from "@/ui/ScrollBox";
@@ -6,24 +8,22 @@ import { usePackets } from "./use-packets";
 import styles from "./wifi.module.css";
 
 const s = styles;
-const admin = <span className={s.adm}>admin</span>;
+type ApiRow = "status" | "scan" | "view" | "led" | "wifi" | "admin" | "ws";
 
-const API: readonly (readonly [string, string, ReactNode])[] = [
-  ["GET", "/api/status · /api/networks", "what the board is doing; last scan"],
-  ["POST", "/api/scan", "scan now"],
-  ["PUT", "/api/view · /api/settings", "screen view; auto-scan, brightness"],
-  ["PUT", "/api/led · /api/message", "LED colour; text on the screen"],
-  ["PUT", "/api/wifi", <>save a network (open during set-up, {admin} after)</>],
-  [
-    "DELETE · POST",
-    "/api/wifi · /api/reboot · /api/ota",
-    <>{admin}: forget, restart, firmware update</>,
-  ],
-  ["WS", "/ws", "pushes status every second, scans, button presses, update progress"],
+// Methods and paths are the board's API, as is; what each does lives in the catalogue.
+const API: readonly (readonly [string, string, ApiRow])[] = [
+  ["GET", "/api/status · /api/networks", "status"],
+  ["POST", "/api/scan", "scan"],
+  ["PUT", "/api/view · /api/settings", "view"],
+  ["PUT", "/api/led · /api/message", "led"],
+  ["PUT", "/api/wifi", "wifi"],
+  ["DELETE · POST", "/api/wifi · /api/reboot · /api/ota", "admin"],
+  ["WS", "/ws", "ws"],
 ];
 
 /** W2 "How the pieces talk": phone, React app, Node server and board, and the board's API. */
 export function WebConcepts(_: WidgetProps) {
+  const { t } = useTranslation("labs-wifi");
   const reduce = useReducedMotion();
   const svgRef = useRef<SVGSVGElement>(null);
   // Alternate: a request goes out, then a live update comes back.
@@ -36,37 +36,38 @@ export function WebConcepts(_: WidgetProps) {
 
   return (
     <div>
-      <ScrollBox label="Architecture drawing">
+      <ScrollBox label={t("web.drawing")}>
         <svg
           ref={svgRef}
           className={s.arch}
           viewBox="0 0 720 250"
           role="img"
-          aria-label="The phone talks to the board directly. The React app talks to the Node server, which talks to the board. The board pushes live updates back over WebSockets."
+          aria-label={t("web.drawingAlt")}
+          direction="ltr"
         >
           <path ref={wire(0)} className={s.wire} d="M150 60 H500" />
           <path ref={wire(1)} className={s.wire} d="M150 190 H260" />
           <path ref={wire(2)} className={s.wire} d="M400 190 C 460 190, 470 120, 520 110" />
           <rect className={s.box} x="20" y="30" width="130" height="60" rx="10" />
           <text className={s.lbl} x="34" y="56">
-            Phone
+            {t("web.phone")}
           </text>
           <text className={s.sub} x="34" y="74">
-            bench.local page
+            {t("web.phoneSub")}
           </text>
           <rect className={s.box} x="20" y="160" width="130" height="60" rx="10" />
           <text className={s.lbl} x="34" y="186">
-            React app
+            {t("web.react")}
           </text>
           <text className={s.sub} x="34" y="204">
-            your browser on the Mac
+            {t("web.reactSub")}
           </text>
           <rect className={s.box} x="260" y="160" width="140" height="60" rx="10" />
           <text className={s.lbl} x="274" y="186">
-            Node server
+            {t("web.node")}
           </text>
           <text className={s.sub} x="274" y="204">
-            holds ESP_TOKEN
+            {t("web.nodeSub")}
           </text>
           <rect className={`${s.box} ${s.esp}`} x="500" y="30" width="200" height="110" rx="12" />
           <text className={`${s.lbl} ${s.inv}`} x="516" y="58">
@@ -88,21 +89,27 @@ export function WebConcepts(_: WidgetProps) {
             /api + /ws
           </text>
           <text className={s.sub} x="430" y="236">
-            REST + WebSocket (token added for admin)
+            {t("web.adminWire")}
           </text>
           <circle ref={packet(0)} r="5" className={s.pktCopper} />
           <circle ref={packet(1)} r="5" className={s.pktSda} />
           <circle ref={packet(2)} r="5" className={s.pktOk} />
         </svg>
       </ScrollBox>
-      <ScrollBox label="The board's web API">
+      <ScrollBox label={t("web.api")}>
         <table className={s.api}>
           <tbody>
             {API.map(([method, path, what]) => (
               <tr key={method + path}>
                 <td>{method}</td>
                 <td>{path}</td>
-                <td>{what}</td>
+                <td>
+                  <Trans
+                    t={t}
+                    i18nKey={`web.rows.${what}`}
+                    components={{ adm: <span className={s.adm} /> }}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

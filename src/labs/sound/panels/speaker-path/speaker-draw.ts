@@ -1,6 +1,14 @@
 // S7 panel: samples → I2S1 → class D pulses → the cone; the squared volume; the echo guard.
 import type { ScopePalette } from "@/lib/canvas";
-import { display, levelColour, mono, textWriter } from "../../kit/draw";
+import {
+  display,
+  labelParagraph,
+  labelWriter,
+  levelColour,
+  mono,
+  textWriter,
+} from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 
 /** Volume 0-100 → the gain every sample is multiplied by (squared, like the board). */
 export const volumeGain = (vol: number) => (vol / 100) ** 2;
@@ -13,14 +21,16 @@ export function drawSpeakerPath(
   t: number,
   tt: number,
   loopT: number,
+  tr: SoundT,
 ): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const gain = volumeGain(vol);
   const small = mono(10);
   g.fillStyle = C.paper;
   g.fillRect(0, 0, 680, 400);
   // 1. Samples.
-  T(12, 16, "samples (16-bit)", C.muted);
+  W(12, 16, tr("speaker.samples"), C.muted);
   for (let i = 0; i < 24; i++) {
     const v = Math.sin((i / 24) * Math.PI * 2 + tt * 6) * gain;
     g.fillStyle = C.pink;
@@ -35,7 +45,7 @@ export function drawSpeakerPath(
   T(208, 62, "BCLK 39 · LRC 38", C.muted, mono(9), "center");
   T(208, 76, "DIN 47 · L = R", C.muted, mono(9), "center");
   // 3. Class D: pulses whose width follows the sample.
-  T(290, 16, "MAX98357A: on/off ~300 000 times a second", C.muted);
+  W(290, 16, tr("speaker.classD"), C.muted);
   g.strokeStyle = C.amber;
   g.beginPath();
   for (let k = 0; k < 28; k++) {
@@ -74,7 +84,7 @@ export function drawSpeakerPath(
     g.stroke();
   }
   g.globalAlpha = 1;
-  T(605, 116, "the cone", C.muted, small, "center");
+  W(605, 116, tr("speaker.cone"), C.muted, small, "center");
   // Volume is squared.
   const gx = 20;
   const gy = 160;
@@ -95,39 +105,27 @@ export function drawSpeakerPath(
   g.beginPath();
   g.arc(gx + (vol / 100) * gw, gy + gh - gain * gh, 4, 0, 7);
   g.fill();
-  T(gx, gy - 6, "vol → loudness (squared: 50 = a quarter)", C.muted, small);
-  drawEchoGuard(g, C, loopT);
-  T(
-    12,
-    334,
-    "Volume is squared because ears hear ratios: 100 → 50 is −12 dB, a quarter of the power.",
-    C.muted,
-    small,
-  );
-  T(
-    12,
-    352,
-    "The mic and the speaker share the room: while the speaker plays (and 200 ms after), the",
-    C.muted,
-    small,
-  );
-  T(
-    12,
-    368,
-    "detectors get no frames. A beep is never a clap. S8's live effects read the ring instead.",
-    C.muted,
-    small,
-  );
+  W(gx, gy - 6, tr("speaker.squared"), C.muted, small);
+  drawEchoGuard(g, C, loopT, tr);
+  const para = { maxW: 656, lineH: 16, col: C.muted, font: small };
+  const y = labelParagraph(g, 12, 334, tr("speaker.whySquared"), para);
+  labelParagraph(g, 12, y + 2, tr("speaker.whyGuard"), para);
 }
 
 /** The echo guard, a 6 s loop: a beep, a clap during it (ignored), a clap later (heard). */
-function drawEchoGuard(g: CanvasRenderingContext2D, C: ScopePalette, loopT: number): void {
+function drawEchoGuard(
+  g: CanvasRenderingContext2D,
+  C: ScopePalette,
+  loopT: number,
+  tr: SoundT,
+): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const ex = 300;
   const ew = 360;
   const ey = 160;
   const xOf = (s: number) => ex + (s / 6) * ew;
-  T(ex, ey - 6, "the echo guard: the mic hears the board's own beep", C.muted, mono(10));
+  W(ex, ey - 6, tr("speaker.guard.title"), C.muted, mono(10));
   g.fillStyle = C.violet;
   g.globalAlpha = 0.18;
   g.fillRect(xOf(1), ey, xOf(1.6) - xOf(1), 130);
@@ -135,9 +133,9 @@ function drawEchoGuard(g: CanvasRenderingContext2D, C: ScopePalette, loopT: numb
   for (const [l, y] of [
     ["speaker", ey + 20],
     ["mic", ey + 60],
-    ["to the lab", ey + 100],
+    ["lab", ey + 100],
   ] as const)
-    T(ex - 4, y + 4, l, C.muted, mono(9), "right");
+    W(ex - 4, y + 4, tr(`speaker.guard.${l}`), C.muted, mono(9), "right");
   g.fillStyle = C.pink;
   g.fillRect(xOf(1), ey + 14, xOf(1.4) - xOf(1), 12);
   for (let s = 0; s < 6; s += 0.02) {
@@ -151,9 +149,9 @@ function drawEchoGuard(g: CanvasRenderingContext2D, C: ScopePalette, loopT: numb
   g.fillStyle = C.teal;
   g.fillRect(ex, ey + 96, xOf(1) - ex, 8);
   g.fillRect(xOf(1.6), ey + 96, ex + ew - xOf(1.6), 8);
-  T(xOf(1.3), ey + 124, "muted: beep + 200 ms", C.violet, mono(9), "center");
+  W(xOf(1.3), ey + 124, tr("speaker.guard.muted"), C.violet, mono(9), "center");
   if (loopT > 1.3) T(xOf(1.28), ey + 48, "✗", C.coral, mono(13, true), "center");
-  if (loopT > 3.55) T(xOf(3.54), ey + 48, "✓ clap", C.teal, mono(12, true), "center");
+  if (loopT > 3.55) W(xOf(3.54), ey + 48, tr("speaker.guard.clap"), C.teal, mono(12, true), "center");
   g.fillStyle = C.ink;
   g.fillRect(xOf(loopT), ey + 8, 1.5, 104);
 }

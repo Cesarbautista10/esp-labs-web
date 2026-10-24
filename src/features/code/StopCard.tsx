@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { GlossaryEntry } from "@/domain/code/glossary";
 import type { TourStop } from "@/domain/code/tour";
 import type { Level } from "@/features/settings/settings";
@@ -38,6 +39,7 @@ export function StopCard({
   simple = false,
   children,
 }: StopCardProps) {
+  const { t } = useTranslation("code");
   const [revealed, setRevealed] = useState(!guessFirst);
   const [choice, setChoice] = useState<number | null>(null);
   const lines = stop.end - stop.start + 1;
@@ -45,11 +47,14 @@ export function StopCard({
   return (
     <article className={styles.card} aria-labelledby={`stop-${index}`}>
       <p className={styles.eyebrow}>
-        Stop {index + 1} of {count}
+        {t("stop.eyebrow", { index: index + 1, count })}
         {stop.chapter ? <span className={styles.chapter}> · {stop.chapter}</span> : null}
         <span className={styles.range}>
           {" "}
-          · line{lines > 1 ? `s ${stop.start + 1}–${stop.end + 1}` : ` ${stop.start + 1}`}
+          ·{" "}
+          {lines > 1
+            ? t("stop.lines", { start: stop.start + 1, end: stop.end + 1 })
+            : t("stop.line", { line: stop.start + 1 })}
         </span>
       </p>
       <h3 id={`stop-${index}`} className={styles.title}>
@@ -60,10 +65,10 @@ export function StopCard({
         stop.quiz ? (
           <div className={styles.guess}>
             <p className={styles.guessAsk}>
-              <span className={styles.badge}>Guess first</span>{" "}
+              <span className={styles.badge}>{t("stop.guessFirst")}</span>{" "}
               <RichText text={stop.quiz.question} />
             </p>
-            <div className={styles.options} role="group" aria-label="Your guess">
+            <div className={styles.options} role="group" aria-label={t("stop.yourGuess")}>
               {stop.quiz.options.map((o, i) => (
                 <button
                   key={o}
@@ -87,27 +92,26 @@ export function StopCard({
             </div>
             {choice !== null ? (
               <div className={styles.verdict} role="status">
-                <b>{choice === stop.quiz.answer ? "Yes, well spotted." : "Not quite."}</b>{" "}
+                <b>{choice === stop.quiz.answer ? t("stop.right") : t("stop.wrong")}</b>{" "}
                 <RichText text={stop.quiz.why} />
                 <button type="button" className={styles.reveal} onClick={() => setRevealed(true)}>
-                  Read the explanation
+                  {t("stop.readExplanation")}
                 </button>
               </div>
             ) : (
               <button type="button" className={styles.skip} onClick={() => setRevealed(true)}>
-                Skip the guess
+                {t("stop.skip")}
               </button>
             )}
           </div>
         ) : (
           <div className={styles.guess}>
             <p className={styles.guessAsk}>
-              <span className={styles.badge}>Your turn</span> Read the lit{" "}
-              {lines > 1 ? "lines" : "line"} first. What do you think{" "}
-              {lines > 1 ? "they do" : "it does"}?
+              <span className={styles.badge}>{t("stop.yourTurn")}</span>{" "}
+              {t("stop.readLit", { count: lines })}
             </p>
             <button type="button" className={styles.reveal} onClick={() => setRevealed(true)}>
-              Show me
+              {t("stop.showMe")}
             </button>
           </div>
         )
@@ -119,12 +123,12 @@ export function StopCard({
           {stop.note ? (
             simple ? (
               <details className={styles.more}>
-                <summary>The programmer's note</summary>
+                <summary>{t("stop.note")}</summary>
                 <blockquote className={styles.noteQuote}>{stop.note}</blockquote>
               </details>
             ) : (
               <figure className={styles.note}>
-                <figcaption>The programmer's note</figcaption>
+                <figcaption>{t("stop.note")}</figcaption>
                 <blockquote>{stop.note}</blockquote>
               </figure>
             )
@@ -136,7 +140,7 @@ export function StopCard({
               </p>
             ) : (
               <details className={styles.more}>
-                <summary>The precise story</summary>
+                <summary>{t("stop.precise")}</summary>
                 <p>
                   <RichText text={stop.deep} />
                 </p>
@@ -148,12 +152,12 @@ export function StopCard({
 
       {freshIds.length ? (
         <div className={styles.fresh}>
-          <p className={styles.freshLabel}>New words here</p>
+          <p className={styles.freshLabel}>{t("stop.newWords")}</p>
           <TermChips
             ids={freshIds}
             entries={entries}
             onPick={onTerm}
-            label="New words in this stop"
+            label={t("stop.newWordsLabel")}
           />
         </div>
       ) : null}

@@ -89,11 +89,11 @@ const hangUp = (st: B4State, term: TerminalPrinter) => {
 export const b4Screen: ScreenSpec<B4State> = {
   views: ["ceremony", "bonds", "gatt", "link", "log"],
   captions: [
-    "The pairing ceremony as eight phases on a track: filled = reported by NimBLE, a ring = inferred (it must have happened for a later phase), amber pulse = waiting for you, coral cross = where it failed and why. Violet = encrypted and bonded.",
-    "The bonded devices by identity address, and the privacy trick: the phone's address on air keeps changing; the IRK from bonding resolves every one of them to the same phone.",
-    "B3's gatt view plus the Vault row. A refused Vault read flashes coral.",
-    "The live connection; the security line now says encrypted, + MITM, + bonded.",
-    "The activity log: passkeys, ENC_CHANGE results, identities, refusals.",
+    (t) => t("labs-ble:screens.b4.captions.0"),
+    (t) => t("labs-ble:screens.b4.captions.1"),
+    (t) => t("labs-ble:screens.b4.captions.2"),
+    (t) => t("labs-ble:screens.b4.captions.3"),
+    (t) => t("labs-ble:screens.b4.captions.4"),
   ],
   boot: [
     "ble-lab-b4: NimBLE 2.5.1 up, address 7C:DF:A1:0B:5E:3C, TX power 9 dBm",
@@ -116,7 +116,7 @@ export const b4Screen: ScreenSpec<B4State> = {
   }),
   actions: [
     {
-      label: "phone: connect",
+      label: (_, t) => t("labs-ble:screens.b4.actions.phoneConnect"),
       run(st, term) {
         if (st.radio === "connected") return;
         if (st.allow && !st.bonds.length)
@@ -135,9 +135,9 @@ export const b4Screen: ScreenSpec<B4State> = {
         } else st.how = "";
       },
     },
-    { label: "phone: read Vault", run: readVault },
+    { label: (_, t) => t("labs-ble:screens.b4.actions.phoneReadVault"), run: readVault },
     {
-      label: "phone: type the passkey / tap yes",
+      label: (_, t) => t("labs-ble:screens.b4.actions.phoneTypeThePasskeyTapYes"),
       run(st, term) {
         if (!st.passkey) return term.line("[W] no pairing is waiting", "warn");
         if (st.compare && !st.boardYes)
@@ -146,7 +146,7 @@ export const b4Screen: ScreenSpec<B4State> = {
       },
     },
     {
-      label: "board: click (yes)",
+      label: (_, t) => t("labs-ble:screens.b4.actions.boardClickYes"),
       run(st, term) {
         if (!(st.passkey && st.compare)) {
           st.view = (st.view + 1) % 5;

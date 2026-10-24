@@ -252,21 +252,21 @@ export const S4: SoundSpec<S4State> = {
     ["wifi", "Wi-Fi and the page's address"],
   ],
   captions: [
-    "recorder: OFF, ARMED or REC with the seconds, big. The last 3 s of loudness with the start line: amber = the pre-roll a clip took from the ring, red = what went into the clip.",
-    "clips: up to four rows with each clip's shape, length and kind (voice or hand); on the right the picked clip's loudest moment, how much louder it is sent, and when it started. Double-click plays the picked clip on the board's speaker; a long press here picks the next one.",
-    "web: where the page is (http://bench.local), the IP, the signal, how many pages are open, and how to get the token. Without saved Wi-Fi it points to W1 or sound_pull.py.",
+    (t) => t("labs-sound:s4.captions.recorder"),
+    (t) => t("labs-sound:s4.captions.clips"),
+    (t) => t("labs-sound:s4.captions.web"),
   ],
   actions: [
-    { label: "arm on/off", run: (st, term) => void onCommand("arm", st, term) },
+    { label: (_, t) => t("labs-sound:s4.actions.armOnOff"), run: (st, term) => void onCommand("arm", st, term) },
     {
-      label: "rec / stop (long press)",
+      label: (_, t) => t("labs-sound:s4.actions.recStopLongPress"),
       run(st, term) {
         if (st.view === 1) onCommand("next", st, term);
         else onCommand(st.tr.state === "rec" ? "stop" : "rec", st, term);
       },
     },
-    { label: "▶ play picked (2x on clips)", run: (st, term) => void onCommand("play", st, term) },
-    { label: "🗣 talk 2 s", run: (st) => st.mic.say("talk", 2) },
+    { label: (_, t) => t("labs-sound:s4.actions.playPicked2xOn"), run: (st, term) => void onCommand("play", st, term) },
+    { label: (_, t) => t("labs-sound:s4.actions.talk2S"), run: (st) => st.mic.say("talk", 2) },
   ],
   init() {
     const st: S4State = {

@@ -13,18 +13,18 @@ export const soundMic = (o: MicOptions = {}) => new Mic({ out: browserAudio, ...
 
 /** Sound buttons every preview shares: the things your hands and voice do. */
 export const SOUND_HANDS: readonly LabAction<SoundState>[] = [
-  { label: "👏 clap", run: (st) => st.mic.clap() },
+  { label: (_, t) => t("labs-sound:kit.hands.clap"), run: (st) => st.mic.clap() },
   {
-    label: "👏👏 two claps",
+    label: (_, t) => t("labs-sound:kit.hands.twoClaps"),
     run: (st) => {
       st.mic.clap();
       st.mic.clap(0.3);
     },
   },
-  { label: "🗣 talk 3 s", run: (st) => st.mic.say("talk", 3) },
-  { label: "〰 whistle 3 s", run: (st) => st.mic.say("whistle", 3) },
+  { label: (_, t) => t("labs-sound:kit.hands.talk"), run: (st) => st.mic.say("talk", 3) },
+  { label: (_, t) => t("labs-sound:kit.hands.whistle"), run: (st) => st.mic.say("whistle", 3) },
   {
-    label: "🤫 silence",
+    label: (_, t) => t("labs-sound:kit.hands.silence"),
     run: (st) => {
       st.mic.say("quiet");
       st.mic.claps = [];
@@ -32,14 +32,12 @@ export const SOUND_HANDS: readonly LabAction<SoundState>[] = [
   },
 ];
 
-const PREVIEW_CAPTION =
-  "A pretend microphone and speaker, drawn like the board does. The buttons stand in for your hands, your voice, the push button and the serial monitor; a click on the screen is a clap. Browser sound stays off until you switch it on.";
-
 /** The sound track's kit for a lab whose state is S. */
 export function soundKit<S extends SoundState>(): LabKit<S, SoundSpec<S>> {
   return {
     firmware: "sound-lab",
-    previewCaption: PREVIEW_CAPTION,
+    ns: "labs-sound",
+    previewCaption: (t) => t("labs-sound:kit.previewCaption"),
     chrome: drawSoundChrome,
     step(st, dt) {
       st.mic.step(dt);
@@ -48,11 +46,13 @@ export function soundKit<S extends SoundState>(): LabKit<S, SoundSpec<S>> {
     handActions: SOUND_HANDS,
     trailingActions: () => [
       {
-        label: (st) => (st.mic.digital ? "mic: INMP441 → KY-037" : "mic: KY-037 → INMP441"),
+        label: (st, t) =>
+          t(st.mic.digital ? "labs-sound:kit.micToKy" : "labs-sound:kit.micToInmp"),
         run: (st, term) => switchMic(st, term, st.mic.digital ? "ky037" : "inmp441"),
       },
       {
-        label: () => `🔈 hear it in the browser: ${browserAudio.isOn() ? "on" : "off"}`,
+        label: (_, t) =>
+          t(browserAudio.isOn() ? "labs-sound:kit.browserOn" : "labs-sound:kit.browserOff"),
         pressed: () => browserAudio.isOn(),
         // A click: the only place the AudioContext may be created.
         run: () => browserAudio.setOn(!browserAudio.isOn()),
@@ -72,7 +72,7 @@ export function soundKit<S extends SoundState>(): LabKit<S, SoundSpec<S>> {
     },
     shell: soundShell,
     onTap: (st) => st.mic.clap(),
-    tapHint: "Click or press Space to clap",
+    tapHint: (t) => t("labs-sound:kit.tapHint"),
     start(st, term) {
       st.term = term;
       const release = browserAudio.retain();

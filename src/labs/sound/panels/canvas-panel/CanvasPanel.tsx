@@ -86,6 +86,7 @@ export function CanvasPanel({
         width={w}
         height={h}
         role="img"
+        dir="ltr"
         aria-label={label}
         className={styles.canvas}
         {...canvas}

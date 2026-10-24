@@ -2,31 +2,22 @@
 import { hx } from "./bytes";
 
 export interface Register {
-  readonly name: string;
+  readonly name: "VersionReg" | "ComIrqReg" | "TxControlReg" | "RFCfgReg";
   readonly a: number;
   readonly v: number;
-  readonly what: string;
 }
 
+// What each value means is interface text: spi.regs.<name> in the labs-rfid catalogue.
 export const REGS: readonly Register[] = [
-  { name: "VersionReg", a: 0x37, v: 0x92, what: "92h = MFRC522 version 2.0" },
-  { name: "ComIrqReg", a: 0x04, v: 0x14, what: "14h after reset: IdleIRq + LoAlertIRq" },
-  { name: "TxControlReg", a: 0x14, v: 0x83, what: "83h: both antenna drivers on (bits 1-0)" },
-  {
-    name: "RFCfgReg",
-    a: 0x26,
-    v: 0x40,
-    what: "40h: receiver gain 100b = 33 dB (48h straight after a reset)",
-  },
+  { name: "VersionReg", a: 0x37, v: 0x92 },
+  { name: "ComIrqReg", a: 0x04, v: 0x14 },
+  { name: "TxControlReg", a: 0x14, v: 0x83 },
+  { name: "RFCfgReg", a: 0x26, v: 0x40 },
 ];
 
-export const FAULTS = {
-  none: "wired correctly",
-  miso: "MISO wire loose",
-  power: "no 3.3 V",
-  ss: "SDA (chip select) wire loose",
-} as const;
-export type Fault = keyof typeof FAULTS;
+/** Wiring faults the panel can simulate; their labels are spi.faults.<fault>. */
+export const FAULTS = ["none", "miso", "power", "ss"] as const;
+export type Fault = (typeof FAULTS)[number];
 
 export interface SpiFrame {
   readonly r: Register;
@@ -77,36 +68,37 @@ export const BIT_NAMES = [
   "D0",
 ] as const;
 
-/** The caption for the bit under the cursor: a key phrase and the explanation. */
-export function bitCaption(f: SpiFrame, bit: number): readonly [string, string] {
-  if (bit === 0)
-    return [
-      "bit 7 of the address byte:",
-      `${f.read ? "1 = read" : "0 = write"}. MSB first; data changes on the falling clock edge and is read on the rising one (SPI mode 0).`,
-    ];
+export type BitCaptionId =
+  | "rwRead"
+  | "rwWrite"
+  | "addrRead"
+  | "addrWrite"
+  | "zero"
+  | "write"
+  | "answer"
+  | "power"
+  | "float"
+  | "floatSs";
+
+/** The caption for the bit under the cursor: which explanation (spi.bits.<id>) and its values. */
+export function bitCaption(
+  f: SpiFrame,
+  bit: number,
+): { readonly id: BitCaptionId; readonly values: Readonly<Record<string, string>> } {
+  if (bit === 0) return { id: f.read ? "rwRead" : "rwWrite", values: {} };
   if (bit < 7)
-    return [
-      "bits 6-1:",
-      `the register address ${hx(f.r.a)}h = ${f.r.a.toString(2).padStart(6, "0")}, one bit per clock. So ${f.r.name} ${f.read ? "reads" : "writes"} as ${hx(f.addr)}h.`,
-    ];
-  if (bit === 7) return ["bit 0:", "always 0. The chip has 64 registers, 6 bits are enough."];
-  if (!f.read)
-    return [
-      "byte 1:",
-      `the value to write, ${hx(f.data)}h. MISO carries nothing useful during a write.`,
-    ];
-  if (f.fault === "none")
-    return [
-      "byte 1 on MISO:",
-      `${hx(f.answer)}h. ${f.r.what}. Meanwhile MOSI sends 00 (or the next address in a burst).`,
-    ];
-  if (f.fault === "power")
-    return [
-      "byte 1 on MISO:",
-      "00h. An unpowered chip can't drive MISO high: every register reads 00. The firmware prints “nothing (MISO stuck low?)”: check 3.3V and GND.",
-    ];
-  return [
-    "byte 1 on MISO:",
-    `FFh (usually). Nobody drives MISO, so it floats high: every register reads FF. ${f.fault === "ss" ? "With SDA loose the chip is never selected and stays silent." : "The chip answers, but the wire never arrives."}`,
-  ];
+    return {
+      id: f.read ? "addrRead" : "addrWrite",
+      values: {
+        a: hx(f.r.a),
+        bits: f.r.a.toString(2).padStart(6, "0"),
+        name: f.r.name,
+        addr: hx(f.addr),
+      },
+    };
+  if (bit === 7) return { id: "zero", values: {} };
+  if (!f.read) return { id: "write", values: { data: hx(f.data) } };
+  if (f.fault === "none") return { id: "answer", values: { answer: hx(f.answer) } };
+  if (f.fault === "power") return { id: "power", values: {} };
+  return { id: f.fault === "ss" ? "floatSs" : "float", values: {} };
 }

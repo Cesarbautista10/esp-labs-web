@@ -7,13 +7,14 @@ export interface SpiByte {
   readonly v: number;
   readonly dc: 0 | 1;
   readonly label: string;
-  readonly note: string;
+  /** What the byte means; the component words it (labs-display analyzer.notes). */
+  readonly note: "command" | "high" | "low";
 }
 
 export const BYTES: readonly SpiByte[] = [
-  { v: 0x2c, dc: 0, label: "0x2C", note: "command: “write to screen memory”" },
-  { v: 0xf8, dc: 1, label: "0xF8", note: "pixel data, high byte" },
-  { v: 0x00, dc: 1, label: "0x00", note: "pixel data, low byte → 0xF800 = one red pixel" },
+  { v: 0x2c, dc: 0, label: "0x2C", note: "command" },
+  { v: 0xf8, dc: 1, label: "0xF8", note: "high" },
+  { v: 0x00, dc: 1, label: "0x00", note: "low" },
 ];
 
 /** One clock period on the bus. `bit` is null while nothing is clocked out. */
@@ -52,24 +53,16 @@ export const STILL_SLOT = SLOTS.findIndex((s) => s.byte === 0) + 2;
 /** A caption line: a dim key, then its value. */
 export type CaptionLine = readonly [key: string, value: string];
 
-/** What the caption under the analyzer says while the playhead is on a slot. */
-export function slotCaption(slot: Slot | undefined): readonly CaptionLine[] {
+/** What the caption under the analyzer explains while the playhead is on a slot. */
+export type SlotCaption =
+  | { readonly kind: "bit"; readonly byte: SpiByte; readonly k: number; readonly bit: 0 | 1 }
+  | { readonly kind: "ignored" }
+  | { readonly kind: "listening" };
+
+export function slotCaption(slot: Slot | undefined): SlotCaption {
   const b = slot && slot.bit !== null ? BYTES[slot.byte] : undefined;
-  if (slot && b && slot.bit !== null) {
-    return [
-      [`CS low · DC ${b.dc ? "high" : "low"} · bit ${slot.k ?? 0} =`, ` ${slot.bit}`],
-      [`${b.label}:`, ` ${b.note}`],
-    ];
-  }
-  return slot?.cs
-    ? [
-        ["CS high:", " the screen ignores the bus"],
-        ["SCL stays still, nothing is sent", ""],
-      ]
-    : [
-        ["CS low:", " the screen is listening"],
-        ["DC switches between command and data", ""],
-      ];
+  if (slot && b && slot.bit !== null) return { kind: "bit", byte: b, k: slot.k ?? 0, bit: slot.bit };
+  return slot?.cs ? { kind: "ignored" } : { kind: "listening" };
 }
 
 export const analyzerPalette = definePalette({
@@ -93,11 +86,19 @@ const ROWS = [
 ] as const;
 const rowY = (r: number) => 52 + r * 38;
 
+/** The translated words drawn over the byte boxes, and the document's direction. */
+export interface AnalyzerLabels {
+  readonly data: string;
+  readonly cmd: string;
+  readonly dir: CanvasDirection;
+}
+
 /** Draws the four traces, the byte boxes and the playhead at slot position `pos` (fractional). */
 export function drawAnalyzer(
   g: CanvasRenderingContext2D,
   C: AnalyzerPalette,
   pos: number,
+  labels: AnalyzerLabels,
   slots: readonly Slot[] = SLOTS,
 ): void {
   const { width, height } = g.canvas;
@@ -112,7 +113,10 @@ export function drawAnalyzer(
     g.lineWidth = 1;
     g.strokeRect(x + 0.5, 8.5, SW * 8 - 1, 22);
     g.fillStyle = b.dc ? C.dc : C.warn;
-    g.fillText(`${b.label} ${b.dc ? "data" : "cmd"}`, x + 6, 20);
+    g.direction = labels.dir;
+    g.textAlign = "left";
+    g.fillText(`${b.label} ${b.dc ? labels.data : labels.cmd}`, x + 6, 20);
+    g.direction = "ltr";
   });
 
   ROWS.forEach((r, ri) => {

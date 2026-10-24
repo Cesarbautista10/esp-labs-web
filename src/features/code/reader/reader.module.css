@@ -53,7 +53,7 @@
 }
 .back:hover {
   border-color: var(--copper);
-  transform: translateX(-2px);
+  transform: translateX(calc(-2px * var(--dir)));
 }
 .fileName {
   font: 600 13px var(--font-mono);
@@ -244,7 +244,8 @@
 /* A new word introduces itself in the corner of the code. */
 .pop {
   position: absolute;
-  inset: auto 12px 12px auto;
+  inset-block: auto 12px;
+  inset-inline: auto 12px;
   max-width: min(320px, calc(100% - 24px));
   background: var(--surface);
   border: 1px solid var(--copper);

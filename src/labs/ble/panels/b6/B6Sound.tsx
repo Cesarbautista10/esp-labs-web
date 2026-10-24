@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Button, ButtonRow } from "@/ui/Button";
@@ -8,21 +9,15 @@ import styles from "../panels.module.css";
 import { SvgPainter } from "../svg";
 import { drawSound, MediaScene, type MediaKey, USAGE } from "./draw-sound";
 
-const KEYS: readonly [MediaKey, string][] = [
-  ["play", "play/pause"],
-  ["next", "next track"],
-  ["down", "volume −"],
-  ["up", "volume +"],
-];
-
-const DIRECT =
-  "The S3's radio speaks only Bluetooth LE. Speaker audio uses Classic Bluetooth (BR/EDR), another modulation and protocol, so the board can't even see the JBL's audio side. The original ESP32 has Classic and can stream (A2DP); newer speakers with LE Audio/Auracast need Bluetooth 5.2, the S3 has 5.0.";
+const KEYS: readonly MediaKey[] = ["play", "next", "down", "up"];
 
 /** B6: board → phone (BLE HID) → speaker (Classic A2DP), and why board → speaker fails. */
 export function B6Sound(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const reduce = useReducedMotion();
   const [scene] = useState(() => new MediaScene());
-  const [cap, setCap] = useState("Press a media key.");
+  // What the caption explains: nothing yet, the last media key, or the direct path.
+  const [cap, setCap] = useState<MediaKey | "direct" | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
 
@@ -32,7 +27,7 @@ export function B6Sound(_: WidgetProps) {
   }, []);
 
   useFrameLoop(svgRef, ({ now }) => {
-    if (svgRef.current) drawSound(new SvgPainter(svgRef.current), scene, now, reduce);
+    if (svgRef.current) drawSound(new SvgPainter(svgRef.current), scene, now, reduce, t);
   });
 
   function press(key: MediaKey) {
@@ -46,26 +41,24 @@ export function B6Sound(_: WidgetProps) {
       reduce ? 0 : 640,
     );
     timers.current.add(id);
-    setCap(
-      `The board sends one tiny HID report (usage ${USAGE[key]}) and a release. The phone does the rest: it changes its own music, and its audio stream to the speaker follows.`,
-    );
+    setCap(key);
   }
 
   return (
     <div className={styles.wd}>
-      <ButtonRow role="group" aria-label="Media keys">
-        {KEYS.map(([k, label]) => (
+      <ButtonRow role="group" aria-label={t("sound.keys")}>
+        {KEYS.map((k) => (
           <Button key={k} onClick={() => press(k)}>
-            {label}
+            {t(`sound.key.${k}`)}
           </Button>
         ))}
         <Button
           onClick={() => {
             scene.press("direct");
-            setCap(DIRECT);
+            setCap("direct");
           }}
         >
-          board → speaker directly?
+          {t("sound.directButton")}
         </Button>
       </ButtonRow>
       <div className={styles.scroll}>
@@ -73,11 +66,18 @@ export function B6Sound(_: WidgetProps) {
           ref={svgRef}
           viewBox="0 0 680 230"
           className={styles.full}
+          direction="ltr"
           role="img"
-          aria-label="The board sends a media key to the phone over Bluetooth LE; the phone streams audio to the speaker over Classic Bluetooth"
+          aria-label={t("sound.aria")}
         />
       </div>
-      <Caption live>{cap}</Caption>
+      <Caption live>
+        {cap === null
+          ? t("sound.start")
+          : cap === "direct"
+            ? t("sound.direct")
+            : t("sound.sent", { usage: USAGE[cap] })}
+      </Caption>
     </div>
   );
 }

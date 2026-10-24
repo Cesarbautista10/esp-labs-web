@@ -34,7 +34,7 @@
   position: absolute;
   z-index: 5;
   top: calc(100% + 6px);
-  left: 0;
+  inset-inline-start: 0;
   width: min(360px, calc(100vw - 2 * var(--gutter)));
   max-height: min(60dvh, 520px);
   overflow: auto;

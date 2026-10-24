@@ -1,5 +1,7 @@
 /* The call path that led to a scene: setup() › Lab::begin() › Display::begin() */
 .trail {
+  /* The path is code and always reads left to right (dir="ltr"), so its motion does too. */
+  --dir: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -31,7 +33,7 @@
 @keyframes crumb {
   from {
     opacity: 0;
-    transform: translateX(-6px);
+    transform: translateX(calc(-6px * var(--dir)));
   }
 }
 .trail button {
@@ -115,7 +117,7 @@
 }
 .next button:hover {
   border-color: var(--copper);
-  transform: translateX(3px);
+  transform: translateX(calc(3px * var(--dir)));
 }
 .next code {
   background: none;
@@ -165,7 +167,8 @@
 .scenes::before {
   content: "";
   position: absolute;
-  inset: 6px auto 6px 9px;
+  inset-block: 6px;
+  inset-inline: 9px auto;
   width: 2px;
   background: var(--line);
 }

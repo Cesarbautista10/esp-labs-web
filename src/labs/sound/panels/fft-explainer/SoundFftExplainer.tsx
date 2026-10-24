@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { WidgetProps } from "@/widgets/types";
 import { Fft } from "../../model/fft";
 import { gauss } from "../../model/random";
@@ -16,6 +17,7 @@ const AMPS: readonly number[] = [12000, 7000, 4000];
 
 /** S5 panel: build a sound, see its spectrum. */
 export function SoundFftExplainer(_: WidgetProps) {
+  const { t: tr } = useTranslation("labs-sound");
   const [tones, setTones] = useState<readonly number[]>([1000, 0, 0]);
   const [noise, setNoise] = useState(5);
   const [size, setSize] = useState<Size>("512");
@@ -29,45 +31,43 @@ export function SoundFftExplainer(_: WidgetProps) {
   return (
     <CanvasPanel
       h={330}
-      label="A sound made of up to three sine waves plus noise: its samples on top, and below the FFT's bins with their frequencies."
+      label={tr("fft.label")}
       controls={
         <>
           {tones.map((f, i) => (
             <Range
               key={i}
-              label={`tone ${i + 1}`}
-              ariaLabel={`Tone ${i + 1} frequency in Hz (0 = off)`}
+              label={tr("fft.tone", { n: i + 1 })}
+              ariaLabel={tr("fft.toneLabel", { n: i + 1 })}
               min={0}
               max={7900}
               step={10}
               value={f}
               onChange={(v) => setTone(i, v)}
-              output={f ? `${f} Hz` : "off"}
+              output={f ? `${f} Hz` : tr("fft.off")}
             />
           ))}
           <Range
-            label="noise"
-            ariaLabel="Noise amount"
+            label={tr("fft.noise")}
+            ariaLabel={tr("fft.noiseLabel")}
             min={0}
             max={100}
             value={noise}
             onChange={setNoise}
           />
-          <Select ariaLabel="FFT size" value={size} options={SIZES} onChange={setSize} />
+          <Select ariaLabel={tr("fft.size")} value={size} options={SIZES} onChange={setSize} />
           <label>
             <input
               type="checkbox"
               checked={windowed}
               onChange={(e) => setWindowed(e.target.checked)}
             />{" "}
-            Hann window
+            {tr("fft.hann")}
           </label>
         </>
       }
       caption={
-        windowed
-          ? "With the window, each tone is a narrow peak and the floor stays low. Try two tones 40 Hz apart at N = 256, then at 1024: finer bins tell them apart, but each answer needs 64 ms of sound instead of 16."
-          : "Without the window the samples' ends don't meet, and that jump smears every tone across all the bins (leakage). Tick Hann window again."
+        windowed ? tr("fft.caption.windowed") : tr("fft.caption.raw")
       }
       onFrame={({ g, C, dt, reduce }) => {
         const n = Number(size);
@@ -86,7 +86,7 @@ export function SoundFftExplainer(_: WidgetProps) {
         if (!reduce)
           phases.current = ph.map((p, k) => p + 2 * Math.PI * (tones[k] ?? 0) * dt * 0.02);
         fft.run(s, windowed);
-        drawFftExplainer(g, C, fft, s, windowed, tones.some(Boolean));
+        drawFftExplainer(g, C, fft, s, windowed, tones.some(Boolean), tr);
       }}
     />
   );

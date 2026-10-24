@@ -1,4 +1,6 @@
+/* eslint-disable i18next/no-literal-string -- literal text here is keyboard layout codes, not interface text. */
 import { type FormEvent, useRef, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Button, ButtonRow } from "@/ui/Button";
@@ -14,6 +16,7 @@ const asLayout = (v: string): Layout => (v === "de" ? "de" : "us");
 
 /** B6: a key press, from the board's layout to the computer's. */
 export function B6Report(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const reduce = useReducedMotion();
   const [board, setBoard] = useState<Layout>("us");
   const [host, setHost] = useState<Layout>("de");
@@ -36,7 +39,7 @@ export function B6Report(_: WidgetProps) {
       trip.retype(text, board, host, now);
     }
     const k = trip.progress(now, reduce ? 1 : TRIP_MS);
-    drawReport(new SvgPainter(svg), trip, k, text, now);
+    drawReport(new SvgPainter(svg), trip, k, text, now, t);
     if (trip.cur && k >= 1) trip.land(now);
   });
 
@@ -48,12 +51,12 @@ export function B6Report(_: WidgetProps) {
 
   return (
     <div className={styles.wd}>
-      <div className={styles.ctl} role="group" aria-label="Layouts">
+      <div className={styles.ctl} role="group" aria-label={t("report.layouts")}>
         <label>
-          board&apos;s <code>layout</code>
+          <Trans t={t} i18nKey="report.boardLayout" components={{ code: <code /> }} />
           <select
             className={styles.select}
-            aria-label="Board layout"
+            aria-label={t("report.boardAria")}
             value={board}
             onChange={(e) => {
               const b = asLayout(e.target.value);
@@ -66,10 +69,10 @@ export function B6Report(_: WidgetProps) {
           </select>
         </label>
         <label>
-          computer set to
+          {t("report.computer")}
           <select
             className={styles.select}
-            aria-label="Computer layout"
+            aria-label={t("report.computerAria")}
             value={host}
             onChange={(e) => {
               const h = asLayout(e.target.value);
@@ -77,8 +80,8 @@ export function B6Report(_: WidgetProps) {
               type(text, board, h);
             }}
           >
-            <option value="us">US</option>
-            <option value="de">German</option>
+            <option value="us">{t("report.us")}</option>
+            <option value="de">{t("report.de")}</option>
           </select>
         </label>
       </div>
@@ -89,12 +92,12 @@ export function B6Report(_: WidgetProps) {
             style={{ flex: 1 }}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            aria-label="Text to type"
+            aria-label={t("report.text")}
             autoComplete="off"
             spellCheck={false}
           />
-          <Button type="submit">type</Button>
-          <Button onClick={() => trip.clear()}>clear</Button>
+          <Button type="submit">{t("report.type")}</Button>
+          <Button onClick={() => trip.clear()}>{t("report.clear")}</Button>
         </ButtonRow>
       </form>
       <div className={styles.scroll}>
@@ -102,14 +105,20 @@ export function B6Report(_: WidgetProps) {
           ref={svgRef}
           viewBox="0 0 680 250"
           className={styles.full}
+          direction="ltr"
           role="img"
-          aria-label="A key press travelling from the board's character table, as an 8-byte report, to the computer's layout table"
+          aria-label={t("report.aria")}
         />
       </div>
       <Caption live>
         {mismatch
-          ? `The board looks characters up in its ${board.toUpperCase()} table but the computer reads key numbers with ${host === "us" ? "US" : "German"}: y and z swap, punctuation lands elsewhere. Fix: layout ${host}.`
-          : `Both sides agree, so every character survives the trip.${skipped ? ` Skipped (needs AltGr/Option): ${skipped}` : ""}`}
+          ? t(host === "us" ? "report.mismatchUs" : "report.mismatchDe", {
+              board: board.toUpperCase(),
+              host,
+            })
+          : skipped
+            ? t("report.agreeSkipped", { skipped })
+            : t("report.agree")}
       </Caption>
     </div>
   );

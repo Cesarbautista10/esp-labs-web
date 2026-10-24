@@ -1,7 +1,8 @@
 // The synth panel's picture: four periods of the wave, its harmonics (folded ones in coral) and
 // the ADSR envelope with its four handles.
 import type { ScopePalette } from "@/lib/canvas";
-import { mono, textWriter } from "../../kit/draw";
+import { labelParagraph, labelWriter, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import { harmonic, waveShape } from "../../model/synth";
 import type { Wave } from "../../model/speaker";
 
@@ -66,12 +67,14 @@ export function drawSynth(
   e: Envelope,
   drag: HandleKey | null,
   dotAt: number | null,
+  tr: SoundT,
 ): number {
   const T = textWriter(g);
+  const L = labelWriter(g);
   const small = mono(10);
   g.fillStyle = C.paper;
   g.fillRect(0, 0, W, H);
-  T(14, 18, "four periods", C.muted);
+  L(14, 18, tr("synth.periods"), C.muted);
   g.strokeStyle = C.pink;
   g.lineWidth = 2;
   g.beginPath();
@@ -83,7 +86,7 @@ export function drawSynth(
   g.stroke();
   g.lineWidth = 1;
   // Harmonics: up to 8 kHz in pink; above it, where they fold back to at 16 kHz (aliasing), in coral.
-  T(360, 18, "harmonics, 0-8 kHz (the board's 16 kHz limit)", C.muted);
+  L(360, 18, tr("synth.harmonics"), C.muted);
   g.fillStyle = C.dim;
   g.fillRect(360, 140, 310, 1);
   let aliased = 0;
@@ -108,10 +111,8 @@ export function drawSynth(
     T(360 + (f / 8000) * 310, 154, f ? `${f / 1000}k` : "0", C.muted, mono(9), "center"),
   );
   // The envelope.
-  T(14, 186, "ADSR: attack, decay, sustain, release", C.muted);
-  T(14, 206, "a note that starts or stops at full height", C.muted, small);
-  T(14, 222, "makes the cone jump: a click. The envelope", C.muted, small);
-  T(14, 238, "fades it in and out. Drag the handles →", C.muted, small);
+  L(14, 186, tr("synth.adsr"), C.muted);
+  labelParagraph(g, 14, 206, tr("synth.click"), { maxW: 330, lineH: 16, col: C.muted, font: small });
   const hs = handles(e);
   const cols = [C.teal, C.amber, C.pink, C.coral];
   g.fillStyle = C.dim;
@@ -164,14 +165,9 @@ export function drawSynth(
   return aliased;
 }
 
-export function synthCaption(wave: SynthWave, aliased: number): string {
-  const what =
-    wave === "sine"
-      ? "one frequency, pure"
-      : wave === "square"
-        ? "odd harmonics 1, 3, 5…: hollow, like a clarinet or an old game"
-        : wave === "triangle"
-          ? "odd harmonics, falling fast: soft, flute-like"
-          : "every harmonic: bright, buzzy";
-  return `${wave}: ${what}.${aliased ? ` On the board ${aliased} harmonics are above 8 kHz and fold back as wrong notes (red): the grit of a simple 16 kHz synth.` : ""}`;
+export function synthCaption(wave: SynthWave, aliased: number, tr: SoundT): string {
+  const what = tr(`synth.what.${wave}`);
+  return aliased
+    ? tr("synth.captionAliased", { what, count: aliased })
+    : tr("synth.caption", { what });
 }

@@ -98,10 +98,10 @@
   height: 10px;
   border-radius: 3px;
   background: var(--line);
-  margin-left: 8px;
+  margin-inline-start: 8px;
 }
 .timelineKey span:first-child {
-  margin-left: 0;
+  margin-inline-start: 0;
 }
 .timelineKey [data-kind="flash"] {
   background: var(--copper);
@@ -227,7 +227,7 @@
   text-transform: uppercase;
   color: var(--muted);
   font-weight: 600;
-  margin-right: 6px;
+  margin-inline-end: 6px;
 }
 .facts {
   display: grid;
@@ -244,7 +244,7 @@
 }
 .table th,
 .table td {
-  text-align: left;
+  text-align: start;
   padding: 7px 10px;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
@@ -264,7 +264,8 @@
 .note {
   font-size: 14px;
   color: var(--muted);
-  border-left: 3px solid var(--warn);
-  padding: 4px 0 4px 12px;
+  border-inline-start: 3px solid var(--warn);
+  padding-block: 4px;
+  padding-inline: 12px 0;
   margin: 12px 0 0;
 }

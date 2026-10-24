@@ -15,9 +15,20 @@ export interface WalkModel {
   readonly winner: Who;
 }
 
+export type WalkStepId =
+  | "identical"
+  | "wake"
+  | "all"
+  | "pick"
+  | "rest"
+  | "select"
+  | "halt"
+  | "second";
+
+/** One step of the walk: which explanation (anticoll.steps.<id>) and the numbers it quotes. */
 export interface WalkStep {
-  readonly t: string;
-  readonly x: string;
+  readonly id: WalkStepId;
+  readonly values: Readonly<Record<string, string | number>>;
 }
 
 export const travelOrder = (u: Uid) =>
@@ -32,50 +43,26 @@ export function walkModel(a: Uid, b: Uid): WalkModel {
 }
 
 export function walkSteps(m: WalkModel): WalkStep[] {
-  if (!m.p)
-    return [
-      {
-        t: "Identical UIDs",
-        x: "Two cards never share a UID (that is the point of it). Change one byte.",
-      },
-    ];
-  const byte = Math.floor((m.p - 1) / 8);
-  const bitIn = (m.p - 1) % 8;
-  const nvb = ((2 + Math.floor(m.p / 8)) << 4) | (m.p % 8);
+  if (!m.p) return [{ id: "identical", values: {} }];
   const W = m.winner;
-  const L = W === "A" ? "B" : "A";
   const wu = W === "A" ? m.a : m.b;
-  const lu = W === "A" ? m.b : m.a;
-  return [
-    {
-      t: "WUPA: both cards wake",
-      x: "Both answer ATQA 04 00 at the same instant. Identical bits on top of each other look like one card, so no collision yet.",
-    },
-    {
-      t: "93 20: “all of you, send your UID”",
-      x: `Both cards send 32 bits at once. Bits 1–${m.p - 1} are the same and arrive clean. At bit ${m.p} one card sends 0 and the other 1: the reader hears both halves of the bit, a collision. CollReg says CollPos = ${m.p}. Bits after it read as 0 (ValuesAfterColl = 0).`,
-    },
-    {
-      t: `Pick 1 at bit ${m.p}, ask again`,
-      x: `The reader sends the ${m.p} bits it now knows, ending in 1: SEL 93, NVB ${hx(nvb)}h (${2 + Math.floor(m.p / 8)} whole bytes + ${m.p % 8} bits). Bit ${m.p} is bit ${bitIn} of UID byte ${byte}. Card ${L} has 0 there, so it stops answering until the next REQA or WUPA.`,
-    },
-    {
-      t: `Only card ${W} answers the rest`,
-      x: `Card ${W} sends bits ${m.p + 1}–32 and its BCC. No collision: the reader now has the full UID ${hxs(wu)}, and BCC ${hx(bccOf(wu))} checks out.`,
-    },
-    {
-      t: `SELECT ${hxs(wu)} → SAK 08`,
-      x: `93 70 + UID + BCC + CRC_A. Card ${W} is now ACTIVE, ready for authentication and reads. The walk always takes 1 at a collision, which is why the same card wins every time.`,
-    },
-    {
-      t: `HLTA card ${W}, then REQA again`,
-      x: `Card ${W} goes to HALT and ignores REQA. Card ${L} was only waiting (READY → back to IDLE), so it answers REQA alone.`,
-    },
-    {
-      t: `93 20 → card ${L} alone: ${hxs(lu)}`,
-      x: `No collision this time. SELECT, SAK, HLTA. The next REQA gets no answer at all: the inventory found 2 cards. This is what the firmware's inventory command prints.`,
-    },
-  ];
+  const values = {
+    p: m.p,
+    shared: m.p - 1,
+    after: m.p + 1,
+    nvb: hx(((2 + Math.floor(m.p / 8)) << 4) | (m.p % 8)),
+    bytes: 2 + Math.floor(m.p / 8),
+    bits: m.p % 8,
+    bitIn: (m.p - 1) % 8,
+    byte: Math.floor((m.p - 1) / 8),
+    winner: W,
+    loser: W === "A" ? "B" : "A",
+    winnerUid: hxs(wu),
+    loserUid: hxs(W === "A" ? m.b : m.a),
+    bcc: hx(bccOf(wu)),
+  };
+  const ids: readonly WalkStepId[] = ["wake", "all", "pick", "rest", "select", "halt", "second"];
+  return ids.map((id) => ({ id, values }));
 }
 
 export type HeardKind = "got" | "coll" | "sent" | "pick" | "";

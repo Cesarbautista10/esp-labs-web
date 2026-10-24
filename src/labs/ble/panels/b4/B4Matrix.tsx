@@ -1,8 +1,10 @@
+/* eslint-disable i18next/no-literal-string -- literal text here is the Bluetooth spec's feature name, not interface text. */
 import { useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import type { WidgetProps } from "@/widgets/types";
-import { B4_CAPS, B4_NAMES, b4Method, type PairMethod } from "../../protocol/pairing";
+import { B4_CAPS, b4Method, type PairMethod } from "../../protocol/pairing";
 import styles from "../panels.module.css";
 import own from "./B4Matrix.module.css";
 
@@ -15,54 +17,42 @@ const COLOR: Readonly<Record<PairMethod, string>> = {
 };
 const CODE = "482915";
 
+type RoleText = "nothing" | "tapYes" | "pressYes" | "types" | "shows" | "typeSame" | "onBoth";
+
+/** What one side does; the words live in the catalogue (matrix.roles.<text>). */
 interface Role {
-  readonly text: string;
+  readonly text: RoleText;
+  /** The number or keys drawn on the device; "digits" is the translated "⌨ 6 digits". */
   readonly code?: string;
   readonly col?: string;
 }
 
 const ROLES: Readonly<Record<PairMethod, readonly [Role, Role]>> = {
-  J: [{ text: "nothing to do" }, { text: "nothing to do" }],
+  J: [{ text: "nothing" }, { text: "nothing" }],
   N: [
-    { text: "same? tap yes", code: CODE, col: "var(--scope-violet)" },
-    { text: "same? press yes", code: CODE, col: "var(--scope-violet)" },
+    { text: "tapYes", code: CODE, col: "var(--scope-violet)" },
+    { text: "pressYes", code: CODE, col: "var(--scope-violet)" },
   ],
   PI: [
-    { text: "types it", code: "⌨ ······", col: "var(--muted)" },
-    { text: "shows it", code: CODE, col: "var(--ble)" },
+    { text: "types", code: "⌨ ······", col: "var(--muted)" },
+    { text: "shows", code: CODE, col: "var(--ble)" },
   ],
   PR: [
-    { text: "shows it", code: CODE, col: "var(--ble)" },
-    { text: "types it", code: "⌨ ······", col: "var(--muted)" },
+    { text: "shows", code: CODE, col: "var(--ble)" },
+    { text: "types", code: "⌨ ······", col: "var(--muted)" },
   ],
   PB: [
-    { text: "you type the same", code: "⌨ 6 digits", col: "var(--muted)" },
-    { text: "on both", code: "⌨ 6 digits", col: "var(--muted)" },
+    { text: "typeSame", code: "digits", col: "var(--muted)" },
+    { text: "onBoth", code: "digits", col: "var(--muted)" },
   ],
 };
 
-function why(m: PairMethod, mitm: boolean): string {
-  switch (m) {
-    case "J":
-      return !mitm
-        ? "Neither side asked for MITM protection, so the stack takes the easy way, whatever the screens can do."
-        : "One side can neither show nor enter anything (or both can only show), so there is nothing a person could compare. The link is encrypted against eavesdroppers, but an attacker relaying both sides could have done the same. B4's Vault refuses this: it demands authentication.";
-    case "N":
-      return "Both sides have a screen and can say yes: each computes six digits from the exchanged public keys. A man in the middle would have different keys, so the numbers would differ. Only with LE Secure Connections.";
-    case "PI":
-      return "The board shows six random digits; you type them on the phone. Both sides prove, bit by bit, that they know the same passkey before they agree on keys.";
-    case "PR":
-      return "The phone shows the digits and the board types them. B4's board can't type, so you'll never see this one in the lab: it's how a keyboard pairs (B8).";
-    case "PB":
-      return "Neither side has a screen: you invent six digits and type them on both keyboards.";
-  }
-}
-
-const short = (m: PairMethod) =>
-  `${B4_NAMES[m].replace("Passkey Entry", "Passkey").replace(" (both type)", " (both)")}${m === "PI" ? " · board shows" : m === "PR" ? " · phone shows" : ""}`;
+/** Why the method follows: Just Works has two reasons, depending on MITM. */
+const whyKey = (m: PairMethod, mitm: boolean) => (m === "J" ? (mitm ? "JNoInput" : "JNoMitm") : m);
 
 /** B4: which pairing method two IO capabilities lead to. */
 export function B4Matrix(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const reduce = useReducedMotion();
   const [init, setInit] = useState(4);
   const [resp, setResp] = useState(0);
@@ -84,10 +74,10 @@ export function B4Matrix(_: WidgetProps) {
     <div className={styles.wd}>
       <div className={styles.ctl}>
         <label>
-          phone (starts pairing)
+          {t("matrix.phone")}
           <select
             className={styles.select}
-            aria-label="Phone's IO capability"
+            aria-label={t("matrix.phoneAria")}
             value={init}
             onChange={(e) => setInit(Number(e.target.value))}
           >
@@ -99,10 +89,10 @@ export function B4Matrix(_: WidgetProps) {
           </select>
         </label>
         <label>
-          board
+          {t("matrix.board")}
           <select
             className={styles.select}
-            aria-label="Board's IO capability"
+            aria-label={t("matrix.boardAria")}
             value={resp}
             onChange={(e) => setResp(Number(e.target.value))}
           >
@@ -124,18 +114,19 @@ export function B4Matrix(_: WidgetProps) {
             checked={mitm}
             onChange={(e) => setMitm(e.target.checked)}
           />{" "}
-          MITM protection asked
+          {t("matrix.mitm")}
         </label>
       </div>
       <div className={styles.scroll}>
         <svg
           viewBox="0 0 680 170"
           className={styles.full}
+          direction="ltr"
           role="img"
-          aria-label="The phone and the board: who shows the number and who types or confirms it, for the chosen capabilities."
+          aria-label={t("matrix.aria")}
         >
-          <Device x={30} label="phone (initiator)" cap={B4_CAPS[init]?.k ?? ""} role={phoneRole} />
-          <Device x={530} label="board (responder)" cap={B4_CAPS[resp]?.k ?? ""} role={boardRole} />
+          <Device x={30} label={t("matrix.initiator")} cap={B4_CAPS[init]?.k ?? ""} role={phoneRole} />
+          <Device x={530} label={t("matrix.responder")} cap={B4_CAPS[resp]?.k ?? ""} role={boardRole} />
           <path
             ref={pathRef}
             d="M 160 85 C 260 40, 420 40, 520 85"
@@ -149,23 +140,22 @@ export function B4Matrix(_: WidgetProps) {
             className={own.method}
             style={{ fill: COLOR[m] }}
           >
-            {B4_NAMES[m]}
+            {t(`matrix.methods.${m}`)}
           </text>
           <text x={340} y={132} textAnchor="middle" className={own.verdict}>
-            {m === "J"
-              ? "encrypted, but nobody checked: no MITM protection"
-              : "a person checks: protected against a man in the middle"}
+            {m === "J" ? t("matrix.unchecked") : t("matrix.checked")}
           </text>
         </svg>
       </div>
       <p className={styles.field} aria-live="polite">
-        <b>{B4_NAMES[m]}.</b> {why(m, mitm)}
+        <b>{t("matrix.methodTitle", { method: t(`matrix.methods.${m}`) })}</b>{" "}
+        {t(`matrix.why.${whyKey(m, mitm)}`)}
       </p>
       <div className={styles.tableScroll}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>phone ↓ · board →</th>
+              <th>{t("matrix.corner")}</th>
               {B4_CAPS.map((c) => (
                 <th key={c.k}>{c.k}</th>
               ))}
@@ -188,7 +178,7 @@ export function B4Matrix(_: WidgetProps) {
                         outline: on ? `2px solid ${COLOR[mm]}` : undefined,
                       }}
                     >
-                      {short(mm)}
+                      {t(`matrix.short.${mm}`)}
                     </td>
                   );
                 })}
@@ -202,6 +192,7 @@ export function B4Matrix(_: WidgetProps) {
 }
 
 function Device({ x, label, cap, role }: { x: number; label: string; cap: string; role: Role }) {
+  const { t } = useTranslation("labs-ble");
   return (
     <g>
       <rect x={x} y={30} width={120} height={110} rx={14} className={own.device} />
@@ -212,11 +203,11 @@ function Device({ x, label, cap, role }: { x: number; label: string; cap: string
         {cap}
       </text>
       <text x={x + 60} y={96} textAnchor="middle" className={own.role}>
-        {role.text}
+        {t(`matrix.roles.${role.text}`)}
       </text>
       {role.code ? (
         <text x={x + 60} y={74} textAnchor="middle" className={own.code} style={{ fill: role.col }}>
-          {role.code}
+          {role.code === "digits" ? t("matrix.sixDigits") : role.code}
         </text>
       ) : null}
     </g>

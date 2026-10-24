@@ -1,4 +1,6 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { BleT } from "../../i18n";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Button, ButtonRow } from "@/ui/Button";
@@ -9,17 +11,18 @@ import styles from "../panels.module.css";
 import { SvgPainter } from "../svg";
 
 const INTERVALS = [7.5, 15, 30] as const;
+// Labels: latency.rhythms.<key>.
 const RHYTHMS = [
-  [62.5, "sixteenths at 240 bpm (62.5 ms)"],
-  [40, "a fast trill (40 ms)"],
-  [125, "eighths at 240 bpm (125 ms)"],
+  [62.5, "sixteenths"],
+  [40, "trill"],
+  [125, "eighths"],
 ] as const;
 const X0 = 150;
 const X1 = 670;
 const WINDOW = 400;
 const x = (ms: number) => X0 + (ms / WINDOW) * (X1 - X0);
 
-function draw(p: SvgPainter, interval: number, step: number, sweep: number) {
+function draw(p: SvgPainter, interval: number, step: number, sweep: number, t: BleT) {
   const T = (xx: number, y: number, s: string) =>
     p.add(
       "text",
@@ -29,10 +32,10 @@ function draw(p: SvgPainter, interval: number, step: number, sweep: number) {
   p.clear();
   const { notes, sent } = quantise(step, interval, WINDOW);
   const lanes = [
-    ["you play", 40],
-    ["radio events", 90],
-    ["synth: on arrival", 140],
-    ["synth: timestamps", 190],
+    [t("latency.lanes.play"), 40],
+    [t("latency.lanes.events"), 90],
+    [t("latency.lanes.arrival"), 140],
+    [t("latency.lanes.timestamps"), 190],
   ] as const;
   lanes.forEach(([s, y]) => {
     T(8, y + 4, s);
@@ -47,20 +50,21 @@ function draw(p: SvgPainter, interval: number, step: number, sweep: number) {
       stroke: "var(--scope-blue)",
       "stroke-width": 1.5,
     });
-  notes.forEach((t, i) => {
-    if (t > sweep) return;
-    p.add("circle", { cx: x(t), cy: 40, r: 5, fill: "var(--w-cs)" });
-    const out = sent[i] ?? t;
+  notes.forEach((at, i) => {
+    if (at > sweep) return;
+    p.add("circle", { cx: x(at), cy: 40, r: 5, fill: "var(--w-cs)" });
+    const out = sent[i] ?? at;
     if (out > sweep) return;
-    p.add("line", { x1: x(t), y1: 45, x2: x(out), y2: 86, stroke: "var(--scope-amber)" });
+    p.add("line", { x1: x(at), y1: 45, x2: x(out), y2: 86, stroke: "var(--scope-amber)" });
     p.add("circle", { cx: x(out), cy: 140, r: 5, fill: "var(--danger)" });
     // With timestamps: played at the original spacing, a fixed small delay later (one interval).
-    p.add("circle", { cx: x(t + interval), cy: 190, r: 5, fill: "var(--ok)" });
+    p.add("circle", { cx: x(at + interval), cy: 190, r: 5, fill: "var(--ok)" });
   });
 }
 
 /** B7: notes quantised to connection events, and what timestamps give back. */
 export function B7Latency(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const reduce = useReducedMotion();
   const [interval, setIntervalMs] = useState<number>(15);
   const [step, setStep] = useState<number>(62.5);
@@ -74,28 +78,29 @@ export function B7Latency(_: WidgetProps) {
         interval,
         step,
         reduce ? WINDOW : (now / 8) % (WINDOW + 60),
+        t,
       );
   });
 
   return (
     <div className={styles.wd}>
-      <ButtonRow role="group" aria-label="Interval and rhythm">
+      <ButtonRow role="group" aria-label={t("latency.group")}>
         {INTERVALS.map((v) => (
           <Button key={v} pressed={v === interval} onClick={() => setIntervalMs(v)}>
-            {v} ms
+            {t("packet.ms", { value: v })}
           </Button>
         ))}
         <label className={styles.ctl}>
-          play
+          {t("latency.play")}
           <select
             className={styles.select}
-            aria-label="Rhythm"
+            aria-label={t("latency.rhythm")}
             value={step}
             onChange={(e) => setStep(Number(e.target.value))}
           >
             {RHYTHMS.map(([v, label]) => (
               <option key={v} value={v}>
-                {label}
+                {t(`latency.rhythms.${label}`)}
               </option>
             ))}
           </select>
@@ -106,16 +111,12 @@ export function B7Latency(_: WidgetProps) {
           ref={svgRef}
           viewBox="0 0 680 230"
           className={styles.full}
+          direction="ltr"
           role="img"
-          aria-label="Notes played, the connection events that carry them, and when two kinds of synth play them"
+          aria-label={t("latency.aria")}
         />
       </div>
-      <Caption live>
-        Interval {interval} ms: each note waits 0 to {interval} ms for the next radio event. A synth
-        that plays notes on arrival moves the gaps between them by up to {err.toFixed(1)} ms (red).
-        With the timestamps it keeps your timing exactly and plays everything {interval} ms late
-        (green).
-      </Caption>
+      <Caption live>{t("latency.caption", { interval, err })}</Caption>
     </div>
   );
 }

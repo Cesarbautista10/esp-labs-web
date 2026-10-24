@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import styles from "../panels/chart.module.css";
 import { FIELD, rangeAt } from "../protocol/field";
 
@@ -16,16 +17,17 @@ const CURVE = Array.from(
 
 /** Field at the card vs height (log scale), the two thresholds and the zone that works. */
 export function FieldChart({ dist, db }: { dist: number; db: number }) {
+  const { t } = useTranslation("labs-rfid");
   const r = rangeAt(db);
   const hearB = FIELD.hear(db);
   const b = Math.max(0.01, FIELD.B(dist));
   return (
-    <div className={styles.scroll}>
+    <div className={styles.scroll} dir="ltr">
       <svg
         className={styles.chart}
         viewBox={`0 0 ${W} ${H}`}
         role="img"
-        aria-label="Field strength at the card against height, on a log scale, with the level the card needs to wake up and the level the reader needs to hear its answer."
+        aria-label={t("field3d.chart.label")}
       >
         {[1, 0.1, 0.01].map((v) => (
           <g key={v}>
@@ -41,10 +43,10 @@ export function FieldChart({ dist, db }: { dist: number; db: number }) {
           </text>
         ))}
         <text x={W - R} y={H - 4} textAnchor="end" className={styles.tk}>
-          card height above the antenna (mm)
+          {t("field3d.chart.x")}
         </text>
         <text x={4} y={T + 4} className={styles.tk}>
-          field
+          {t("field3d.chart.y")}
         </text>
         {r > 0 ? (
           <rect
@@ -58,7 +60,7 @@ export function FieldChart({ dist, db }: { dist: number; db: number }) {
         <path d={CURVE} className={styles.curve} />
         <line x1={L} x2={W - R} y1={y(FIELD.need)} y2={y(FIELD.need)} className={styles.need} />
         <text x={W - R - 4} y={y(FIELD.need) - 5} textAnchor="end" className={styles.lbl}>
-          card wakes above this
+          {t("field3d.chart.wakes")}
         </text>
         {hearB > 0.01 ? (
           <>
@@ -68,11 +70,13 @@ export function FieldChart({ dist, db }: { dist: number; db: number }) {
               y={y(hearB) + 13}
               textAnchor="end"
               className={styles.lbl}
-            >{`reader hears it above this (${db} dB)`}</text>
+            >
+              {t("field3d.chart.hears", { db })}
+            </text>
           </>
         ) : null}
         <text x={x(Math.min(r, 80) / 2)} y={T + 14} textAnchor="middle" className={styles.lbl}>
-          {r > 0 ? `works: 0–${Math.round(r)} mm` : "nothing works"}
+          {r > 0 ? t("field3d.chart.works", { mm: Math.round(r) }) : t("field3d.chart.nothing")}
         </text>
         <line x1={x(dist)} x2={x(dist)} y1={T} y2={H - B} className={styles.cursor} />
         <circle cx={x(dist)} cy={y(b)} r={5} className={styles.dot} />

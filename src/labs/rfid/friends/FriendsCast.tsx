@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, scopePalette } from "@/lib/canvas";
 import { useReducedMotion } from "@/lib/media";
+import { RichText } from "@/ui/RichText";
 import type { WidgetProps } from "@/widgets/types";
 import { CAST_COLORS, drawFriend2d, type Friend, FRIEND_CAST } from "./cast";
 import styles from "./friends.module.css";
@@ -35,6 +37,7 @@ function drawCard(
 
 /** R8 panel: the eight friends, drawn the way the board draws them. Press one to see what it does. */
 export function FriendsCast(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
   const [chosen, setChosen] = useState<Friend | null>(null);
   const reduce = useReducedMotion();
   const gridRef = useRef<HTMLDivElement>(null);
@@ -65,6 +68,7 @@ export function FriendsCast(_: WidgetProps) {
             }}
           >
             <canvas
+              dir="ltr"
               ref={(el) => {
                 canvases.current[i] = el;
               }}
@@ -73,20 +77,23 @@ export function FriendsCast(_: WidgetProps) {
               aria-hidden="true"
             />
             <b>{f.name}</b>
-            <small>{f.what}</small>
+            <small>{t(`friends.cast.${f.id}.what`)}</small>
           </button>
         ))}
       </div>
       <p className={styles.out} aria-live="polite">
         {chosen ? (
-          <>
-            <b>{chosen.name}</b>, id <code>{chosen.id}</code> (the only thing the board stores for
-            the card). In the app: <b>{chosen.move}</b>, {chosen.fx}, a {chosen.sky} sky and its own
-            tune. Give it to card 1 with serial <code>give 1 {chosen.id}</code>, or drag it in the
-            app.
-          </>
+          <RichText
+            text={t("friends.chosen", {
+              name: chosen.name,
+              id: chosen.id,
+              move: t(`friends.cast.${chosen.id}.move`),
+              fx: t(`friends.cast.${chosen.id}.fx`),
+              sky: t(`friends.cast.${chosen.id}.sky`),
+            })}
+          />
         ) : (
-          "Press a friend: it jumps, and you see what it does on the board's screen and in the 3D app."
+          t("friends.pick")
         )}
       </p>
     </div>

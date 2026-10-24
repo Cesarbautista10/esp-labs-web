@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { lessonPart } from "@/content/icons";
 import type { ResolvedLesson } from "@/domain/lesson";
 import type { LessonState } from "@/domain/progress";
@@ -34,6 +35,7 @@ export function LessonHeader({
   steps: { ticked: number; total: number };
   active: boolean;
 }) {
+  const { t } = useTranslation("lesson");
   const share = steps.total ? steps.ticked / steps.total : 0;
   return (
     <section
@@ -50,13 +52,17 @@ export function LessonHeader({
         <span className={styles.idPad}>
           <PartIcon name={lessonPart(lesson.id, lesson.track)} size={58} />
           <span className={styles.id}>
-            <span className="visually-hidden">Lesson </span>
-            {lesson.id}
+            <span className="visually-hidden">{t("header.lessonId", { id: lesson.id })}</span>
+            <span aria-hidden="true">{lesson.id}</span>
           </span>
         </span>
         <div className={styles.titles}>
           <p className={styles.eyebrow}>
-            {trackTitle} · lesson {position.index} of {position.total}
+            {t("header.eyebrow", {
+              track: trackTitle,
+              index: position.index,
+              total: position.total,
+            })}
           </p>
           <h2 id={`lesson-${lesson.id}-title`} className={styles.heading}>
             {lesson.heading}
@@ -80,13 +86,13 @@ export function LessonHeader({
       <div className={styles.facts}>
         {lesson.goalCheck ? (
           <div className={styles.goalbox}>
-            <b>Goal</b>
+            <b>{t("header.goal")}</b>
             {lesson.goalLine ? (
               <p>
                 <RichText text={lesson.goalLine} />
               </p>
             ) : null}
-            <p className={styles.doneWhen}>You're done when</p>
+            <p className={styles.doneWhen}>{t("header.doneWhen")}</p>
             <ul>
               {lesson.goalCheck.map((c) => (
                 <li key={c}>
@@ -101,14 +107,14 @@ export function LessonHeader({
         <div className={styles.side}>
           {lesson.pins.length || lesson.usb ? (
             <div>
-              <p className={styles.label}>On the board</p>
+              <p className={styles.label}>{t("header.onBoard")}</p>
               <PinsUsed pins={lesson.pins} usb={Boolean(lesson.usb)} />
             </div>
           ) : null}
           {lesson.learn.length ? (
             <div>
-              <p className={styles.label}>You will learn</p>
-              <ul className={styles.learn} aria-label="You will learn">
+              <p className={styles.label}>{t("header.learn")}</p>
+              <ul className={styles.learn} aria-label={t("header.learn")}>
                 {lesson.learn.map((x) => (
                   <li key={x}>{x}</li>
                 ))}
@@ -128,8 +134,8 @@ export function LessonHeader({
           </span>
           <span>
             {steps.ticked === steps.total
-              ? "All steps ticked"
-              : `${steps.ticked} of ${steps.total} steps ticked`}
+              ? t("header.allTicked")
+              : t("header.ticked", { ticked: steps.ticked, count: steps.total })}
           </span>
           <Icon name="arrow" size={14} />
         </button>

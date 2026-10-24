@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { DEFAULT_LESSON_ID } from "@/content/tracks";
 import { continueLesson, lessonState, tallyStates } from "@/domain/progress";
 import { useTracks } from "@/features/navigation/use-tracks";
@@ -18,6 +19,7 @@ import { TrackCard } from "./TrackCard";
  */
 export function LabsHome() {
   const ticks = useTicks();
+  const { t } = useTranslation("home");
   const lastId = useStore(progress.lastLesson);
   const tracks = useTracks();
   const all = tracks.flatMap((t) => t.lessons ?? []);
@@ -32,28 +34,28 @@ export function LabsHome() {
       <TraceDecor />
       <header className={styles.top} aria-labelledby="home-title">
         <div className={styles.brand}>
-          <p className={styles.kicker}>ESP32-S3 · N16R8 · bench guide</p>
+          <p className={styles.kicker}>{t("hero.kicker")}</p>
           <h2 id="home-title" className={styles.title}>
-            ESP32 <span>Labs</span>
+            <Trans t={t} i18nKey="hero.title" components={{ part: <span /> }} />
           </h2>
           <p className={styles.motto}>
-            <span>Wire</span>
-            <span>Flash</span>
-            <span>Watch</span>
-            <span>Read the code</span>
+            <span>{t("hero.motto.wire")}</span>
+            <span>{t("hero.motto.flash")}</span>
+            <span>{t("hero.motto.watch")}</span>
+            <span>{t("hero.motto.read")}</span>
           </p>
         </div>
 
         <section className={styles.hud} aria-labelledby="hud-title">
           <p id="hud-title" className={styles.hudHead}>
             <Icon name="board" size={20} />
-            <span>Labs working</span>
+            <span>{t("hud.title")}</span>
             <b>
               {working}
               <small>/{open.length}</small>
             </b>
           </p>
-          <ol className={styles.strip} aria-label="Every lab, by theme">
+          <ol className={styles.strip} aria-label={t("hud.strip")}>
             {tracks
               .filter((t) => t.lessons?.length)
               .map(({ track, lessons }) => (
@@ -72,15 +74,15 @@ export function LabsHome() {
           </ol>
           <dl className={styles.stats}>
             <div data-state="works">
-              <dt>on the board</dt>
+              <dt>{t("hud.works")}</dt>
               <dd>{working}</dd>
             </div>
             <div data-state="done">
-              <dt>done by you</dt>
+              <dt>{t("hud.done")}</dt>
               <dd>{tally.done}</dd>
             </div>
             <div data-state="built">
-              <dt>ready to try</dt>
+              <dt>{t("hud.built")}</dt>
               <dd>{tally.built}</dd>
             </div>
           </dl>
@@ -98,18 +100,15 @@ export function LabsHome() {
 
       <section className={styles.board} aria-labelledby="board-title">
         <div className={styles.sectionHead}>
-          <h2 id="board-title">Meet the board</h2>
-          <p>
-            Six parts you will use lab after lab. Drag the board to turn it; pick a part to light it
-            up and see which labs use it.
-          </p>
+          <h2 id="board-title">{t("board.title")}</h2>
+          <p>{t("board.intro")}</p>
         </div>
         <BoardExplorer lessons={all} />
       </section>
 
       <section className={styles.map} aria-labelledby="map-title">
         <div className={styles.sectionHead}>
-          <h2 id="map-title">All labs</h2>
+          <h2 id="map-title">{t("map.title")}</h2>
           <StateLegend />
         </div>
         <div className={styles.cards}>

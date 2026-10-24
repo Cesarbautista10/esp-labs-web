@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { GlossaryEntry } from "@/domain/code/glossary";
 import type { Level } from "@/features/settings/settings";
 import { RichText } from "@/ui/RichText";
@@ -13,13 +14,14 @@ export function TermCard({
   level: Level;
   onClose?: () => void;
 }) {
+  const { t } = useTranslation("code");
   return (
-    <article className={styles.term} aria-label={`Word: ${entry.term}`}>
+    <article className={styles.term} aria-label={t("term.label", { term: entry.term })}>
       <header className={styles.termHead}>
         <code className={styles.termWord}>{entry.term}</code>
-        <span className={styles.termKind}>{entry.kind === "language" ? "C++" : "library"}</span>
+        <span className={styles.termKind}>{entry.kind === "language" ? "C++" : t("term.library")}</span>
         {onClose ? (
-          <button type="button" className={styles.close} onClick={onClose} aria-label="Close word">
+          <button type="button" className={styles.close} onClick={onClose} aria-label={t("term.close")}>
             ×
           </button>
         ) : null}
@@ -38,13 +40,13 @@ export function TermCard({
         </p>
       ) : entry.deep ? (
         <details className={styles.more}>
-          <summary>The precise story</summary>
+          <summary>{t("term.precise")}</summary>
           <p>
             <RichText text={entry.deep} />
           </p>
         </details>
       ) : null}
-      {entry.example ? <pre className={styles.example}>{entry.example}</pre> : null}
+      {entry.example ? <pre className={styles.example} dir="ltr">{entry.example}</pre> : null}
     </article>
   );
 }

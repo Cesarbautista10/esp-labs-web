@@ -1,5 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
 import type { LessonEntry, TrackId } from "@/domain/lesson";
+import type { Locale } from "@/i18n/locales";
+import { localize } from "./localize";
+import { LESSON_TEXT } from "./text-policies";
 
 type LessonLoader = () => Promise<readonly LessonEntry[]>;
 
@@ -13,11 +16,17 @@ const LOADERS: Partial<Record<TrackId, LessonLoader>> = {
   sound: () => import("./lessons/sound").then((m) => m.soundLessons),
 };
 
-/** A track's lessons. Bundled content never changes while the page is open: static. */
-export const trackLessonsQuery = (track: TrackId) =>
+/**
+ * A track's lessons in one language: the English source with that language's text laid over it
+ * (src/locales/<locale>/content/lessons/<track>.json). Bundled content never changes: static.
+ */
+export const trackLessonsQuery = (track: TrackId, locale: Locale) =>
   queryOptions({
-    queryKey: ["content", "lessons", track] as const,
-    queryFn: () => LOADERS[track]?.() ?? Promise.resolve([]),
+    queryKey: ["content", "lessons", track, locale] as const,
+    queryFn: async () => {
+      const lessons = (await LOADERS[track]?.()) ?? [];
+      return localize(lessons, locale, `lessons/${track}`, LESSON_TEXT);
+    },
     staleTime: "static",
     gcTime: Infinity,
   });

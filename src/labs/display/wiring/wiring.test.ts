@@ -19,11 +19,8 @@ describe("SPI transfer on the logic analyzer", () => {
 
   it("captions the bit under the playhead", () => {
     const first = slots.find((s) => s.byte === 0);
-    expect(slotCaption(first)).toEqual([
-      ["CS low · DC low · bit 7 =", " 0"],
-      ["0x2C:", ` ${BYTES[0]?.note}`],
-    ]);
-    expect(slotCaption(slots[0])[0]).toEqual(["CS high:", " the screen ignores the bus"]);
+    expect(slotCaption(first)).toEqual({ kind: "bit", byte: BYTES[0], k: 7, bit: 0 });
+    expect(slotCaption(slots[0])).toEqual({ kind: "ignored" });
   });
 });
 

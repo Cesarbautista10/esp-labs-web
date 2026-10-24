@@ -120,6 +120,8 @@
   --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Leading for body text; scripts with taller glyphs raise it below. */
+  --leading: 1.55;
 
   /* Shape and rhythm */
   --radius-s: 6px;
@@ -233,4 +235,38 @@
   --lens-edge: #6a9be8;
   --term-line: #e39a5c;
   --hotspot: #4fd1c5;
+}
+
+/* Scripts Archivo has no glyphs for: Archivo still sets the Latin words (code terms, units), the
+   platform's own font for that script sets the rest. System fonts only, nothing to download. */
+:root:lang(zh) {
+  --font-script: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-display: "Archivo", var(--font-script);
+  --font-body: "Archivo", var(--font-script);
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, var(--font-script);
+  --leading: 1.75;
+}
+:root:lang(ja) {
+  --font-script:
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo,
+    sans-serif;
+  --font-display: "Archivo", var(--font-script);
+  --font-body: "Archivo", var(--font-script);
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, var(--font-script);
+  --leading: 1.75;
+}
+:root:lang(ar) {
+  --font-script: "SF Arabic", "Geeza Pro", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-display: "Archivo", var(--font-script);
+  --font-body: "Archivo", var(--font-script);
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, var(--font-script);
+  --leading: 1.8;
+}
+
+/* Reading direction as a sign, for sideways motion: translateX(calc(4px * var(--dir))). */
+:root {
+  --dir: 1;
+}
+:root[dir="rtl"] {
+  --dir: -1;
 }

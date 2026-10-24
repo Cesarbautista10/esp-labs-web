@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useBoardRgb } from "@/features/board/board-signals";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, SCREEN_H, SCREEN_W, scopePalette } from "@/lib/canvas";
@@ -21,16 +22,13 @@ import {
 } from "./door-sim";
 import styles from "./door.module.css";
 
-const TAPS: readonly (readonly [DoorKey, string])[] = [
-  ["white", "tap: White card (resident)"],
-  ["tag", "tap: Key tag (guest)"],
-  ["stranger", "tap: a card not in the list"],
-];
+const TAPS: readonly DoorKey[] = ["white", "tag", "stranger"];
 const COPY_MS = 4000;
 const clock = () => new Date().toTimeString().slice(0, 5);
 
 /** R7 preview: the door screen, taps, the app's actions and the serial monitor (example data). */
 export function DoorPreview(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
   const term = useTerminalLog();
   const after = useTimers();
   const [sim, snapshot] = useSimulation(initialDoor);
@@ -86,8 +84,8 @@ export function DoorPreview(_: WidgetProps) {
   const st = snapshot.state;
   return (
     <div className={styles.sim}>
-      <ButtonRow aria-label="Taps">
-        {TAPS.map(([key, text]) => (
+      <ButtonRow aria-label={t("door.taps")}>
+        {TAPS.map((key) => (
           <Button
             key={key}
             onClick={() =>
@@ -97,11 +95,11 @@ export function DoorPreview(_: WidgetProps) {
               })
             }
           >
-            {text}
+            {t(`door.tap.${key}`)}
           </Button>
         ))}
       </ButtonRow>
-      <ButtonRow aria-label="The app and the push button">
+      <ButtonRow aria-label={t("door.app")}>
         <Button
           pressed={st.cards.white.blocked}
           onClick={() =>
@@ -113,7 +111,7 @@ export function DoorPreview(_: WidgetProps) {
             })
           }
         >
-          app: block White card
+          {t("door.block")}
         </Button>
         <Button
           pressed={st.lockdown}
@@ -124,7 +122,7 @@ export function DoorPreview(_: WidgetProps) {
             })
           }
         >
-          app: lockdown
+          {t("door.lockdown")}
         </Button>
         <Button
           onClick={() =>
@@ -137,24 +135,25 @@ export function DoorPreview(_: WidgetProps) {
             })
           }
         >
-          app: open for 5 s
+          {t("door.open")}
         </Button>
-        <Button onClick={copy}>app: copy White card → Key tag</Button>
+        <Button onClick={copy}>{t("door.copy")}</Button>
         <Button onClick={() => sim.update((s) => (s.view = (s.view + 1) % DOOR_VIEWS.length))}>
-          button: next view
+          {t("door.nextView")}
         </Button>
       </ButtonRow>
       <ScreenFrame>
         <canvas
+          dir="ltr"
           ref={canvasRef}
           width={SCREEN_W}
           height={SCREEN_H}
           role="img"
-          aria-label={`Simulated door screen: ${DOOR_VIEWS[st.view]} view`}
+          aria-label={t("door.screen", { view: t(`views.${DOOR_VIEWS[st.view] ?? "door"}`) })}
         />
       </ScreenFrame>
       <Caption>
-        Example data. In the lab, the app does the 'app:' actions and your hands do the taps.
+        {t("door.example")}
       </Caption>
       <Terminal log={term} title="$ uv run pio device monitor" />
     </div>

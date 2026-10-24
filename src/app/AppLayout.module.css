@@ -12,7 +12,7 @@
 }
 .skip {
   position: absolute;
-  left: 8px;
+  inset-inline-start: 8px;
   top: -40px;
   z-index: 10;
   background: var(--ink);

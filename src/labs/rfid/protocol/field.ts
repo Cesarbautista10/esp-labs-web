@@ -24,18 +24,21 @@ export function rangeAt(db: number): number {
 export interface AirSymbol {
   /** Modified Miller: Z = pause at the start, X = pause mid-bit, Y = no pause. */
   readonly s: "X" | "Y" | "Z";
-  readonly t: string;
+  /** What the symbol carries: the start, data bit `bit` (= `value`), the closing 0, the end. */
+  readonly what: "start" | "bit" | "end0" | "end";
+  readonly bit?: number;
+  readonly value?: number;
 }
 
 /** WUPA (52h, 7 bits, LSB first) in modified Miller. */
 export const WUPA_SYMBOLS: readonly AirSymbol[] = (() => {
   const bits = [0, 1, 0, 0, 1, 0, 1];
-  const out: AirSymbol[] = [{ s: "Z", t: "start" }];
+  const out: AirSymbol[] = [{ s: "Z", what: "start" }];
   let prev = 0;
   bits.forEach((b, i) => {
-    out.push({ s: b ? "X" : prev === 1 ? "Y" : "Z", t: `bit ${i} = ${b}` });
+    out.push({ s: b ? "X" : prev === 1 ? "Y" : "Z", what: "bit", bit: i, value: b });
     prev = b;
   });
-  out.push({ s: prev === 1 ? "Y" : "Z", t: "end 0" }, { s: "Y", t: "end" });
+  out.push({ s: prev === 1 ? "Y" : "Z", what: "end0" }, { s: "Y", what: "end" });
   return out;
 })();

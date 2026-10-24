@@ -1,6 +1,7 @@
 // Analog mic vs digital mic, and one I2S frame carrying a sample on SCK, WS and SD.
 import type { ScopePalette } from "@/lib/canvas";
-import { display, mono, type TextFn, textWriter } from "../../kit/draw";
+import { display, labelWriter, mono, type TextFn, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 
 const hex = (v: number, n: number) =>
   (v >>> 0).toString(16).toUpperCase().padStart(n, "0").slice(-n);
@@ -38,25 +39,27 @@ export function drawMics(
   C: ScopePalette,
   s24: number,
   tick: number,
+  tr: SoundT,
 ): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const small = mono(9);
   const slot = (s24 << 8) >>> 0; // the 32-bit left slot: 24 data bits, then 8 zeros
   g.fillStyle = C.paper;
   g.fillRect(0, 0, 680, 360);
   // The two paths.
-  lane(g, T, C, 8, "KY-037", C.pink, [
-    ["capsule", "a few mV"],
-    ["+ bias", "~1.5 V on AO"],
-    ["ESP32 ADC", "12-bit, 0.76 mV"],
-    ["− average", "DMA, ring"],
+  lane(g, W, C, 8, "KY-037", C.pink, [
+    [tr("mics.lane.capsule"), tr("mics.lane.fewMv")],
+    [tr("mics.lane.plusBias"), tr("mics.lane.onAo")],
+    ["ESP32 ADC", tr("mics.lane.adcBits")],
+    [tr("mics.lane.minusAverage"), tr("mics.lane.dmaRing")],
     ["× 16", "int16"],
   ]);
-  lane(g, T, C, 54, "INMP441", C.teal, [
-    ["capsule", "+ its own amp"],
-    ["24-bit ADC", "inside the mic"],
-    ["I2S frames", "SCK · WS · SD"],
-    [">> 8", "24-bit sample"],
+  lane(g, W, C, 54, "INMP441", C.teal, [
+    [tr("mics.lane.capsule"), tr("mics.lane.ownAmp")],
+    [tr("mics.lane.adc24"), tr("mics.lane.insideMic")],
+    [tr("mics.lane.frames"), "SCK · WS · SD"],
+    [">> 8", tr("mics.lane.sample24")],
     [">> 6", "int16 (+12 dB)"],
   ]);
   // The I2S frame: 64 SCK ticks = left slot (32) + right slot (32).
@@ -87,8 +90,8 @@ export function drawMics(
   g.lineTo(x0 + 32 * tw, yW);
   g.lineTo(x0 + w, yW);
   g.stroke();
-  T(x0 + 16 * tw, yW - 2, "left slot (L/R → GND: the mic talks here)", C.amber, small, "center");
-  T(x0 + 48 * tw, yW - 2, "right slot: nobody (zeros)", C.muted, small, "center");
+  W(x0 + 16 * tw, yW - 2, tr("mics.frame.left"), C.amber, small, "center");
+  W(x0 + 48 * tw, yW - 2, tr("mics.frame.right"), C.muted, small, "center");
   // SD: bit k of the slot goes out on tick k+1 (Philips: one tick after WS changes).
   for (let i = 0; i < 64; i++) {
     const x = x0 + i * tw;
@@ -103,18 +106,16 @@ export function drawMics(
   }
   g.fillStyle = C.pink;
   g.fillRect(x0 + tick * tw, yS - 6, 1.5, yD + 34 - yS);
-  T(x0, yD + 46, "bit 23 (the sign) first … bit 0", C.muted, small);
-  T(x0 + 25 * tw, yD + 46, "8 padding zeros", C.muted, small);
+  W(x0, yD + 46, tr("mics.frame.firstBit"), C.muted, small);
+  W(x0 + 25 * tw, yD + 46, tr("mics.frame.padding"), C.muted, small);
   // What the board does with it.
   const got = Math.min(24, Math.max(0, tick));
   const partial = got ? slot >>> (32 - got) : 0;
   const y = 278;
-  T(
-    12,
-    y,
-    `read so far: ${got} of 24 bits${got ? `  ${partial.toString(2).padStart(got, "0")}` : ""}`,
-    C.ink,
-  );
+  const soFar = tr("mics.read.soFar", { got });
+  W(12, y, soFar, C.ink);
+  // The bits themselves, after the sentence (W left the font set for measuring).
+  if (got) T(26 + g.measureText(soFar).width, y, partial.toString(2).padStart(got, "0"), C.ink);
   if (tick >= 25) {
     const dbfs = 20 * Math.log10(Math.max(1, Math.abs(s24 >> 6)) / 32768);
     T(
@@ -123,18 +124,18 @@ export function drawMics(
       `left slot = 0x${hex(slot, 8)}  →  >> 8 = ${s24} (24-bit, ±8 388 608)  →  >> 6 = ${s24 >> 6} (int16)`,
       C.teal,
     );
-    T(
+    W(
       12,
       y + 40,
-      `that's ${dbfs.toFixed(1)} dBFS; ≈ ${(dbfs + 111).toFixed(0)} dB SPL for a sine (dBFS + 111, from the datasheet's -26 dBFS at 94 dB SPL)`,
+      tr("mics.read.level", { dbfs, spl: dbfs + 111 }),
       C.muted,
       mono(10),
     );
   }
-  T(
+  W(
     12,
     y + 64,
-    "SCK = 16 000 samples × 2 slots × 32 bits = 1.024 MHz, driven by the ESP32 (I2S0); the speaker uses I2S1",
+    tr("mics.read.clock"),
     C.muted,
     mono(10),
   );

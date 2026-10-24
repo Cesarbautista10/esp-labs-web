@@ -29,6 +29,62 @@ export function textWriter(g: CanvasRenderingContext2D, defaultFont = mono(11)):
   };
 }
 
+/** The page's writing direction, for translated labels drawn on a canvas. */
+export const uiDirection = (): CanvasDirection =>
+  typeof document !== "undefined" && document.documentElement.dir === "rtl" ? "rtl" : "ltr";
+
+/**
+ * Like textWriter, for translated annotations: draws in the page's direction so an Arabic label
+ * keeps its order. Device text, numbers and units keep textWriter (always left to right).
+ */
+export function labelWriter(g: CanvasRenderingContext2D, defaultFont = mono(11)): TextFn {
+  const T = textWriter(g, defaultFont);
+  return (x, y, s, col, font, align) => {
+    g.direction = uiDirection();
+    T(x, y, s, col, font, align);
+    g.direction = "ltr";
+  };
+}
+
+/**
+ * Splits a translated sentence into lines no wider than `maxW` at the current font (words, or
+ * characters for scripts without spaces), so a paragraph on a canvas wraps in any language.
+ */
+export function wrapLines(g: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+  const spaced = text.includes(" ");
+  const words = spaced ? text.split(" ") : Array.from(text);
+  const glue = spaced ? " " : "";
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    const next = line ? line + glue + w : w;
+    if (line && g.measureText(next).width > maxW) {
+      lines.push(line);
+      line = w;
+    } else line = next;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+/** Writes a wrapped translated paragraph with labelWriter; returns the y after its last line. */
+export function labelParagraph(
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  text: string,
+  o: { maxW: number; lineH: number; col: string; font: string },
+): number {
+  const W = labelWriter(g, o.font);
+  g.font = o.font;
+  let yy = y;
+  for (const line of wrapLines(g, text, o.maxW)) {
+    W(x, yy, line, o.col);
+    yy += o.lineH;
+  }
+  return yy;
+}
+
 /** Calm, loud, very loud: the colour of a level in dB above the quiet. */
 export const levelColour = (C: ScopePalette, above: number) => C[levelTone(above)];
 

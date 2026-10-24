@@ -24,7 +24,7 @@ describe("push button signal (button.h rules)", () => {
     run(s, 1000, 1100);
     s.release(1100);
     run(s, 1100, 1100 + DEBOUNCE_MS + GAP_MS + 10);
-    expect(s.lastEvent).toMatch(/^Click → next scene \(\d+ bounces filtered\)$/);
+    expect(s.lastEvent).toEqual({ kind: "click", bounces: expect.any(Number) as number });
   });
 
   it("recognises double-clicks and long presses", () => {
@@ -37,10 +37,10 @@ describe("push button signal (button.h rules)", () => {
     run(s, 1150, 1230);
     s.release(1230);
     run(s, 1230, 1300);
-    expect(s.lastEvent).toBe("Double-click → previous scene");
+    expect(s.lastEvent).toEqual({ kind: "double" });
 
     s.press(2000);
     run(s, 2000, 2000 + DEBOUNCE_MS + LONG_MS + 10);
-    expect(s.lastEvent).toBe("Long press → auto-cycle on/off");
+    expect(s.lastEvent).toEqual({ kind: "long" });
   });
 });

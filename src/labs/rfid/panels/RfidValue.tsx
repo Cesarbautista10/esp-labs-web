@@ -1,4 +1,6 @@
 import { type CSSProperties, useId, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocaleInfo } from "@/i18n/use-locale";
 import { Button } from "@/ui/Button";
 import { Caption } from "@/ui/Caption";
 import type { WidgetProps } from "@/widgets/types";
@@ -43,10 +45,10 @@ const LBL = [
   "~adr",
 ] as const;
 const LEGEND = [
-  ["--w-sda", "value, little-endian (bytes 0–3 and 8–11)"],
-  ["--muted", "value inverted (4–7)"],
+  ["--w-sda", "value"],
+  ["--muted", "inverted"],
   ["--copper", "address"],
-  ["--gnd", "address inverted"],
+  ["--gnd", "addressInverted"],
 ] as const;
 
 const clampInt = (text: string, min: number, max: number) =>
@@ -54,6 +56,8 @@ const clampInt = (text: string, min: number, max: number) =>
 
 /** R5 panel: how a value block stores a number three times, once inverted. */
 export function RfidValue(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
+  const { tag } = useLocaleInfo();
   const [valueText, setValueText] = useState("47");
   const [addrText, setAddrText] = useState("8");
   const [changed, setChanged] = useState(false);
@@ -77,7 +81,7 @@ export function RfidValue(_: WidgetProps) {
     <div className={styles.wd}>
       <div className={styles.inputs}>
         <label htmlFor={`${ids}v`}>
-          Value
+          {t("value.value")}
           <input
             id={`${ids}v`}
             className={styles.field}
@@ -93,7 +97,7 @@ export function RfidValue(_: WidgetProps) {
           />
         </label>
         <label htmlFor={`${ids}a`}>
-          Address byte
+          {t("value.address")}
           <input
             id={`${ids}a`}
             className={styles.field}
@@ -108,14 +112,14 @@ export function RfidValue(_: WidgetProps) {
             }}
           />
         </label>
-        <Button onClick={() => step(10)}>add 10</Button>
-        <Button onClick={() => step(-3)}>use 3</Button>
+        <Button onClick={() => step(10)}>{t("value.add")}</Button>
+        <Button onClick={() => step(-3)}>{t("value.use")}</Button>
       </div>
-      <div className={styles.memScroll}>
+      <div className={styles.memScroll} dir="ltr">
         <div
           className={styles.vb}
           role="img"
-          aria-label={`The 16 bytes of a MIFARE value block: ${hxs(bytes)}`}
+          aria-label={t("value.block", { bytes: hxs(bytes) })}
         >
           {bytes.map((x, i) => {
             const cls = CLS[i] ?? "v";
@@ -132,17 +136,20 @@ export function RfidValue(_: WidgetProps) {
         </div>
       </div>
       <p className={styles.legend}>
-        {LEGEND.map(([token, text]) => (
-          <span key={text}>
+        {LEGEND.map(([token, key]) => (
+          <span key={key}>
             <i style={{ "--key": `var(${token})` } as CSSProperties} />
-            {text}
+            {t(`value.legend.${key}`)}
           </span>
         ))}
       </p>
       <Caption live>
         {refused
-          ? "Not enough credits: the firmware checks the balance before it asks the card to decrement."
-          : `${v} = ${hxs(bytes.slice(0, 4))} (lowest byte first). Stored three times, once inverted: the card refuses INCREMENT, DECREMENT and RESTORE on a block where the copies disagree. The address byte is free for you (we put the block number in it).`}
+          ? t("value.refused")
+          : t("value.explain", {
+              value: new Intl.NumberFormat(tag).format(v),
+              bytes: hxs(bytes.slice(0, 4)),
+            })}
       </Caption>
     </div>
   );

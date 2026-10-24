@@ -46,10 +46,10 @@ const press = (st: B2State, term: TerminalPrinter) => {
 export const b2Screen: ScreenSpec<B2State> = {
   views: ["packet", "air", "budget", "log"],
   captions: [
-    "The advertisement and the scan response as 31 cells each, one colour per AD structure (length and type bytes darker), decoded underneath. Bytes that just changed flash white: the uptime every second, the presses on a double-click.",
-    "The timing, drawn from the settings: one event per interval plus a random 0-10 ms (the +n labels), each event one packet on channels 37, 38 and 39. The rings leave the board when an event fires; the inset shows one event magnified (about 0.3 ms per packet).",
-    "An estimate for a coin-cell beacon chip with these settings: where the current goes, the average, the life on a CR2032, and life against interval (the amber dot = now). This board itself draws ~80 mA.",
-    "The activity log: mode changes, presses, refused settings.",
+    (t) => t("labs-ble:screens.b2.captions.0"),
+    (t) => t("labs-ble:screens.b2.captions.1"),
+    (t) => t("labs-ble:screens.b2.captions.2"),
+    (t) => t("labs-ble:screens.b2.captions.3"),
   ],
   boot: [
     "ble-lab-b2: NimBLE 2.5.1 up, address 7C:DF:A1:0B:5E:3C, TX power 9 dBm",
@@ -83,9 +83,9 @@ export const b2Screen: ScreenSpec<B2State> = {
     evs: [],
   }),
   actions: [
-    { label: "button: double-click (press)", run: press },
+    { label: (_, t) => t("labs-ble:screens.b2.actions.buttonDoubleClickPress"), run: press },
     {
-      label: "mode: next",
+      label: (_, t) => t("labs-ble:screens.b2.actions.modeNext"),
       run(st, term) {
         st.mode = B2_MODES[(B2_MODES.indexOf(st.mode) + 1) % 4] ?? "bench";
         announce(st, term);
@@ -93,7 +93,7 @@ export const b2Screen: ScreenSpec<B2State> = {
       },
     },
     {
-      label: "connectable on/off",
+      label: (_, t) => t("labs-ble:screens.b2.actions.connectableOnOff"),
       run(st, term) {
         st.connectable = !st.connectable;
         if (!st.connectable && st.interval < 100) {
@@ -104,7 +104,7 @@ export const b2Screen: ScreenSpec<B2State> = {
       },
     },
     {
-      label: "interval 100 / 1000",
+      label: (_, t) => t("labs-ble:screens.b2.actions.interval1001000"),
       run(st, term) {
         st.interval = st.interval === 1000 ? 100 : 1000;
         announce(st, term);

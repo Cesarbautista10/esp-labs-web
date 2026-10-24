@@ -1,15 +1,26 @@
 // The signal path under the journey: a sound, a microphone, the ESP32-S3, the lab's output.
 import type { ScopePalette } from "@/lib/canvas";
-import { display, mono, textWriter } from "../../kit/draw";
+import { display, labelWriter, mono } from "../../kit/draw";
 import type { JourneyLab } from "./journey-data";
+
+/** The translated labels of the picked lab. */
+export interface JourneyText {
+  readonly title: string;
+  readonly what: string;
+  readonly out: string;
+  readonly noMic: string;
+  readonly adcOrI2s: string;
+  readonly withSpeaker: string;
+}
 
 export function drawJourney(
   g: CanvasRenderingContext2D,
   C: ScopePalette,
   L: JourneyLab,
+  text: JourneyText,
   tt: number,
 ): void {
-  const T = textWriter(g);
+  const W = labelWriter(g);
   g.fillStyle = C.paper;
   g.fillRect(0, 0, 680, 120);
   // Sound waves leaving a source on the left.
@@ -28,20 +39,20 @@ export function drawJourney(
     g.beginPath();
     g.roundRect(x, 34, w, 52, 8);
     g.stroke();
-    T(x + w / 2, 56, label, C.ink, display(12), "center");
-    T(x + w / 2, 74, sub, C.muted, mono(10), "center");
+    W(x + w / 2, 56, label, C.ink, display(12), "center");
+    W(x + w / 2, 74, sub, C.muted, mono(10), "center");
   };
   const needsInmp = L.need.includes("inmp");
   const usesSpk = L.need.includes("spk") || (L.opt ?? []).includes("spk");
   box(
     130,
     120,
-    L.need.includes("spk") && !needsInmp ? "(no mic)" : needsInmp ? "INMP441" : "KY-037 / INMP441",
-    needsInmp ? "I2S0" : "ADC or I2S0",
+    L.need.includes("spk") && !needsInmp ? text.noMic : needsInmp ? "INMP441" : "KY-037 / INMP441",
+    needsInmp ? "I2S0" : text.adcOrI2s,
     C.pink,
   );
-  box(300, 140, "ESP32-S3", usesSpk ? "16 000/s · I2S1 out" : "16 000/s", C.teal);
-  box(500, 160, `${L.id} ${L.t}`, L.out, C.amber);
+  box(300, 140, "ESP32-S3", usesSpk ? text.withSpeaker : "16 000/s", C.teal);
+  box(500, 160, `${L.id} ${text.title}`, text.out, C.amber);
   g.lineWidth = 1;
   for (const [a, b] of [
     [250, 300],
@@ -58,5 +69,5 @@ export function drawJourney(
     g.arc(p, 60, 3.5, 0, 7);
     g.fill();
   }
-  T(680 - 8, 108, L.what, C.muted, mono(10), "right");
+  W(680 - 8, 108, text.what, C.muted, mono(10), "right");
 }

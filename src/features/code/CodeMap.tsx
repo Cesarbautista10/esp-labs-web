@@ -1,13 +1,13 @@
+/* eslint-disable i18next/no-literal-string -- literal text here is C++ function names, not interface text. */
+import { Trans, useTranslation } from "react-i18next";
 import type { Block } from "@/domain/code/analyze";
 import styles from "./panels.module.css";
 import type { CodeFile, LabCode } from "./lab-code";
 
-const KIND_LABEL: Partial<Record<Block["kind"], string>> = {
-  function: "function",
-  struct: "struct",
-  class: "class",
-  enum: "enum",
-};
+/** The kinds the map lists; their labels are map.kind.<kind> in the catalogue. */
+type MapKind = "function" | "struct" | "class" | "enum";
+const isMapKind = (kind: Block["kind"]): kind is MapKind =>
+  kind === "function" || kind === "struct" || kind === "class" || kind === "enum";
 
 /**
  * The shape of the program before the details: how it runs (setup once, loop forever, and what
@@ -22,6 +22,7 @@ export function CodeMap({
   file: CodeFile;
   onGo: (path: string, line: number) => void;
 }) {
+  const { t } = useTranslation("code");
   const main = lab.files[0];
   const entry = (name: string) =>
     main?.analysis.blocks.find((b) => b.kind === "function" && b.depth === 0 && b.name === name);
@@ -34,7 +35,7 @@ export function CodeMap({
     if (def) onGo(def.path, def.line);
   };
 
-  const named = file.analysis.blocks.filter((b) => KIND_LABEL[b.kind] && b.name);
+  const named = file.analysis.blocks.filter((b) => isMapKind(b.kind) && b.name);
   const chapters = [...file.analysis.chapters];
   const chapterOf = (line: number) => chapters.filter(([at]) => at < line).at(-1)?.[1];
   const sections = new Map<string, Block[]>();
@@ -48,7 +49,7 @@ export function CodeMap({
       {setup && loop && main ? (
         <section aria-labelledby="map-run">
           <h3 id="map-run" className={styles.mapTitle}>
-            How it runs
+            {t("map.howItRuns")}
           </h3>
           <ol className={styles.run}>
             <li className={styles.runStep} data-kind="once">
@@ -59,7 +60,7 @@ export function CodeMap({
               >
                 setup()
               </button>
-              <span className={styles.runWhen}>once, at power-up</span>
+              <span className={styles.runWhen}>{t("map.once")}</span>
               <CallList calls={ours(setup.calls)} onGo={go} />
             </li>
             <li className={styles.runStep} data-kind="loop">
@@ -74,7 +75,7 @@ export function CodeMap({
                 <span className={styles.spin} aria-hidden="true">
                   ↻
                 </span>{" "}
-                forever, thousands of times a second
+                {t("map.forever")}
               </span>
               <CallList calls={ours(loop.calls)} onGo={go} />
             </li>
@@ -82,8 +83,7 @@ export function CodeMap({
           {setup.calls.length + loop.calls.length > 0 &&
           ours([...setup.calls, ...loop.calls]).length === 0 ? (
             <p className={styles.hint}>
-              The work happens in shared code: <code>setup()</code> and <code>loop()</code> hand
-              over to a ready-made lab shell. Open the files under “Behind the scenes” to see it.
+              <Trans t={t} i18nKey="map.shared" components={{ code: <code /> }} />
             </p>
           ) : null}
         </section>
@@ -91,10 +91,10 @@ export function CodeMap({
 
       <section aria-labelledby="map-file">
         <h3 id="map-file" className={styles.mapTitle}>
-          In {file.name}
+          {t("map.inFile", { name: file.name })}
         </h3>
         {named.length === 0 ? (
-          <p className={styles.hint}>No functions or types here: just settings and includes.</p>
+          <p className={styles.hint}>{t("map.empty")}</p>
         ) : null}
         {[...sections].map(([chapter, blocks]) => (
           <div key={chapter || "top"} className={styles.mapSection}>
@@ -107,13 +107,15 @@ export function CodeMap({
                 >
                   <button type="button" onClick={() => onGo(file.path, b.start)}>
                     <span className={styles.kind} data-kind={b.kind}>
-                      {KIND_LABEL[b.kind]}
+                      {isMapKind(b.kind) ? t(`map.kind.${b.kind}`) : null}
                     </span>
                     <code>
                       {b.name.split("::").at(-1)}
                       {b.kind === "function" ? "()" : ""}
                     </code>
-                    <span className={styles.at}>{b.end - b.start + 1} lines</span>
+                    <span className={styles.at}>
+                      {t("map.lines", { count: b.end - b.start + 1 })}
+                    </span>
                   </button>
                 </li>
               ))}
@@ -126,9 +128,10 @@ export function CodeMap({
 }
 
 function CallList({ calls, onGo }: { calls: readonly string[]; onGo: (name: string) => void }) {
+  const { t } = useTranslation("code");
   if (!calls.length) return null;
   return (
-    <ul className={styles.calls} aria-label="Calls">
+    <ul className={styles.calls} aria-label={t("map.calls")}>
       {calls.map((c) => (
         <li key={c}>
           <button type="button" onClick={() => onGo(c)}>

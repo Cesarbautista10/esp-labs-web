@@ -1,14 +1,40 @@
 // W3 "Follow one request, step by step": the weather fetch and the oracle call as message flows.
-import type { LegendItem, SeqFlows } from "@/ui/sequence/types";
+// Plain data: arrow labels and payloads stay as the board sends them; the explanations (lane
+// subtitles, step titles and texts) live in the labs-wifi catalogue under the ids below.
+import type { LegendKind, SeqFlow, SeqFlows, SeqStep } from "@/ui/sequence/types";
 
-export const HTTPS_FLOWS: SeqFlows = {
+export type HttpsFlowKey = "weather" | "oracle";
+
+interface LaneData {
+  readonly id: string;
+  /** A name that is code or a host name, shown as is; otherwise the catalogue names the lane. */
+  readonly name?: string;
+}
+
+interface StepData extends Omit<SeqStep, "title" | "text"> {
+  readonly id: string;
+}
+
+interface FlowData {
+  readonly wait?: readonly [number, number];
+  readonly lanes: readonly LaneData[];
+  readonly steps: readonly StepData[];
+}
+
+/** One flow's translated text, as the catalogue holds it. */
+export interface FlowText {
+  readonly label: string;
+  readonly lanes: Readonly<Record<string, { readonly name?: string; readonly sub: string }>>;
+  readonly steps: Readonly<Record<string, { readonly title: string; readonly text: string }>>;
+}
+
+const FLOWS: Readonly<Record<HttpsFlowKey, FlowData>> = {
   weather: {
-    label: "Weather · Open-Meteo",
     wait: [1, 4],
     lanes: [
-      ["loop()", "draws the screen"],
-      ["worker task", "does the network"],
-      ["api.open-meteo.com", "the weather service"],
+      { id: "loop", name: "loop()" },
+      { id: "worker" },
+      { id: "server", name: "api.open-meteo.com" },
     ],
     steps: [
       {
@@ -16,8 +42,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         t: 1,
         msg: "weather job",
         ms: 0,
-        title: "loop() hands over a job",
-        text: "Every 15 minutes (or on a double-click) loop() puts one job in the worker's mailbox, then goes straight back to drawing. It never waits for the network.",
+        id: "job",
         code: "Request{ job: Weather,\n         place: Hamburg, Germany (53.55, 9.99) }",
       },
       {
@@ -26,8 +51,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         msg: "connect :443",
         ms: 70,
         net: true,
-        title: "Find the server and connect",
-        text: "DNS turns the name into an IP address, then the board opens a TCP connection to port 443, the HTTPS port.",
+        id: "connect",
         code: "DNS  api.open-meteo.com → an IP address\nTCP  connect to <ip>:443",
       },
       {
@@ -36,8 +60,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         msg: "certificate",
         ms: 160,
         net: true,
-        title: "TLS: is it really Open-Meteo?",
-        text: "The server sends its certificate. The board checks that it chains up to one of the root certificates built into the firmware, and that it was issued for this name. Then both sides agree on encryption keys: from here on, nobody in between can read or change the data.",
+        id: "tls",
         code: "certificate for: open-meteo.com\nsigned by: an intermediate CA\n  → a root in the firmware's CA bundle ✓\nname matches ✓   keys agreed ✓",
       },
       {
@@ -46,8 +69,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         msg: "GET /v1/forecast?…",
         ms: 15,
         net: true,
-        title: "Ask for the forecast",
-        text: "One GET request with the coordinates and the list of values we want: now, the next 24 hours, 7 days.",
+        id: "get",
         code: "GET /v1/forecast?latitude=53.55&longitude=9.99\n    &current=temperature_2m,weather_code,…\n    &hourly=temperature_2m,precipitation_probability\n    &forecast_hours=24&daily=…&forecast_days=7",
       },
       {
@@ -56,8 +78,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         msg: "200 OK · 1.7 KB JSON",
         ms: 120,
         net: true,
-        title: "The answer: JSON",
-        text: "About 1.7 KB of text in JSON. Almost a third of it is time stamps the screen never shows.",
+        id: "json",
         code: '{"current":{"temperature_2m":11.2,"weather_code":61,…},\n "hourly":{"time":["2026-10-12T14:00",…24],\n           "temperature_2m":[11.2,11.0,…24],…},\n "daily":{"time":[…7],"temperature_2m_max":[14,…7],…}}',
       },
       {
@@ -65,8 +86,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         t: 1,
         msg: "filter + parse",
         ms: 4,
-        title: "Keep only what we draw",
-        text: "An ArduinoJson filter is a stencil: fields not in it are skipped while reading, so they never take memory.",
+        id: "filter",
         code: "kept     current.*  hourly.temperature_2m[24]\n         hourly.precipitation_probability[24]  daily.*[7]\ndropped  hourly.time[24]  daily.time[7]   (≈30 %)",
       },
       {
@@ -74,8 +94,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         t: 0,
         msg: "Weather struct",
         ms: 0,
-        title: "Hand the result back",
-        text: "The worker puts a small struct in the mailbox (under a mutex, so the two tasks never touch it at the same time) and bumps a version number.",
+        id: "back",
         code: "Weather{ temp: 11.2, feels: 8.9, code: 61,\n         hourTemp[24], hourRain[24],\n         dayMin[7], dayMax[7] }   version 42 → 43",
       },
       {
@@ -83,20 +102,18 @@ export const HTTPS_FLOWS: SeqFlows = {
         t: 0,
         msg: "draw",
         ms: 0,
-        title: "The next frame shows it",
-        text: "loop() sees the new version, copies the struct, and the next frame draws the new sky. The frame counter on the left never stopped.",
+        id: "draw",
         code: "frame 4711: now view · light rain · 11°C",
       },
     ],
   },
   oracle: {
-    label: "Oracle · LiteLLM",
     wait: [1, 6],
     lanes: [
-      ["loop()", "draws the screen"],
-      ["worker task", "does the network"],
-      ["LiteLLM", "gateway on your Mac"],
-      ["AI provider", "any provider"],
+      { id: "loop", name: "loop()" },
+      { id: "worker" },
+      { id: "gateway", name: "LiteLLM" },
+      { id: "provider" },
     ],
     steps: [
       {
@@ -104,8 +121,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         t: 1,
         msg: "oracle job",
         ms: 0,
-        title: "loop() describes the moment",
-        text: "loop() writes what the board knows as a small JSON text and hands it to the worker with the gateway address, its key and the model name.",
+        id: "job",
         code: '{"place":"Hamburg, Germany","local_time":"Sunday 12 October, 14:20",\n "weather":{"now":"light rain","temp_c":11.2,…},\n "bench":{"chip_temp_c":41.5,"wifi_signal_dbm":-54}}',
       },
       {
@@ -114,8 +130,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         msg: "POST /v1/chat/completions",
         ms: 40,
         net: true,
-        title: "One standard request",
-        text: "The board always sends the same OpenAI-style request, whatever model is behind it. It offers one function, show_on_bench, and forces the model to call it.",
+        id: "request",
         code: 'POST http://<your Mac>:4000/v1/chat/completions\nAuthorization: Bearer sk-bench-…\n{"model":"oracle","messages":[…],\n "tools":[{"type":"function","function":{"name":"show_on_bench",\n   "parameters":{title, lines, color, scene}}}],\n "tool_choice":{"type":"function","function":{"name":"show_on_bench"}}}',
       },
       {
@@ -123,8 +138,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         t: 2,
         msg: "name → model",
         ms: 2,
-        title: "LiteLLM picks the real model",
-        text: "config.yaml maps the name the board asked for to a provider and model, and adds that provider's key from .env. Change the mapping and the board uses another model, no reflash.",
+        id: "route",
         code: "model_name: oracle\n  model: anthropic/claude-opus-5-5\n  api_key: os.environ/ANTHROPIC_API_KEY",
       },
       {
@@ -133,8 +147,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         msg: "provider's own API",
         ms: 60,
         net: true,
-        title: "Translated for the provider",
-        text: "LiteLLM rewrites the request in the provider's own format (for Anthropic: the Messages API with a forced tool) and sends it over HTTPS.",
+        id: "translate",
         code: 'POST https://api.anthropic.com/v1/messages\n{…, "tool_choice":{"type":"tool","name":"show_on_bench"}}',
       },
       {
@@ -144,8 +157,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         ms: 2400,
         net: true,
         live: true,
-        title: "The model writes",
-        text: "A few seconds. The worker task waits on the network; loop() does not: watch the frame counter keep running while the screen keeps animating.",
+        id: "writing",
         code: "",
       },
       {
@@ -154,8 +166,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         msg: "function call",
         ms: 60,
         net: true,
-        title: "An answer in the agreed shape",
-        text: "Because the function was forced, the answer is not free text: it is a call to show_on_bench with JSON arguments.",
+        id: "call",
         code: '{"title":"Drizzle hum","color":"#5fa8ff","scene":"rain",\n "lines":["Rain taps the window","the chip hums at forty-two",\n          "solder waits for sun"]}',
       },
       {
@@ -164,8 +175,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         msg: "OpenAI-style answer",
         ms: 30,
         net: true,
-        title: "Back in the standard format",
-        text: "LiteLLM turns the provider's answer back into the OpenAI format, so the board parses one shape for every provider. Token counts come along.",
+        id: "standard",
         code: 'choices[0].message.tool_calls[0].function.arguments =\n  "{\\"title\\":\\"Drizzle hum\\",\\"color\\":\\"#5fa8ff\\",…}"\nusage: prompt_tokens 612 · completion_tokens 94',
       },
       {
@@ -173,8 +183,7 @@ export const HTTPS_FLOWS: SeqFlows = {
         t: 1,
         msg: "parse twice + clean",
         ms: 3,
-        title: "JSON inside JSON",
-        text: "The arguments arrive as a JSON string inside the JSON answer, so the board parses twice. Then it folds the text to plain ASCII (the screen fonts have no é or —) and turns #5fa8ff into red, green, blue.",
+        id: "parse",
         code: "parse answer → arguments (a string)\nparse arguments → title, lines[3], color, scene\n#5fa8ff → r 95, g 168, b 255",
       },
       {
@@ -182,19 +191,37 @@ export const HTTPS_FLOWS: SeqFlows = {
         t: 0,
         msg: "OracleAnswer",
         ms: 0,
-        title: "Screen and LED",
-        text: "loop() picks up the answer: the title in its colour, the lines typed out, the LED lit, time and tokens underneath.",
+        id: "show",
         code: "OracleAnswer{ title: Drizzle hum, lines[3], led #5fa8ff,\n              scene: rain, 612 > 94 tokens, 2.6 s }",
       },
     ],
   },
 };
 
-export const HTTPS_LEGEND: readonly LegendItem[] = [
-  { kind: "msg", label: "message (orange: the current step)" },
-  { kind: "wait", label: "worker waiting for the network" },
-  { kind: "loop", label: "loop() keeps drawing frames" },
-];
+export const HTTPS_LEGEND: readonly LegendKind[] = ["msg", "wait", "loop"];
+
+function localizeFlow(data: FlowData, text: FlowText): SeqFlow {
+  return {
+    label: text.label,
+    ...(data.wait ? { wait: data.wait } : {}),
+    lanes: data.lanes.map((l) => {
+      const lane = text.lanes[l.id];
+      return [l.name ?? lane?.name ?? l.id, lane?.sub ?? ""] as const;
+    }),
+    steps: data.steps.map(({ id, ...step }) => {
+      const t = text.steps[id];
+      return { ...step, title: t?.title ?? id, text: t?.text ?? "" };
+    }),
+  };
+}
+
+/** The flows with their explanations in the reader's language. */
+export function httpsFlows(text: Readonly<Record<HttpsFlowKey, FlowText>>): SeqFlows {
+  return {
+    weather: localizeFlow(FLOWS.weather, text.weather),
+    oracle: localizeFlow(FLOWS.oracle, text.oracle),
+  };
+}
 
 /** The payload while the model writes: the worker waits, loop() keeps drawing. */
 export const httpsLive = (frame: number, seconds: string) =>

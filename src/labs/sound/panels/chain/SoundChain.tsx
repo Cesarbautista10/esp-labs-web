@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { prefersReducedMotion } from "@/lib/media";
 import { Button } from "@/ui/Button";
 import { RichText } from "@/ui/RichText";
@@ -11,15 +12,11 @@ import { STEPS } from "./chain-data";
 import { drawChain } from "./chain-draw";
 import type { ChainSim } from "./chain-types";
 
-const SOUNDS: readonly (readonly [MicMode | "clap", string])[] = [
-  ["talk", "🗣 talk"],
-  ["whistle", "〰 whistle"],
-  ["clap", "👏 clap"],
-  ["quiet", "🤫 quiet"],
-];
+const SOUNDS = ["talk", "whistle", "clap", "quiet"] as const satisfies readonly (MicMode | "clap")[];
 
 /** S1 panel: from air to numbers, one stage at a time, every value live. */
 export function SoundChain(_: WidgetProps) {
+  const { t: tr } = useTranslation("labs-sound");
   const [at, setAt] = useState(0);
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
   const since = useRef(0);
@@ -31,43 +28,41 @@ export function SoundChain(_: WidgetProps) {
     since.current = 0;
     setAt((next + STEPS.length) % STEPS.length);
   };
-  const step = STEPS[at] ?? STEPS[0];
+  const step = STEPS[at] ?? "air";
 
   return (
     <CanvasPanel
       h={320}
-      label="A pipeline of eight stages from air pressure to decibels, with the selected stage drawn live below."
+      label={tr("chain.label")}
       controls={
         <>
-          <Button aria-label="Previous stage" onClick={() => go(at - 1)}>
+          <Button aria-label={tr("chain.previous")} onClick={() => go(at - 1)}>
             ◀
           </Button>
-          <Button onClick={() => setPlaying(!playing)}>{playing ? "❚❚ Pause" : "▶ Play"}</Button>
-          <Button aria-label="Next stage" onClick={() => go(at + 1)}>
+          <Button onClick={() => setPlaying(!playing)}>{playing ? tr("controls.pause") : tr("controls.play")}</Button>
+          <Button aria-label={tr("chain.next")} onClick={() => go(at + 1)}>
             ▶
           </Button>
           <span className={styles.mono} aria-live="polite">
-            {at + 1} / {STEPS.length}
+            {tr("chain.position", { at: at + 1, total: STEPS.length })}
           </span>
           <Spacer />
-          {SOUNDS.map(([m, label]) => (
+          {SOUNDS.map((m) => (
             <Button
               key={m}
               onClick={() => (m === "clap" ? getSim().mic.clap() : getSim().mic.say(m))}
             >
-              {label}
+              {tr(`sounds.${m}`)}
             </Button>
           ))}
         </>
       }
       caption={
-        step ? (
-          <>
-            <b>{step.title}</b>
-            <br />
-            <RichText text={step.text} />
-          </>
-        ) : null
+        <>
+          <b>{tr(`chain.steps.${step}.title`)}</b>
+          <br />
+          <RichText text={tr(`chain.steps.${step}.text`)} />
+        </>
       }
       onFrame={({ g, C, dt, t, reduce }) => {
         const s = getSim();
@@ -77,7 +72,7 @@ export function SoundChain(_: WidgetProps) {
           s.mic.say("talk");
         }
         if (playing && (since.current += dt) > 9) go(at + 1);
-        drawChain(g, C, at, s, t, dt, reduce);
+        drawChain(g, C, at, s, t, dt, reduce, tr);
       }}
     />
   );

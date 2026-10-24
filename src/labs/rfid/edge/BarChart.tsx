@@ -1,5 +1,7 @@
+import { useTranslation } from "react-i18next";
 import styles from "../panels/chart.module.css";
 import { type EdgeExperiment, niceTop, type Row } from "./edge-data";
+import type { EdgeWords } from "./edge-words";
 
 const W = 680;
 const H = 250;
@@ -9,7 +11,16 @@ const T = 30;
 const B = 46;
 
 /** Bars on one scale: yours solid with the example outlined beside each, or the example alone. */
-export function BarChart({ e, mine }: { e: EdgeExperiment; mine: readonly Row[] }) {
+export function BarChart({
+  e,
+  words: w,
+  mine,
+}: {
+  e: EdgeExperiment;
+  words: EdgeWords;
+  mine: readonly Row[];
+}) {
+  const { t } = useTranslation("labs-rfid");
   const hasMine = mine.length > 0;
   const main = hasMine ? mine : e.example;
   const exampleBy = new Map(e.example);
@@ -22,10 +33,15 @@ export function BarChart({ e, mine }: { e: EdgeExperiment; mine: readonly Row[] 
   const y = (v: number) => T + (1 - Math.min(v, top) / top) * (H - T - B);
   const slot = (W - L - R) / main.length;
   const bw = Math.min(46, slot * 0.5);
-  const label = `${e.label}: ${e.unit} per ${e.xTitle}. ${main.map(([l, v]) => `${l}: ${v}`).join(", ")}`;
+  const label = t("edge.chart.label", {
+    name: w.label,
+    unit: w.unit,
+    x: w.xTitle,
+    values: main.map(([l, v]) => `${l}: ${v}`).join(", "),
+  });
 
   return (
-    <div className={styles.scroll}>
+    <div className={styles.scroll} dir="ltr">
       <svg className={styles.chart} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
         {[0, 1, 2, 3, 4].map((k) => {
           const v = (top * k) / 4;
@@ -39,10 +55,10 @@ export function BarChart({ e, mine }: { e: EdgeExperiment; mine: readonly Row[] 
           );
         })}
         <text x={4} y={12} className={styles.tk}>
-          {e.unit}
+          {w.unit}
         </text>
         <text x={W - R} y={H - 6} textAnchor="end" className={styles.tk}>
-          {e.xTitle}
+          {w.xTitle}
         </text>
         {main.map(([name, v], i) => {
           const cx = L + slot * (i + 0.5);
@@ -51,7 +67,11 @@ export function BarChart({ e, mine }: { e: EdgeExperiment; mine: readonly Row[] 
           const h = Math.max(v > 0 ? 2 : 0, H - B - y(v));
           return (
             <g key={`${name}-${i}`}>
-              <title>{`${name}: ${v} ${e.unit}${hasMine && ex !== undefined ? ` (example ${ex})` : ""}`}</title>
+              <title>
+                {hasMine && ex !== undefined
+                  ? t("edge.chart.barWithExample", { name, value: v, unit: w.unit, example: ex })
+                  : t("edge.chart.bar", { name, value: v, unit: w.unit })}
+              </title>
               {ghost !== undefined ? (
                 <rect
                   x={cx - bw / 2 - 4}
@@ -96,9 +116,9 @@ export function BarChart({ e, mine }: { e: EdgeExperiment; mine: readonly Row[] 
                     rx={4}
                     className={styles.mark}
                   />
-                  {e.markText ? (
+                  {w.markText ? (
                     <text x={cx} y={T - 8} textAnchor="middle" className={styles.lbl}>
-                      {e.markText}
+                      {w.markText}
                     </text>
                   ) : null}
                 </>
@@ -116,7 +136,7 @@ export function BarChart({ e, mine }: { e: EdgeExperiment; mine: readonly Row[] 
               className={styles.need}
             />
             <text x={L + slot * (e.between + 1) + 4} y={T + 10} className={styles.lbl}>
-              {e.betweenText}
+              {w.betweenText}
             </text>
           </>
         ) : null}
@@ -126,7 +146,9 @@ export function BarChart({ e, mine }: { e: EdgeExperiment; mine: readonly Row[] 
             y={T - 6}
             textAnchor="end"
             className={styles.tk}
-          >{`dashed: ${e.ghostText ?? ""}`}</text>
+          >
+            {t("edge.chart.dashed", { text: w.ghostText ?? "" })}
+          </text>
         ) : null}
       </svg>
     </div>

@@ -1,10 +1,10 @@
 import { type CSSProperties, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { lessonPart } from "@/content/icons";
 import type { LessonEntry } from "@/domain/lesson";
 import { lessonState } from "@/domain/progress";
 import { StateGlyph } from "@/features/progress/LessonState";
-import { STATE_INFO } from "@/features/progress/state-info";
 import { useTicks } from "@/features/progress/progress-store";
 import { PartIcon } from "@/ui/parts/PartIcon";
 import styles from "./LessonStepper.module.css";
@@ -27,6 +27,7 @@ export function LessonStepper({
   view?: "lab" | "code";
 }) {
   const ticks = useTicks();
+  const { t } = useTranslation();
   const currentRef = useRef<HTMLAnchorElement>(null);
   const at = lessons.findIndex((l) => l.id === currentId);
   const style = { "--track": `var(${color})` } as CSSProperties;
@@ -37,7 +38,7 @@ export function LessonStepper({
   }, [currentId]);
 
   return (
-    <nav className={styles.steps} aria-label="Lessons in this theme" style={style}>
+    <nav className={styles.steps} aria-label={t("stepper.label")} style={style}>
       <ol>
         {lessons.map((l, i) => {
           const state = lessonState(l, ticks);
@@ -51,7 +52,9 @@ export function LessonStepper({
               </span>
               <span className={styles.n}>{l.id}</span>
               <span className={styles.t}>{l.title}</span>
-              <span className="visually-hidden">, {STATE_INFO[state].label}</span>
+              <span className="visually-hidden">
+                {t("stepper.state", { state: t(`states.${state}.label`) })}
+              </span>
             </>
           );
           return (

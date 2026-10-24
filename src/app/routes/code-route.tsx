@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { findTrack } from "@/content/tracks";
 import { CodeReader, ReaderSkeleton } from "@/features/code/reader/CodeReader";
 import { envOfCommand } from "@/features/code/queries";
@@ -22,10 +23,11 @@ function LabReader({ env, lessonHref }: { env: string; lessonHref: string }) {
 export function Component() {
   const { lesson, lessons, trackId, chooseVariant } = useRouteLesson();
   const env = envOfCommand(lesson.cmd);
+  const { t } = useTranslation();
   const lessonHref = `/lessons/${lesson.id}${lesson.variantKey ? `?variant=${encodeURIComponent(lesson.variantKey)}` : ""}`;
   return (
     <>
-      <title>{`${lesson.id} code · ${lesson.title} · ESP32-S3 Bench Guide`}</title>
+      <title>{t("titles.code", { id: lesson.id, title: lesson.title })}</title>
       {/* The same way around the labs as on the lab page, but every pad opens that lab's code. */}
       <TrackNav activeTrack={trackId} view="code" />
       <LessonStepper
@@ -58,8 +60,7 @@ export function Component() {
         </ErrorBoundary>
       ) : (
         <p className={styles.none}>
-          This lesson sets up your tools: there is no program for the board yet. The first code to
-          read is in lesson 01.
+          {t("codeRoute.none")}
         </p>
       )}
     </>

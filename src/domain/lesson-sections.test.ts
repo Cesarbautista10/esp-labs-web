@@ -38,7 +38,8 @@ describe("lessonSections", () => {
       "steps",
       "preview",
     ]);
+    expect(sections[3]).not.toHaveProperty("title");
     expect(new Set(sections.map((s) => s.id)).size).toBe(sections.length);
-    expect(sections[2]).toMatchObject({ title: "States", short: "How 2", panel: 1 });
+    expect(sections[2]).toMatchObject({ title: "States", number: 2, panel: 1 });
   });
 });

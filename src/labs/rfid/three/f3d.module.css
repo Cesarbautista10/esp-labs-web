@@ -104,7 +104,7 @@
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  margin-right: 5px;
+  margin-inline-end: 5px;
   vertical-align: -1px;
   background: var(--key);
 }

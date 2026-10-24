@@ -1,6 +1,26 @@
+import type { TFunction } from "i18next";
 import type { ResolvedLesson } from "@/domain/lesson";
+import type { LAB_NAMESPACES } from "@/i18n/namespaces";
 import type { ScopePalette } from "@/lib/canvas";
 import type { TerminalPrinter, Tone } from "@/ui/terminal/terminal-log";
+
+// Translation. Specs and kits are pure TypeScript and never import i18n: reader-facing text
+// (captions, button labels, the preview caption, the tap hint) is either a plain string (not
+// translated yet) or a function of `t`, which LabScreen and ScreenGallery call at render time:
+//
+//   captions: [(t) => t("labs-ble:b1.captions.radar")],
+//   label: (st, t) => t(st.on ? "labs-ble:actions.stop" : "labs-ble:actions.start"),
+//
+// `t` is typed against every lab catalogue: "labs-shared" keys need no prefix, a track's own
+// keys carry theirs ("labs-ble:…"). The kit's `ns` names the track's catalogue so it is loaded
+// before the screen renders. What the device itself shows or prints stays English: view names
+// (drawn on the TFT, echoed on the serial monitor), serial lines, commands.
+
+export type LabNamespace = (typeof LAB_NAMESPACES)[number];
+/** `t` bound to the lab catalogues ("labs-shared" by default, others by prefix). */
+export type LabT = TFunction<LabNamespace[]>;
+/** Reader-facing text: plain (untranslated) or resolved with `t` at render time. */
+export type LabText = string | ((t: LabT) => string);
 
 /** Every lab screen state knows which view the push button has selected. */
 export interface LabState {
@@ -9,8 +29,8 @@ export interface LabState {
 
 /** A button under the simulated screen: stands in for hands, a phone or the push button. */
 export interface LabAction<S> {
-  /** Fixed text, or text derived from the state (recomputed after every action). */
-  readonly label: string | ((state: S) => string);
+  /** Fixed text, or text derived from the state (recomputed after every action) and `t`. */
+  readonly label: string | ((state: S, t: LabT) => string);
   /** For toggles: shown pressed when true. */
   readonly pressed?: (state: S) => boolean;
   run(state: S, term: TerminalPrinter): void;
@@ -22,9 +42,10 @@ export interface LabAction<S> {
  * Pure TypeScript, no React: it can be unit-tested with a fake canvas.
  */
 export interface ScreenSpec<S extends LabState> {
+  /** View names as the firmware shows them (screen footer, serial monitor): English. */
   readonly views: readonly string[];
   /** One sentence per view for the "What the screen shows" panel. */
-  readonly captions?: readonly string[];
+  readonly captions?: readonly LabText[];
   init(): S;
   /** Draws the view area (y 29..158); the kit draws the status bar and footer. */
   draw(g: CanvasRenderingContext2D, C: ScopePalette, view: number, t: number, state: S): void;
@@ -44,8 +65,10 @@ export interface ScreenSpec<S extends LabState> {
 export interface LabKit<S extends LabState, Spec extends ScreenSpec<S> = ScreenSpec<S>> {
   /** Firmware prefix in messages, e.g. "ble-lab" → "ble-lab-b3". */
   readonly firmware: string;
+  /** The track's catalogue, loaded before the screen renders (see the note at the top). */
+  readonly ns?: LabNamespace;
   /** Caption under the preview. */
-  readonly previewCaption: string;
+  readonly previewCaption: LabText;
   /** Draws the status bar and footer over the view, every frame. */
   chrome(
     g: CanvasRenderingContext2D,
@@ -76,7 +99,7 @@ export interface LabKit<S extends LabState, Spec extends ScreenSpec<S> = ScreenS
   ): boolean;
   /** A tap on the screen or Space while it has focus (e.g. a clap). */
   onTap?(state: S): void;
-  readonly tapHint?: string;
+  readonly tapHint?: LabText;
   /**
    * Outside state the buttons show (e.g. a page-wide sound switch): call `changed` when it
    * changes so labels and pressed states re-render. Returns an unsubscribe function.

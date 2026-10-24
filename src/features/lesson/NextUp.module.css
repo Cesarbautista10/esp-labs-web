@@ -30,7 +30,7 @@
     transparent 2px
   );
   background-size: 16px 16px;
-  mask-image: linear-gradient(90deg, transparent 30%, var(--ink));
+  mask-image: linear-gradient(calc(90deg * var(--dir)), transparent 30%, var(--ink));
 }
 .primary:hover {
   transform: translateY(-2px);
@@ -41,7 +41,7 @@
   transition: transform 0.2s ease;
 }
 .primary:hover > svg:last-child {
-  transform: translateX(4px);
+  transform: translateX(calc(4px * var(--dir)));
 }
 /* The next lesson's part, on a light plate so its colours read on the theme colour. */
 .part {
@@ -68,7 +68,7 @@
 .title b {
   font-family: var(--font-mono);
   font-weight: 700;
-  margin-right: 6px;
+  margin-inline-end: 6px;
 }
 .minor {
   display: flex;

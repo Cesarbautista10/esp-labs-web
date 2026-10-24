@@ -165,24 +165,24 @@ export const S8: SoundSpec<S8State> = {
     ["trigger <dB>", "how loud starts a recording (default 12)"],
   ],
   captions: [
-    "parrot: say something and it says it back in the chosen voice. Listening (arcs come in), recording (wide eye, REC), talking (the beak moves with the speaker). Below: your level against the start line.",
-    "echo: live, mic → delay line → speaker. The bars show what one clap turns into: each repeat feedback × quieter, delay apart. Bottom: in and out levels and the latency.",
-    "robot: live, your voice times a slow sine (the carrier) plus 8-bit crunch; the mouth lights with what comes out.",
-    "scope: the chain mic → effect → speaker, with what goes in (teal) and what comes out (pink).",
+    (t) => t("labs-sound:s8.captions.parrot"),
+    (t) => t("labs-sound:s8.captions.echo"),
+    (t) => t("labs-sound:s8.captions.robot"),
+    (t) => t("labs-sound:s8.captions.scope"),
   ],
   actions: [
-    { label: "🗣 say something (2 s)", run: (st) => st.mic.say("talk", 2) },
-    { label: "fx next", run: (st, term) => void onCommand("fx next", st, term) },
-    { label: "again", run: (st, term) => void onCommand("again", st, term) },
+    { label: (_, t) => t("labs-sound:s8.actions.saySomething2S"), run: (st) => st.mic.say("talk", 2) },
+    { label: (_, t) => t("labs-sound:s8.actions.fxNext"), run: (st, term) => void onCommand("fx next", st, term) },
+    { label: (_, t) => t("labs-sound:s8.actions.again"), run: (st, term) => void onCommand("again", st, term) },
     {
-      label: "echo on/off",
+      label: (_, t) => t("labs-sound:s8.actions.echoOnOff"),
       run(st, term) {
         onCommand("echo", st, term);
         st.view = 1;
       },
     },
     {
-      label: "robot on/off",
+      label: (_, t) => t("labs-sound:s8.actions.robotOnOff"),
       run(st, term) {
         onCommand("robot", st, term);
         st.view = 2;

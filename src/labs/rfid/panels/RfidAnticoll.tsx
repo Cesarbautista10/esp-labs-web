@@ -1,4 +1,5 @@
 import { type ReactNode, useId, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, ButtonRow } from "@/ui/Button";
 import type { WidgetProps } from "@/widgets/types";
 import { hxs, parseHexBytes, RF } from "../protocol/bytes";
@@ -45,6 +46,7 @@ function BitRow({
 
 /** The binary tree the walk follows: shared bits, then a branch at the first collision. */
 function WalkTree({ m, step }: { m: WalkModel; step: number }) {
+  const { t } = useTranslation("labs-rfid");
   const p = m.p;
   const yTop = 18;
   const yFork = 70;
@@ -54,12 +56,12 @@ function WalkTree({ m, step }: { m: WalkModel; step: number }) {
   const onPath1 = step >= 2 && step <= 4;
   const onPath0 = step >= 5;
   return (
-    <div className={styles.treeScroll}>
+    <div className={styles.treeScroll} dir="ltr">
       <svg
         className={styles.tree}
         viewBox="0 0 680 150"
         role="img"
-        aria-label="The binary tree the walk follows: shared bits, then a branch at the first collision."
+        aria-label={t("anticoll.tree.label")}
       >
         {p ? (
           <>
@@ -74,7 +76,9 @@ function WalkTree({ m, step }: { m: WalkModel; step: number }) {
               x={350}
               y={(yTop + yFork) / 2 + 4}
               className={styles.tk}
-            >{`bits 1–${p - 1}: shared (${p - 1} bits)`}</text>
+            >
+              {t("anticoll.tree.shared", { last: p - 1, count: p - 1 })}
+            </text>
             <path
               d={`M340 ${yFork} Q 260 ${yFork + 10} 200 ${leafY - 14}`}
               className={`${styles.edge} ${onPath0 ? styles.on : ""}`}
@@ -84,25 +88,31 @@ function WalkTree({ m, step }: { m: WalkModel; step: number }) {
               className={`${styles.edge} ${onPath1 ? styles.on : ""}`}
             />
             <circle cx={340} cy={yFork} r={7} className={styles.node} />
-            <text x={352} y={yFork + 4} className={styles.tk}>{`bit ${p}: collision`}</text>
+            <text x={352} y={yFork + 4} className={styles.tk}>{t("anticoll.tree.collision", { p })}</text>
             <text x={236} y={yFork + 6} className={styles.tk} textAnchor="end">
-              bit = 0
+              {t("anticoll.tree.zero")}
             </text>
             <text x={444} y={yFork + 6} className={styles.tk}>
-              bit = 1, taken first
+              {t("anticoll.tree.one")}
             </text>
             <text
               x={200}
               y={leafY + 4}
               className={styles.leaf}
               textAnchor="middle"
-            >{`card ${zero}${onPath0 && step === 6 ? " ✓ found second" : ""}`}</text>
+            >
+              {t(onPath0 && step === 6 ? "anticoll.tree.foundSecond" : "anticoll.tree.card", {
+                name: zero,
+              })}
+            </text>
             <text
               x={480}
               y={leafY + 4}
               className={styles.leaf}
               textAnchor="middle"
-            >{`card ${one}${step >= 4 ? " ✓ found first" : ""}`}</text>
+            >
+              {t(step >= 4 ? "anticoll.tree.foundFirst" : "anticoll.tree.card", { name: one })}
+            </text>
           </>
         ) : null}
       </svg>
@@ -112,6 +122,7 @@ function WalkTree({ m, step }: { m: WalkModel; step: number }) {
 
 /** R3 panel: anticollision as a walk down the UID bits of two cards. */
 export function RfidAnticoll(_: WidgetProps) {
+  const { t } = useTranslation("labs-rfid");
   const [textA, setTextA] = useState(hxs(RF.card.uid));
   const [textB, setTextB] = useState(hxs(RF.tag.uid));
   const ids = useId();
@@ -135,7 +146,7 @@ export function RfidAnticoll(_: WidgetProps) {
     <div className={styles.wd}>
       <div className={styles.inputs}>
         <label htmlFor={`${ids}a`}>
-          Card A UID
+          {t("anticoll.uidA")}
           <input
             id={`${ids}a`}
             className={styles.field}
@@ -143,11 +154,11 @@ export function RfidAnticoll(_: WidgetProps) {
             onChange={(e) => edit(setTextA)(e.target.value)}
             spellCheck={false}
             autoCapitalize="off"
-            aria-label="Card A UID, 4 bytes in hex"
+            aria-label={t("anticoll.uidAHint")}
           />
         </label>
         <label htmlFor={`${ids}b`}>
-          Card B UID
+          {t("anticoll.uidB")}
           <input
             id={`${ids}b`}
             className={styles.field}
@@ -155,7 +166,7 @@ export function RfidAnticoll(_: WidgetProps) {
             onChange={(e) => edit(setTextB)(e.target.value)}
             spellCheck={false}
             autoCapitalize="off"
-            aria-label="Card B UID, 4 bytes in hex"
+            aria-label={t("anticoll.uidBHint")}
           />
         </label>
         <Button
@@ -165,33 +176,34 @@ export function RfidAnticoll(_: WidgetProps) {
             jump(1);
           }}
         >
-          Random pair
+          {t("anticoll.random")}
         </Button>
-        <span className={styles.count}>{`step ${step + 1} / ${list.length}`}</span>
+        <span className={styles.count}>{t("controls.stepOf", { step: step + 1, count: list.length })}</span>
       </div>
-      <ButtonRow aria-label="Playback">
-        <Button onClick={back}>◀ Back</Button>
-        <Button onClick={togglePlay}>{playing ? "❚❚ Pause" : "▶ Play"}</Button>
-        <Button onClick={next}>Next ▶</Button>
+      <ButtonRow aria-label={t("controls.playback")}>
+        <Button onClick={back}>{t("controls.back")}</Button>
+        <Button onClick={togglePlay}>{playing ? t("controls.pause") : t("controls.play")}</Button>
+        <Button onClick={next}>{t("controls.next")}</Button>
       </ButtonRow>
       <div
         className={styles.grid}
         role="img"
-        aria-label="The UID bits of both cards and what the reader hears, in the order they travel."
+        aria-label={t("anticoll.grid")}
+        dir="ltr"
       >
-        <BitRow name={`card A ${hxs(m.a)}`} silent={isSilent(m, step, "A")}>
+        <BitRow name={t("anticoll.rowCard", { name: "A", uid: hxs(m.a) })} silent={isSilent(m, step, "A")}>
           {bitsRow(m.A)}
         </BitRow>
-        <BitRow name={`card B ${hxs(m.b)}`} silent={isSilent(m, step, "B")}>
+        <BitRow name={t("anticoll.rowCard", { name: "B", uid: hxs(m.b) })} silent={isSilent(m, step, "B")}>
           {bitsRow(m.B)}
         </BitRow>
-        <BitRow name="reader hears">
+        <BitRow name={t("anticoll.rowHears")}>
           {Array.from({ length: 32 }, (_, i) => {
             const h = heardBit(m, step, i);
             return <Cell key={i} kind={h ? h[0] : ""} text={h ? h[1] : "·"} i={i} />;
           })}
         </BitRow>
-        <BitRow name="bit #">
+        <BitRow name={t("anticoll.rowBit")}>
           {Array.from({ length: 32 }, (_, i) => (
             <Cell
               key={i}
@@ -203,7 +215,12 @@ export function RfidAnticoll(_: WidgetProps) {
         </BitRow>
       </div>
       <WalkTree m={m} step={step} />
-      {s ? <StepCaption title={s.t} text={s.x} /> : null}
+      {s ? (
+        <StepCaption
+          title={t(`anticoll.steps.${s.id}.title`, s.values)}
+          text={t(`anticoll.steps.${s.id}.text`, s.values)}
+        />
+      ) : null}
     </div>
   );
 }

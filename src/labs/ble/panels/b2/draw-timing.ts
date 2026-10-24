@@ -1,4 +1,5 @@
 import { DISPLAY_FONT, drawText, MONO_FONT, type ScopePalette } from "@/lib/canvas";
+import { annotationDirection, type BleT } from "../../i18n";
 import { SPAN, type TimingSettings, type TimingSim } from "./timing-sim";
 
 export const TIMING_W = 680;
@@ -10,12 +11,14 @@ export function drawTiming(
   C: ScopePalette,
   sim: TimingSim,
   s: TimingSettings,
+  t: BleT,
 ): void {
   const { simT } = sim;
+  g.direction = annotationDirection();
   const small = `9px ${MONO_FONT}`;
   g.fillStyle = C.paper;
   g.fillRect(0, 0, TIMING_W, TIMING_H);
-  const X = (t: number) => 60 + ((t - (simT - SPAN)) / SPAN) * 610;
+  const X = (at: number) => 60 + ((at - (simT - SPAN)) / SPAN) * 610;
   const lanes = [
     ["37", "2402 MHz"],
     ["38", "2426 MHz"],
@@ -25,7 +28,7 @@ export function drawTiming(
     const y = 30 + c * 50;
     g.fillStyle = C.dim;
     g.fillRect(60, y + 18, 610, 1);
-    drawText(g, 6, y + 16, `ch ${n}`, C.ink, `bold 12px ${DISPLAY_FONT}`);
+    drawText(g, 6, y + 16, t("radio.draw.channel", { ch: n }), C.ink, `bold 12px ${DISPLAY_FONT}`);
     drawText(g, 6, y + 28, f, C.muted, small);
   });
   // The scanner's windows: a band on the lane it listens to.
@@ -56,17 +59,17 @@ export function drawTiming(
     }
   g.fillStyle = C.amber;
   g.fillRect(669, 26, 2, 150);
-  drawText(g, 646, 188, "now", C.amber, small);
-  drawText(g, 60, 188, `${SPAN} ms shown, at a quarter of real speed`, C.muted, small);
+  drawText(g, 646, 188, t("timing.draw.now"), C.amber, small);
+  drawText(g, 60, 188, t("timing.draw.span", { ms: SPAN }), C.muted, small);
   g.fillStyle = C.teal;
   g.globalAlpha = 0.3;
   g.fillRect(60, 198, 12, 10);
   g.globalAlpha = 1;
-  drawText(g, 78, 207, "scanner listening", C.muted, small);
+  drawText(g, 78, 207, t("timing.draw.listening"), C.muted, small);
   g.fillStyle = C.teal;
   g.fillRect(200, 198, 3, 10);
-  drawText(g, 208, 207, "caught", C.muted, small);
+  drawText(g, 208, 207, t("timing.draw.caught"), C.muted, small);
   g.fillStyle = C.muted;
   g.fillRect(270, 198, 3, 10);
-  drawText(g, 278, 207, "missed (nobody listening on that channel)", C.muted, small);
+  drawText(g, 278, 207, t("timing.draw.missed"), C.muted, small);
 }

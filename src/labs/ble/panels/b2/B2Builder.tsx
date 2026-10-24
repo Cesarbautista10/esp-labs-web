@@ -1,5 +1,7 @@
 import { type CSSProperties, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, ButtonRow } from "@/ui/Button";
+import { RichText } from "@/ui/RichText";
 import type { WidgetProps } from "@/widgets/types";
 import { b2Url } from "../../protocol/advertising";
 import { hx, hxs } from "../../protocol/hex";
@@ -21,24 +23,26 @@ const asPlace = (v: string): Place => PLACES.find((p) => p === v) ?? "";
 
 /** B2: build an advertisement inside the 31-byte budget. */
 export function B2Builder(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const [place, setPlace] = useState<Placement>({ ...PRESETS.bench });
   const [focus, setFocus] = useState<FieldKey>("maker");
   const [name, setName] = useState("Bench B2");
   const [url, setUrl] = useState("https://github.com/");
 
-  const rows: [string, Cell[]][] = [
-    ["advertisement", packetCells(place, "adv", name, url)],
-    ["scan response", packetCells(place, "rsp", name, url)],
+  const rows: ["adv" | "rsp", Cell[]][] = [
+    ["adv", packetCells(place, "adv", name, url)],
+    ["rsp", packetCells(place, "rsp", name, url)],
   ];
   const f = BUILDER_FIELDS.find((x) => x.k === focus) ?? BUILDER_FIELDS[0];
   const data = (k: (typeof BUILDER_FIELDS)[number]) => k.data(name, url);
+  const fieldName = (k: FieldKey) => t(`builder.fields.${k}.name`);
 
   return (
     <div className={styles.wd}>
       <ButtonRow>
         {PRESET_KEYS.map((k) => (
           <Button key={k} onClick={() => setPlace({ ...PRESETS[k] })}>
-            {k === "b3" ? "B3's advert" : `mode ${k}`}
+            {k === "b3" ? t("builder.presetB3") : t("builder.preset", { name: k })}
           </Button>
         ))}
       </ButtonRow>
@@ -46,9 +50,9 @@ export function B2Builder(_: WidgetProps) {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Field</th>
-              <th>Bytes</th>
-              <th>Goes in</th>
+              <th>{t("builder.field")}</th>
+              <th>{t("builder.bytes")}</th>
+              <th>{t("builder.goesIn")}</th>
             </tr>
           </thead>
           <tbody>
@@ -56,23 +60,23 @@ export function B2Builder(_: WidgetProps) {
               <tr key={x.k}>
                 <td>
                   <span className={styles.chip} style={{ background: x.col }}>
-                    {x.name}
+                    {fieldName(x.k)}
                   </span>
                 </td>
                 <td className={styles.mono}>{data(x).length + 2}</td>
                 <td>
                   <select
                     className={styles.select}
-                    aria-label={`Where ${x.name} goes`}
+                    aria-label={t("builder.where", { name: fieldName(x.k) })}
                     value={place[x.k] ?? ""}
                     onChange={(e) => {
                       setPlace((p) => ({ ...p, [x.k]: asPlace(e.target.value) }));
                       setFocus(x.k);
                     }}
                   >
-                    <option value="">left out</option>
-                    <option value="adv">advertisement</option>
-                    <option value="rsp">scan response</option>
+                    <option value="">{t("builder.place.none")}</option>
+                    <option value="adv">{t("builder.place.adv")}</option>
+                    <option value="rsp">{t("builder.place.rsp")}</option>
                   </select>
                 </td>
               </tr>
@@ -82,13 +86,13 @@ export function B2Builder(_: WidgetProps) {
       </div>
       <p className={own.inputs}>
         <label>
-          Name{" "}
+          {t("builder.name")}{" "}
           <input
             className={styles.textInput}
             value={name}
             maxLength={29}
             size={14}
-            aria-label="Device name"
+            aria-label={t("builder.nameAria")}
             onChange={(e) => {
               setName(e.target.value);
               setFocus("name");
@@ -97,12 +101,12 @@ export function B2Builder(_: WidgetProps) {
         </label>{" "}
         ·{" "}
         <label>
-          URL{" "}
+          {t("builder.url")}{" "}
           <input
             className={styles.textInput}
             value={url}
             size={22}
-            aria-label="Eddystone URL"
+            aria-label={t("builder.urlAria")}
             onChange={(e) => {
               setUrl(e.target.value);
               setFocus("url");
@@ -114,11 +118,18 @@ export function B2Builder(_: WidgetProps) {
         <svg
           viewBox="0 0 680 120"
           className={styles.full}
+          direction="ltr"
           role="img"
-          aria-label="Two rows of 31 byte cells, the advertisement and the scan response, coloured per field. Cells past 31 are red: they don't fit."
+          aria-label={t("builder.aria")}
         >
           {rows.map(([label, cells], r) => (
-            <PacketRow key={label} label={label} cells={cells} y={22 + r * 52} rsp={r === 1} />
+            <PacketRow
+              key={label}
+              label={t(`builder.place.${label}`)}
+              cells={cells}
+              y={22 + r * 52}
+              rsp={r === 1}
+            />
           ))}
         </svg>
       </div>
@@ -130,7 +141,7 @@ export function B2Builder(_: WidgetProps) {
               className={`${styles.bf} ${x.k === focus ? styles.on : ""}`}
               style={{ "--bf": x.col } as CSSProperties}
             >
-              <b>{x.name}</b>
+              <b>{fieldName(x.k)}</b>
               <i>{hxs([data(x).length + 1, x.type, ...data(x)])}</i>
             </span>
           ) : null,
@@ -138,12 +149,17 @@ export function B2Builder(_: WidgetProps) {
       </div>
       {f ? (
         <p className={styles.field}>
-          <b>{f.name}</b> ({data(f).length} + 2 bytes): {f.why}
+          <RichText
+            text={t("builder.detail", {
+              name: fieldName(f.k),
+              length: data(f).length,
+              why: t(`builder.fields.${f.k}.why`),
+            })}
+          />
           {f.k === "url" && !b2Url(url) ? (
             <>
               {" "}
-              <b>This URL doesn&apos;t encode:</b> it must start with http(s):// and be at most 17
-              bytes after that.
+              <RichText text={t("builder.badUrl")} />
             </>
           ) : null}
         </p>
@@ -163,6 +179,7 @@ function PacketRow({
   y: number;
   rsp: boolean;
 }) {
+  const { t } = useTranslation("labs-ble");
   const over = cells.length > 31;
   const slots = Array.from({ length: Math.max(31, cells.length) }, (_, k) => k).filter(
     (k) => 4 + k * 21 <= 660,
@@ -170,7 +187,9 @@ function PacketRow({
   return (
     <g>
       <text x={4} y={y - 6} className={over ? own.titleOver : own.title}>
-        {label}: {cells.length} of 31 bytes{over ? ` · ${cells.length - 31} too many` : ""}
+        {over
+          ? t("builder.rowOver", { label, count: cells.length, over: cells.length - 31 })
+          : t("builder.row", { label, count: cells.length })}
       </text>
       {slots.map((k) => {
         const c = cells[k];
@@ -200,7 +219,7 @@ function PacketRow({
       })}
       {rsp && !cells.length ? (
         <text x={230} y={y + 15} className={own.note}>
-          empty: no scan response is sent
+          {t("builder.empty")}
         </text>
       ) : null}
     </g>

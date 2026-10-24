@@ -1,4 +1,6 @@
+/* eslint-disable i18next/no-literal-string -- literal text here is step sizes with units, not interface text. */
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { prefersReducedMotion } from "@/lib/media";
 import { Button } from "@/ui/Button";
 import type { WidgetProps } from "@/widgets/types";
@@ -6,7 +8,7 @@ import { CanvasPanel } from "../canvas-panel/CanvasPanel";
 import { Range, Select } from "../controls";
 import { drawClapMachine, ENV, type EnvKey, N, randomJitter } from "./clap-machine";
 
-const ENV_OPTIONS = (Object.keys(ENV) as EnvKey[]).map((k) => [k, ENV[k].label] as const);
+const ENV_KEYS = Object.keys(ENV) as EnvKey[];
 
 interface Replay {
   cursor: number;
@@ -16,6 +18,7 @@ interface Replay {
 
 /** S3 panel: is it a clap? The detector, one 4 ms frame at a time. */
 export function SoundClapMachine(_: WidgetProps) {
+  const { t: tr } = useTranslation("labs-sound");
   const [env, setEnv] = useState<EnvKey>("clap");
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
   const [rise, setRise] = useState(18);
@@ -38,13 +41,13 @@ export function SoundClapMachine(_: WidgetProps) {
   return (
     <CanvasPanel
       h={330}
-      label="A loudness envelope over 1.2 seconds with the rise and release thresholds, a cursor, and the detector's three states with the events it has produced so far."
+      label={tr("clapMachine.label")}
       controls={
         <>
           <Select
-            ariaLabel="Which sound"
+            ariaLabel={tr("clapMachine.which")}
             value={env}
-            options={ENV_OPTIONS}
+            options={ENV_KEYS.map((k) => [k, tr(`clapMachine.sounds.${k}`)] as const)}
             onChange={(k) => {
               setEnv(k);
               const reduce = prefersReducedMotion();
@@ -52,7 +55,7 @@ export function SoundClapMachine(_: WidgetProps) {
               setPlaying(!reduce);
             }}
           />
-          <Button aria-label="One frame back" onClick={() => nudge(-1)}>
+          <Button aria-label={tr("clapMachine.back")} onClick={() => nudge(-1)}>
             ◀ 4 ms
           </Button>
           <Button
@@ -62,14 +65,14 @@ export function SoundClapMachine(_: WidgetProps) {
               setPlaying((p) => !p);
             }}
           >
-            {playing ? "❚❚ Pause" : "▶ Play"}
+            {playing ? tr("controls.pause") : tr("controls.play")}
           </Button>
-          <Button aria-label="One frame on" onClick={() => nudge(1)}>
+          <Button aria-label={tr("clapMachine.on")} onClick={() => nudge(1)}>
             4 ms ▶
           </Button>
           <Range
-            label="rise"
-            ariaLabel="Rise threshold in dB"
+            label={tr("clapMachine.rise")}
+            ariaLabel={tr("clapMachine.riseLabel")}
             min={6}
             max={40}
             value={rise}
@@ -77,8 +80,8 @@ export function SoundClapMachine(_: WidgetProps) {
             output={`${rise} dB`}
           />
           <Range
-            label="release"
-            ariaLabel="Release threshold in dB"
+            label={tr("clapMachine.release")}
+            ariaLabel={tr("clapMachine.releaseLabel")}
             min={2}
             max={20}
             value={relRaw}
@@ -97,7 +100,7 @@ export function SoundClapMachine(_: WidgetProps) {
             else setPlaying(false);
           }
         }
-        caption(drawClapMachine(g, C, env, r.cursor, rise, rel, r.jitter));
+        caption(drawClapMachine(g, C, env, r.cursor, rise, rel, r.jitter, tr));
       }}
     />
   );

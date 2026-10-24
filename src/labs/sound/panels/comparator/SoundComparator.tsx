@@ -1,4 +1,5 @@
 import { type PointerEvent, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { WidgetProps } from "@/widgets/types";
 import { CanvasPanel } from "../canvas-panel/CanvasPanel";
 import { Range } from "../controls";
@@ -10,6 +11,7 @@ const H = 290;
 
 /** S1 panel: the LM393 comparator and its pot; drag the dashed line or the slider. */
 export function SoundComparator(_: WidgetProps) {
+  const { t: tr } = useTranslation("labs-sound");
   const [pot, setPot] = useState(10);
   const sim = useRef<ComparatorSim | null>(null);
   const dragging = useRef(false);
@@ -22,19 +24,19 @@ export function SoundComparator(_: WidgetProps) {
   return (
     <CanvasPanel
       h={H}
-      label="The AO wave over the last two seconds with the pot's threshold line, and the DO output below it: high wherever the wave is above the line."
+      label={tr("comparator.label")}
       controls={
         <>
           <Range
-            label="pot: threshold above the bias"
-            ariaLabel="Comparator threshold in millivolts above the bias"
+            label={tr("comparator.potRange")}
+            ariaLabel={tr("comparator.potLabel")}
             min={1}
             max={120}
             value={pot}
             onChange={setPot}
             output={`${pot} mV`}
           />
-          <span className={styles.mono}>drag the dashed line too</span>
+          <span className={styles.mono}>{tr("comparator.drag")}</span>
         </>
       }
       canvas={{
@@ -58,10 +60,8 @@ export function SoundComparator(_: WidgetProps) {
         const s = (sim.current ??= new ComparatorSim());
         s.mic.potMv = pot;
         s.step(dt, t);
-        drawComparator(g, C, s);
-        caption(
-          `Threshold ${pot} mV above the bias. Each wave crest above the dashed line is one rising edge on DO (amber); a clap makes dozens, which is why S3 listens to AO, not DO.`,
-        );
+        drawComparator(g, C, s, tr);
+        caption(tr("comparator.caption", { pot }));
       }}
     />
   );

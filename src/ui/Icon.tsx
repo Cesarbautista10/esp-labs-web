@@ -13,6 +13,8 @@ const PATHS = {
   back: "M19 12H5M11 6l-6 6 6 6",
   up: "M12 19V5M6 11l6-6 6 6",
   grid: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
+  globe: `${o(12, 12, 9)}M3.5 9h17M3.5 15h17M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9M12 3c-2.4 2.5-3.6 5.5-3.6 9s1.2 6.5 3.6 9`,
+  check: "M5 12.5l4.5 4.5L19 7.5",
   sliders: "M4 6h9M17 6h3M15 4v4M4 12h3M11 12h9M9 10v4M4 18h11M19 18h1M17 16v4",
   log: "M6 3h9l3 3v15H6zM9 9h6M9 13h6M9 17h4",
   code: "M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16",
@@ -37,6 +39,9 @@ const PATHS = {
 } as const;
 
 export type IconName = keyof typeof PATHS;
+
+/** Icons that point along the reading direction: mirrored in right-to-left languages. */
+const DIRECTIONAL: ReadonlySet<IconName> = new Set(["arrow", "back"]);
 
 export function Icon({
   name,
@@ -64,6 +69,7 @@ export function Icon({
       aria-label={label}
       aria-hidden={label ? undefined : true}
       focusable="false"
+      data-directional={DIRECTIONAL.has(name) || undefined}
     >
       <path d={PATHS[name]} />
     </svg>

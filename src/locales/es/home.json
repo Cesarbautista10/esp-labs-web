@@ -1,0 +1,71 @@
+{
+  "hero": {
+    "kicker": "ESP32-S3 · N16R8 · guía de banco",
+    "title": "ESP32 <part>Labs</part>",
+    "motto": {
+      "wire": "Cablea",
+      "flash": "Flashea",
+      "watch": "Observa",
+      "read": "Lee el código"
+    }
+  },
+  "hud": {
+    "title": "Laboratorios que funcionan",
+    "strip": "Todos los laboratorios, por tema",
+    "works": "en la placa",
+    "done": "hechos por ti",
+    "built": "listos para probar"
+  },
+  "continue": {
+    "resumed": "Sigue donde lo dejaste",
+    "start": "Empieza aquí",
+    "continue": "Continuar el laboratorio",
+    "open": "Abrir el laboratorio",
+    "code": "Leer su código"
+  },
+  "board": {
+    "title": "Conoce la placa",
+    "intro": "Seis piezas que usarás laboratorio tras laboratorio. Arrastra la placa para girarla; elige una pieza para iluminarla y ver qué laboratorios la usan.",
+    "model": "Modelo 3D de la ESP32-S3 DevKitC-1: el módulo con su antena, dos puertos USB-C, los botones BOOT y RST, el LED RGB y dos filas de pines. Arrastra para girarlo.",
+    "fallback": "Cada pieza se describe en las tarjetas.",
+    "usedIn": "Se usa en ",
+    "more_one": "+{{count}} laboratorio",
+    "more_many": "+{{count}} laboratorios",
+    "more_other": "+{{count}} laboratorios",
+    "parts": {
+      "usb": {
+        "title": "Puertos USB-C",
+        "text": "COM flashea la placa y lleva el monitor serie. USB es el puerto propio del S3."
+      },
+      "buttons": {
+        "title": "BOOT y RST",
+        "text": "RST reinicia tu programa. BOOT es el GPIO 0: un pulsador libre cuando la placa ya está en marcha."
+      },
+      "rgb": {
+        "title": "LED RGB",
+        "text": "Un WS2812 en el GPIO 48: 16 millones de colores con un solo pin de datos."
+      },
+      "module": {
+        "title": "Módulo ESP32-S3",
+        "text": "Dos núcleos a 240 MHz, 16 MB de flash y 8 MB de PSRAM bajo la tapa metálica."
+      },
+      "antenna": {
+        "title": "Antena de PCB",
+        "text": "El Wi-Fi 4 y el Bluetooth 5 salen de este zigzag de cobre: mantenlo lejos de metales."
+      },
+      "headers": {
+        "title": "Tiras de pines",
+        "text": "44 pines: 3V3, 5V, GND y los GPIO donde cableas pantallas, lectores y micrófonos."
+      }
+    }
+  },
+  "map": {
+    "title": "Todos los laboratorios"
+  },
+  "track": {
+    "planned": "previsto",
+    "working": "<b>{{working}}</b>/{{total}}<span> funcionan</span>",
+    "state": ", {{state}}",
+    "loading": "Cargando…"
+  }
+}

@@ -1,6 +1,7 @@
 // S6 panel: the secret rhythm and your attempt, both stretched to the same length.
 import type { ScopePalette } from "@/lib/canvas";
-import { display, mono, textWriter } from "../../kit/draw";
+import { display, labelWriter, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import type { RhythmMatch } from "../../model/rhythm";
 
 export interface KnockPicture {
@@ -23,13 +24,15 @@ function row(
   label: string,
   errs: readonly number[] | null,
   tol: number,
+  tr: SoundT,
 ): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const x0 = 120;
   const w = 520;
   const first = r[0] ?? 0;
   const len = r.length > 1 ? (r.at(-1) ?? 0) - first : 1;
-  T(14, y + 14, label, C.muted);
+  W(14, y + 14, label, C.muted);
   g.fillStyle = C.dim;
   g.fillRect(x0, y + 10, w, 1);
   r.forEach((v, i) => {
@@ -50,22 +53,38 @@ function row(
     }
   });
   if (r.length > 1)
-    T(x0 + w, y + 46, `${(len / 1000).toFixed(2)} s long`, C.muted, mono(10), "right");
+    W(x0 + w, y + 46, tr("knock.long", { s: len / 1000 }), C.muted, mono(10), "right");
 }
 
-export function drawKnocks(g: CanvasRenderingContext2D, C: ScopePalette, k: KnockPicture): void {
+export function drawKnocks(
+  g: CanvasRenderingContext2D,
+  C: ScopePalette,
+  k: KnockPicture,
+  tr: SoundT,
+): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   g.fillStyle = C.paper;
   g.fillRect(0, 0, 680, 250);
-  if (k.secret.length) row(g, C, 40, k.secret, C.pink, "secret", null, k.tol);
-  else T(120, 54, "no secret yet: knock one", C.amber);
+  if (k.secret.length) row(g, C, 40, k.secret, C.pink, tr("knock.secret"), null, k.tol, tr);
+  else W(120, 54, tr("knock.noSecret"), C.amber);
   if (k.open.length) {
-    row(g, C, 140, k.open, C.amber, k.setting ? "new secret…" : "knocking…", null, k.tol);
+    row(
+      g,
+      C,
+      140,
+      k.open,
+      C.amber,
+      tr(k.setting ? "knock.newSecret" : "knock.knocking"),
+      null,
+      k.tol,
+      tr,
+    );
     g.fillStyle = C.amber;
     g.fillRect(120, 230, 520 * k.quiet, 3);
-    T(120, 246, "1.5 s of quiet ends the pattern", C.muted, mono(10));
+    W(120, 246, tr("knock.pause"), C.muted, mono(10));
   } else if (k.attempt.length)
-    row(g, C, 140, k.attempt, C.ink, "your knock", k.result?.errs ?? null, k.tol);
+    row(g, C, 140, k.attempt, C.ink, tr("knock.yours"), k.result?.errs ?? null, k.tol, tr);
   if (k.result && !k.open.length)
     T(
       640,

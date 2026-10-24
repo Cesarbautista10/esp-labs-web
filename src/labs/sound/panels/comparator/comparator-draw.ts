@@ -1,19 +1,22 @@
 // The comparator panel: AO over the last 4 s with the pot's line, DO under it, LED2 and the advice
 // S1's comparator view gives.
 import type { ScopePalette } from "@/lib/canvas";
-import { mono, textWriter } from "../../kit/draw";
+import { labelWriter, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import { COLS, type ComparatorSim, yMv } from "./comparator-sim";
 
 export function drawComparator(
   g: CanvasRenderingContext2D,
   C: ScopePalette,
   sim: ComparatorSim,
+  tr: SoundT,
 ): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const { mic, mvCol, doCol, head } = sim;
   g.fillStyle = C.paper;
   g.fillRect(0, 0, 680, 290);
-  T(20, 18, "AO minus the bias, last 4 s (square-root scale)", C.muted);
+  W(20, 18, tr("comparator.axis"), C.muted);
   for (const v of [5, 50, 200]) T(96, yMv(v) + 4, `${v} mV`, C.muted, mono(9), "right");
   g.fillStyle = C.dim;
   g.fillRect(100, yMv(0), COLS, 1);
@@ -31,7 +34,7 @@ export function drawComparator(
   g.lineTo(660, yMv(mic.potMv));
   g.stroke();
   g.setLineDash([]);
-  T(664, yMv(mic.potMv) - 6, `pot ${mic.potMv} mV`, C.ink, mono(11, true), "right");
+  W(664, yMv(mic.potMv) - 6, tr("comparator.pot", { mv: mic.potMv }), C.ink, mono(11, true), "right");
   T(20, 238, "DO", C.amber, mono(12, true));
   g.strokeStyle = C.amber;
   g.beginPath();
@@ -48,7 +51,7 @@ export function drawComparator(
   g.arc(40, 120, 14, 0, 7);
   g.fill();
   T(40, 150, "LED2", C.muted, undefined, "center");
-  T(40, 166, `${sim.rps}/s`, C.ink, undefined, "center");
+  W(40, 166, tr("comparator.perSecond", { n: sim.rps }), C.ink, undefined, "center");
   // The same advice as S1's comparator view.
   let highCols = 0;
   let loudest = 0;
@@ -58,11 +61,11 @@ export function drawComparator(
   }
   const hint =
     mic.potMv < 2 || highCols > COLS * 0.6
-      ? "DO always on: turn the pot the other way"
+      ? "alwaysOn"
       : highCols === 0 && loudest > 40
-        ? "even the clap stays under the line: turn the pot back"
+        ? "underLine"
         : highCols === 0
-          ? "nothing loud yet: a clap is coming"
-          : "DO follows the loud moments: tuned";
-  T(100, 278, hint, hint.endsWith("tuned") ? C.teal : C.amber);
+          ? "waiting"
+          : "tuned";
+  W(100, 278, tr(`comparator.hint.${hint}`), hint === "tuned" ? C.teal : C.amber);
 }

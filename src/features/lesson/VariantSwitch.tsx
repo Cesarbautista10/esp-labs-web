@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { LessonVariant } from "@/domain/lesson";
 import styles from "./VariantSwitch.module.css";
 
@@ -11,8 +12,9 @@ export function VariantSwitch({
   current?: string;
   onChange: (key: string) => void;
 }) {
+  const { t } = useTranslation("lesson");
   return (
-    <div className={styles.variants} role="group" aria-label="Variations">
+    <div className={styles.variants} role="group" aria-label={t("variants.label")}>
       {variants.map((v) => (
         <button
           key={v.key}

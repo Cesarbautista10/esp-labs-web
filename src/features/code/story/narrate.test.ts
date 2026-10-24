@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createGlossary } from "@/domain/code/glossary";
+import { i18n } from "@/i18n/i18n";
 import { buildLabCode } from "../lab-code";
 import { narrate } from "./narrate";
 import { storyOf } from "./use-story";
@@ -26,7 +27,7 @@ const doc = {
 };
 
 describe("narrate", () => {
-  const lab = buildLabCode(doc, createGlossary([]), undefined);
+  const lab = buildLabCode(doc, createGlossary([]), undefined, i18n.getFixedT("en", "code"));
   const story = storyOf(lab, "explorer");
 
   it("opens with the board powering up, then follows the call into the shared file", () => {

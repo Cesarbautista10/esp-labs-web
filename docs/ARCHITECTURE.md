@@ -10,6 +10,7 @@ The ESP32-S3 bench guide, rebuilt from the single 11k-line `hardware-diary/test-
 | Build        | Vite 8 (Rolldown), `base: "./"`                                                         | One static bundle that runs on any static host, in any subfolder, or as a claude.ai artifact |
 | Routing      | React Router 8, data mode, `createHashRouter`                                           | Loaders prefetch content before render; hash URLs need no server rewrites                    |
 | Server state | TanStack Query 5                                                                        | Bench log/status JSON and lesson content chunks: cache, dedupe, retries, refetch on focus    |
+| Languages    | i18next 26 + react-i18next 17; content as JSON overlays                                 | Typed keys, lazy catalogues per language and namespace, CLDR plurals, RTL ([I18N.md](I18N.md)) |
 | Validation   | zod 4                                                                                   | Env config and every fetched JSON document are parsed at the boundary                        |
 | Styles       | CSS Modules + design tokens (`src/styles/tokens.css`)                                   | Scoped, zero runtime; themes are token sets                                                  |
 | Quality      | TypeScript 6 strict, ESLint (react-hooks incl. compiler rules, jsx-a11y, query), Vitest | TS 6 because typescript-eslint does not support TS 7 yet                                     |
@@ -194,6 +195,7 @@ flowchart TB
 | Section you are reading             | `useActiveSection` (IntersectionObserver), lesson route                              | Lights the sheet's via and the dock's chip               |
 | Code settings, motion, code read, words met | Same stores; settings are re-validated (`normalizeSettings`) on every read | Yours; a stale value falls back to defaults |
 | Lab code + phrasebook | Query cache, `staleTime: "static"`; analysis cached per document | Bundled at build time |
+| Language                            | `esp-locale` store ("auto" follows the browser) → i18next → `<html lang dir>`     | Yours; content queries are keyed by language             |
 | Variant, log filter                 | URL search params                                                                   | Shareable                                                |
 | Simulator internals                 | refs / `Simulation`                                                                 | 60 fps, not rendering state                              |
 
@@ -208,6 +210,8 @@ flowchart TB
 Append an entry to `public/data/bench-log.json` (shape: `LogEntrySchema` in `src/features/bench/schema.ts`) and update `public/data/bench-status.json`. A running guide picks it up on the next focus; no rebuild.
 
 ## Adding things
+
+- **Text**: never inline. Interface text goes in `src/locales/en/<namespace>.json` and through `t()`; content text is picked up by `pnpm i18n:extract`. Rules, RTL and adding a language: [I18N.md](I18N.md).
 
 - **A lesson**: add it to `src/content/lessons/<track>.ts` and its id to the track's `lessonIds` in `tracks.ts`.
 - **A track**: an entry in `TRACKS`, a lessons file, a loader in `content/queries.ts`, a `labs/<track>/widgets.ts` spread into `widgets/registry.ts`, and a colour token.

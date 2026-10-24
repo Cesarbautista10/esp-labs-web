@@ -1,4 +1,7 @@
+import type { TFunction } from "i18next";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocaleInfo } from "@/i18n/use-locale";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d } from "@/lib/canvas";
 import type { WidgetProps } from "@/widgets/types";
@@ -6,8 +9,8 @@ import { HoldButton } from "@/ui/board-button/BoardButton";
 import { Label, ScopeCaption, WireCaption } from "../wiring/parts";
 import type { CaptionLine } from "../wiring/spi-analyzer";
 import wd from "../wiring/wiring.module.css";
-import { bouncePalette, drawBounceScope } from "./bounce-scope";
-import { ButtonSignal, DEBOUNCE_MS } from "./button-signal";
+import { type BounceLabels, bouncePalette, drawBounceScope } from "./bounce-scope";
+import { ButtonSignal, DEBOUNCE_MS, type Gesture } from "./button-signal";
 
 // Panel 1: the button seen from above, legs A–D.
 const LEGS = { A: [92, 58], B: [168, 58], C: [92, 222], D: [168, 222] } as const;
@@ -20,28 +23,47 @@ const HOLES = Array.from({ length: 20 }, (_, c) =>
   Array.from({ length: 5 }, (_, r) => [290 + c * 21, r * 18] as const),
 ).flat();
 
-function scopeLines(lastEvent: string): readonly CaptionLine[] {
+function gestureText(gesture: Gesture, t: TFunction<"labs-display">): string {
+  switch (gesture.kind) {
+    case "click":
+      return t("button.gestures.click", { count: gesture.bounces });
+    case "double":
+      return t("button.gestures.double");
+    case "long":
+      return t("button.gestures.long");
+  }
+}
+
+function scopeLines(lastEvent: Gesture | null, t: TFunction<"labs-display">): readonly CaptionLine[] {
   if (!lastEvent) {
     return [
-      [
-        "Press the button above.",
-        " The yellow line is what the pin really does; green is what the program trusts.",
-      ],
-      ["Try a click, a double-click and a long press.", ""],
+      [t("button.scope.press"), ` ${t("button.scope.traces")}`],
+      [t("button.scope.try"), ""],
     ];
   }
   return [
-    ["gesture:", ` ${lastEvent}`],
-    [`debounce waits ${DEBOUNCE_MS} ms of quiet before trusting a change`, ""],
+    [t("button.scope.gesture"), ` ${gestureText(lastEvent, t)}`],
+    [t("button.scope.debounce", { ms: DEBOUNCE_MS }), ""],
   ];
 }
 
 /** Lesson 03b variation 2: inside the push button, how it sits on the breadboard, and its bouncy signal. */
 export function ButtonWiring(_: WidgetProps) {
+  const { t } = useTranslation("labs-display");
+  const { dir } = useLocaleInfo();
+  const labels: BounceLabels = {
+    raw: t("button.canvas.raw"),
+    debounced: t("button.canvas.debounced"),
+    window: t("button.canvas.window"),
+    zoom: t("button.canvas.zoom"),
+    spike: t("button.canvas.spike"),
+    capture: t("button.canvas.capture"),
+    dir,
+  };
   const [signal] = useState(() => new ButtonSignal());
   const [down, setDown] = useState(false);
   const [low, setLow] = useState(false);
-  const [lastEvent, setLastEvent] = useState("");
+  const [lastEvent, setLastEvent] = useState<Gesture | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   function pressDown() {
@@ -60,7 +82,7 @@ export function ButtonWiring(_: WidgetProps) {
     const now = performance.now();
     setLow(signal.step(now));
     setLastEvent(signal.lastEvent);
-    drawBounceScope(context2d(canvas), bouncePalette(), signal, now);
+    drawBounceScope(context2d(canvas), bouncePalette(), signal, now, labels);
   });
 
   const knob = low ? "var(--copper)" : "var(--pcb-edge)";
@@ -69,15 +91,11 @@ export function ButtonWiring(_: WidgetProps) {
 
   return (
     <div className={wd.wd}>
-      <div className={wd.wdSvg}>
-        <svg
-          viewBox="0 0 720 300"
-          role="img"
-          aria-label="Inside a 4-leg push button, and how it sits on the breadboard wired to GPIO 5 and GND"
-        >
+      <div className={wd.wdSvg} dir="ltr">
+        <svg viewBox="0 0 720 300" role="img" aria-label={t("button.aria")}>
           {/* Panel 1: inside the button */}
           <Label x={20} y={22} className={wd.title}>
-            INSIDE THE BUTTON (TOP VIEW)
+            {t("button.inside")}
           </Label>
           {Object.entries(LEGS).map(([k, [x, y]]) => (
             <g key={k}>
@@ -120,15 +138,15 @@ export function ButtonWiring(_: WidgetProps) {
           />
           <circle cx="130" cy="140" r="26" fill={knob} stroke="var(--silk-dim)" strokeWidth="2" />
           <Label x={20} y={262}>
-            A–C and B–D are always joined.
+            {t("button.joined")}
           </Label>
           <Label x={20} y={280}>
-            Pressing joins the two sides.
+            {t("button.pressing")}
           </Label>
 
           {/* Panel 2: on the breadboard */}
           <Label x={270} y={22} className={wd.title}>
-            ON THE BREADBOARD
+            {t("button.breadboard")}
           </Label>
           <rect
             x="270"
@@ -147,7 +165,7 @@ export function ButtonWiring(_: WidgetProps) {
             </g>
           ))}
           <Label x={690} y={156} anchor="end">
-            centre gap
+            {t("button.gap")}
           </Label>
           <path
             d={`M${AX} ${AY} V44 H300`}
@@ -203,44 +221,43 @@ export function ButtonWiring(_: WidgetProps) {
           ))}
           <rect x="276" y="34" width="112" height="20" rx="4" fill="var(--w-dc)" />
           <Label x={332} y={48} className={wd.role} anchor="middle">
-            to ESP32 pin 5
+            {t("button.toPin")}
           </Label>
           <rect x="276" y="254" width="112" height="20" rx="4" fill="var(--gnd)" />
           <Label x={332} y={268} className={wd.role} anchor="middle">
-            to ESP32 GND
+            {t("button.toGnd")}
           </Label>
           <Label x={AX - 22} y={AY - 30} className={`${wd.lbl} ${wd.on}`} anchor="end">
-            use diagonal legs
+            {t("button.diagonal")}
           </Label>
           <Label x={AX - 22} y={AY - 14} anchor="end">
-            A and D: works in
+            {t("button.orientation1")}
           </Label>
           <Label x={AX - 22} y={AY + 2} anchor="end">
-            any orientation
+            {t("button.orientation2")}
           </Label>
         </svg>
       </div>
       <div className={wd.wdBar}>
         <HoldButton
           down={down}
-          aria-label="Press the drawn button"
+          aria-label={t("press.aria")}
           onDown={pressDown}
           onUp={pressUp}
         >
-          PRESS
+          {t("press.label")}
         </HoldButton>
         <span className={wd.wdCount}>
-          {low ? "GPIO 5 reads LOW (0 V)" : "GPIO 5 reads HIGH (3.3 V)"}
+          {low ? t("button.readsLow") : t("button.readsHigh")}
         </span>
       </div>
       {low ? (
-        <WireCaption color="--w-dc" title="Pressed: GPIO 5 joined to GND">
-          The pin is pulled to 0 V, so it reads LOW. The internal pull-up only leaks a tiny current.
+        <WireCaption color="--w-dc" title={t("button.pressed.title")}>
+          {t("button.pressed.text")}
         </WireCaption>
       ) : (
-        <WireCaption color="--line" title="Released: the pull-up holds the pin HIGH">
-          A resistor inside the chip connects GPIO 5 to 3.3 V, so an open button reads HIGH. Press
-          and hold the button above.
+        <WireCaption color="--line" title={t("button.released.title")}>
+          {t("button.released.text")}
         </WireCaption>
       )}
       <div className={wd.la}>
@@ -249,9 +266,10 @@ export function ButtonWiring(_: WidgetProps) {
           width="680"
           height="190"
           role="img"
-          aria-label="Signal on GPIO 5: raw with bounce, and debounced"
+          aria-label={t("button.scopeAria")}
+          dir="ltr"
         />
-        <ScopeCaption lines={scopeLines(lastEvent)} live />
+        <ScopeCaption lines={scopeLines(lastEvent, t)} live />
       </div>
     </div>
   );

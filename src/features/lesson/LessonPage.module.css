@@ -39,7 +39,8 @@
   flex-direction: column;
   gap: 36px;
   min-width: 0;
-  padding: 18px 14px 26px calc(var(--spine) + var(--spine-gap));
+  padding-block: 18px 26px;
+  padding-inline: calc(var(--spine) + var(--spine-gap)) 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-l);
   background: var(--surface);
@@ -49,7 +50,8 @@
   .sheet {
     --spine: 28px;
     --spine-gap: 34px;
-    padding: 24px 24px 32px calc(var(--spine) + var(--spine-gap));
+    padding-block: 24px 32px;
+    padding-inline: calc(var(--spine) + var(--spine-gap)) 24px;
   }
 }
 .sheet::before {
@@ -57,7 +59,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(var(--spine) - 1.5px);
+  inset-inline-start: calc(var(--spine) - 1.5px);
   width: 3px;
   background: linear-gradient(
     180deg,

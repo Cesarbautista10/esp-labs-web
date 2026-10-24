@@ -153,15 +153,15 @@ export const S1: SoundSpec<S1State> = {
     ["dump [n]", "print the newest n samples as numbers"],
   ],
   captions: [
-    "scope: the last 20 ms of sound, lined up on a rising zero crossing so a steady tone stands still. The scale follows the wave and is written in millivolts at the AO pin.",
-    "mics: both microphones, one above the other (INMP441 on top): each one's quiet in dBFS and how far above it the sound is now, and how many dB more clearly the INMP441 hears it. Only one wired? It shows how to wire the other (then press RST).",
-    "bias (KY-037): a 0-3.3 V ruler. Shaded = the ADC's range at this attenuation, the line = the bias, the band = how far the wave swung in the last 0.1 s. The hint says whether a smaller range would fit. With the INMP441 it becomes a ladder of its 24 bits: how many the sound uses (6 dB each) and the headroom left.",
-    "comparator: the DO lamp (like LED2 on the module), rising edges per second, and 6 s of loudness (top) against DO (bottom). Tune the pot until DO lights only with the loud moments. The INMP441 has no DO: the board compares in software (thresh, 3 dB of hysteresis).",
-    "numbers: the source, the sampler's real rate, lost samples, the level in dBFS (and dB SPL with the INMP441), the quiet, dB above it, free PSRAM.",
+    (t) => t("labs-sound:s1.captions.scope"),
+    (t) => t("labs-sound:s1.captions.mics"),
+    (t) => t("labs-sound:s1.captions.bias"),
+    (t) => t("labs-sound:s1.captions.comparator"),
+    (t) => t("labs-sound:s1.captions.numbers"),
   ],
   actions: [
     {
-      label: "atten next",
+      label: (_, t) => t("labs-sound:s1.actions.attenNext"),
       run(st, term) {
         if (st.mic.digital) {
           soundNote(st, term, "-", "INMP441: fixed 24-bit range, nothing to switch");
@@ -172,16 +172,16 @@ export const S1: SoundSpec<S1State> = {
         setAtten(st, term, n);
       },
     },
-    { label: "freeze", run: (st, term) => void onCommand("freeze", st, term) },
+    { label: (_, t) => t("labs-sound:s1.actions.freeze"), run: (st, term) => void onCommand("freeze", st, term) },
     {
-      label: "pot: more sensitive",
+      label: (_, t) => t("labs-sound:s1.actions.potMoreSensitive"),
       run(st, term) {
         st.mic.potMv = Math.max(1, st.mic.potMv - 10);
         soundNote(st, term, "-", `(the pot: ${st.mic.potMv} mV above the bias)`);
       },
     },
     {
-      label: "pot: less sensitive",
+      label: (_, t) => t("labs-sound:s1.actions.potLessSensitive"),
       run(st, term) {
         st.mic.potMv = Math.min(150, st.mic.potMv + 10);
         soundNote(st, term, "-", `(the pot: ${st.mic.potMv} mV above the bias)`);

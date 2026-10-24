@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/ui/Button";
 import type { WidgetProps } from "@/widgets/types";
 import { browserAudio } from "../../audio/browser-audio";
@@ -10,6 +11,7 @@ import { drawSpeakerPath, volumeGain } from "./speaker-draw";
 /** S7 panel: from numbers to a moving cone, volume, and the echo guard. */
 export function SoundSpeakerPath(_: WidgetProps) {
   useBrowserAudio();
+  const { t: tr } = useTranslation("labs-sound");
   const [vol, setVol] = useState(40);
   const loopT = useRef(0);
   const gain = volumeGain(vol);
@@ -24,25 +26,29 @@ export function SoundSpeakerPath(_: WidgetProps) {
   return (
     <CanvasPanel
       h={400}
-      label="Samples going to the MAX98357A over I2S, its fast on-off pulses whose width follows each sample, the speaker cone following their average; a volume curve; and a timeline of the echo guard muting the detectors while the speaker plays."
+      label={tr("speaker.label")}
       controls={
         <>
           <Range
-            label="volume"
-            ariaLabel="Volume 0 to 100"
+            label={tr("speaker.volume")}
+            ariaLabel={tr("speaker.volumeLabel")}
             min={0}
             max={100}
             value={vol}
             onChange={setVol}
-            output={`${vol} → ×${gain.toFixed(2)} (${Number.isFinite(db) ? `${db.toFixed(1)} dB` : "silent"})`}
+            output={
+              Number.isFinite(db)
+                ? tr("speaker.output", { vol, gain, db })
+                : tr("speaker.outputSilent", { vol, gain })
+            }
           />
-          <Button onClick={hear}>🔈 hear 440 Hz at this volume</Button>
+          <Button onClick={hear}>{tr("speaker.hear")}</Button>
         </>
       }
-      caption={`Volume ${vol}: every sample × ${gain.toFixed(2)} before it leaves. The amplifier's pulses are too fast for the cone, so it follows their average: the wave.`}
+      caption={tr("speaker.caption", { vol, gain })}
       onFrame={({ g, C, dt, t, reduce }) => {
         if (!reduce) loopT.current = (loopT.current + dt) % 6;
-        drawSpeakerPath(g, C, vol, t, reduce ? 0.3 : t * 0.25, loopT.current);
+        drawSpeakerPath(g, C, vol, t, reduce ? 0.3 : t * 0.25, loopT.current, tr);
       }}
     />
   );

@@ -1,15 +1,18 @@
 import type { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
+import { useTrackText } from "@/features/navigation/use-track-text";
 import { findTrack } from "@/content/tracks";
 import type { LessonEntry, ResolvedLesson } from "@/domain/lesson";
 import type { LessonSection as Section } from "@/domain/lesson-sections";
 import { lessonState, stepsTicked } from "@/domain/progress";
 import { BoardCard } from "@/features/board/BoardCard";
 import { useTicks } from "@/features/progress/progress-store";
-import { CommandsPanel, COMMANDS_INTRO } from "./CommandsPanel";
+import { CommandsPanel } from "./CommandsPanel";
 import { LessonHeader } from "./LessonHeader";
 import styles from "./LessonPage.module.css";
 import { LessonSection } from "./LessonSection";
 import { NextUp } from "./NextUp";
+import { sectionTitle } from "./section-labels";
 import { StepsChecklist } from "./StepsChecklist";
 import { WidgetSlot } from "./WidgetSlot";
 import { WiringTable } from "./WiringTable";
@@ -33,7 +36,9 @@ export function LessonPage({
   active?: string;
   onVariant: (key: string) => void;
 }) {
+  const { t } = useTranslation("lesson");
   const ticks = useTicks();
+  const trackText = useTrackText();
   const track = findTrack(lesson.track);
   const base = lessons.find((l) => l.id === lesson.id);
   const open = lessons.filter((l) => l.kind === "lesson");
@@ -85,7 +90,7 @@ export function LessonPage({
             lesson={lesson}
             onVariant={onVariant}
             state={base ? lessonState(base, ticks) : "built"}
-            trackTitle={track?.title ?? ""}
+            trackTitle={track ? trackText(track).title : ""}
             position={{ index: open.findIndex((l) => l.id === lesson.id) + 1, total: open.length }}
             steps={steps}
             active={active === "sec-goal"}
@@ -98,12 +103,12 @@ export function LessonPage({
                 id={s.id}
                 kind={s.kind}
                 number={i + 1}
-                title={s.title}
+                title={sectionTitle(t, s)}
                 intro={
                   s.kind === "explain"
                     ? lesson.panels[s.panel ?? 0]?.intro
                     : s.kind === "commands"
-                      ? COMMANDS_INTRO
+                      ? t("commands.intro")
                       : undefined
                 }
                 active={active === s.id}

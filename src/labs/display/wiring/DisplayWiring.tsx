@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useInterval } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Button } from "@/ui/Button";
@@ -30,30 +31,35 @@ const GEOMETRY = WIRES.map((w, i) => {
 const usedBy = (pin: number) => WIRES.findIndex((w) => w.idx === pin);
 
 function Caption({ step }: { step: number }) {
+  const { t } = useTranslation("labs-display");
   if (step === 0) {
     return (
-      <WireCaption color="--line" title="Unplug USB first">
-        Then press Play, or Next to place one wire at a time.
+      <WireCaption color="--line" title={t("wiring.start.title")}>
+        {t("wiring.start.text")}
       </WireCaption>
     );
   }
   const w = WIRES[step - 1];
   if (step === ALL || !w) {
     return (
-      <WireCaption color="--ok" title="All 8 wires placed">
-        Double-check VCC is on 3V3. Press Signals to see what travels on each wire.
+      <WireCaption color="--ok" title={t("wiring.done.title", { count: ALL })}>
+        {t("wiring.done.text")}
       </WireCaption>
     );
   }
   return (
-    <WireCaption color={w.color} title={`Wire ${step}: display ${w.disp} → ${w.esp}`}>
-      {w.what}
+    <WireCaption
+      color={w.color}
+      title={t("wiring.wire", { step, disp: w.disp, esp: w.esp })}
+    >
+      {t(`wires.${w.disp}`)}
     </WireCaption>
   );
 }
 
 /** Lesson 03: the 8 display wires placed one at a time, then the signals that travel on them. */
 export function DisplayWiring(_: WidgetProps) {
+  const { t } = useTranslation("labs-display");
   const reduce = useReducedMotion();
   // step = how many wires are placed (0..8); animate = whether this change draws the wires in.
   const [view, setView] = useState({ step: 0, animate: false });
@@ -96,23 +102,19 @@ export function DisplayWiring(_: WidgetProps) {
   return (
     <div className={styles.wd}>
       <div className={styles.wdBar}>
-        <Button onClick={() => manual(step - 1)}>◀ Prev</Button>
-        <Button onClick={togglePlay}>{playing ? "Pause" : "Play"}</Button>
-        <Button onClick={() => manual(step + 1)}>Next ▶</Button>
-        <Button onClick={() => manual(ALL)}>Show all</Button>
+        <Button onClick={() => manual(step - 1)}>{t("wiring.prev")}</Button>
+        <Button onClick={togglePlay}>{playing ? t("wiring.pause") : t("wiring.play")}</Button>
+        <Button onClick={() => manual(step + 1)}>{t("wiring.next")}</Button>
+        <Button onClick={() => manual(ALL)}>{t("wiring.showAll")}</Button>
         <Button pressed={signals} onClick={toggleSignals}>
-          Signals
+          {t("wiring.signals")}
         </Button>
         <span className={styles.wdCount} aria-live="polite">
-          {step} / {ALL} wires
+          {t("wiring.count", { step, count: ALL })}
         </span>
       </div>
-      <div className={`${styles.wdSvg} ${signals ? styles.signals : ""}`}>
-        <svg
-          viewBox="0 0 720 566"
-          role="img"
-          aria-label="Wiring diagram: 8 jumper wires from the display header to the ESP32 left header"
-        >
+      <div className={`${styles.wdSvg} ${signals ? styles.signals : ""}`} dir="ltr">
+        <svg viewBox="0 0 720 566" role="img" aria-label={t("wiring.aria")}>
           {/* Display module: PCB, glass, header on its right edge */}
           <rect
             x="40"
@@ -148,7 +150,7 @@ export function DisplayWiring(_: WidgetProps) {
             ST7789 IPS
           </Label>
           <Label x={40} y={98} className={styles.title}>
-            1.9″ DISPLAY MODULE
+            {t("wiring.displayModule")}
           </Label>
 
           {/* ESP32 header strip */}
@@ -163,7 +165,7 @@ export function DisplayWiring(_: WidgetProps) {
             strokeWidth="2"
           />
           <Label x={EX - 20} y={14} className={styles.title}>
-            ESP32-S3 · LEFT HEADER
+            {t("wiring.leftHeader")}
           </Label>
           <Label x={EX + 30} y={536} anchor="middle" className={styles.silk}>
             USB ↓

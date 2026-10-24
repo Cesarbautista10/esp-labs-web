@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { explainLine } from "@/domain/code/explain";
 import { codeLines } from "@/domain/code/tour";
@@ -25,6 +26,7 @@ const log = createLogger("code");
  * holds it, then do the same for loop(). The code pane follows the story from file to file.
  */
 export function StoryMode() {
+  const { t } = useTranslation("code");
   const reader = useReader();
   const { lab, settings, simple } = reader;
   const story = storyOf(lab, settings.level);
@@ -70,11 +72,10 @@ export function StoryMode() {
         file={file}
         guide={
           <article className={panel.card}>
-            <p className={panel.eyebrow}>Story</p>
-            <h3 className={panel.title}>No story to follow here</h3>
+            <p className={panel.eyebrow}>{t("story.eyebrow")}</p>
+            <h3 className={panel.title}>{t("story.emptyTitle")}</h3>
             <p className={panel.say}>
-              This code has no <code>setup()</code> and <code>loop()</code> to start from. Take the
-              tour instead.
+              <Trans t={t} i18nKey="story.empty" components={{ code: <code /> }} />
             </p>
           </article>
         }
@@ -95,7 +96,7 @@ export function StoryMode() {
       cursor={player.cursor}
       onPickFile={(path) => reader.switchMode("explore", { file: path })}
       map={{
-        label: "Storyline",
+        label: t("story.storyline"),
         content: <Storyline story={story} current={scene.id} seen={seen} onGo={go} />,
       }}
       guide={
@@ -118,19 +119,19 @@ export function StoryMode() {
           {last ? (
             <div className={styles.doneActions}>
               <p className={panel.say}>
-                That is the whole story{settings.level !== "deep" ? " at this level" : ""}: you
-                followed the program through {new Set(story.scenes.map((s) => s.fn.path)).size}{" "}
-                files.
+                {t(settings.level !== "deep" ? "story.endAtLevel" : "story.end", {
+                  count: new Set(story.scenes.map((s) => s.fn.path)).size,
+                })}
               </p>
               <Link className={styles.primary} to={reader.lessonHref}>
-                Back to the lab
+                {t("story.backToLab")}
               </Link>
               <button
                 type="button"
                 className={styles.secondary}
                 onClick={() => reader.switchMode("explore")}
               >
-                Explore on your own
+                {t("story.explore")}
               </button>
             </div>
           ) : null}

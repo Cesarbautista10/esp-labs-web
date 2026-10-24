@@ -2,105 +2,80 @@
 // triangles, no pictures in flash. The colours are the characters' own data, as in characters.h.
 
 export interface Friend {
-  readonly id: string;
+  /** What it is and what the app does with it: friends.cast.<id> in the labs-rfid catalogue. */
+  readonly id: FriendId;
   readonly name: string;
-  readonly what: string;
   readonly body: string;
   readonly accent: string;
   readonly belly: string;
-  readonly move: string;
-  readonly fx: string;
-  readonly sky: string;
 }
+
+export type FriendId =
+  | "fox"
+  | "robot"
+  | "dragon"
+  | "penguin"
+  | "alien"
+  | "cat"
+  | "frog"
+  | "unicorn";
 
 export const FRIEND_CAST: readonly Friend[] = [
   {
     id: "fox",
     name: "Foxy",
-    what: "a quick little fox",
     body: "rgb(250,130,40)",
     accent: "rgb(60,36,28)",
     belly: "rgb(255,240,225)",
-    move: "spins twice in a jump",
-    fx: "gold stars",
-    sky: "sunset",
   },
   {
     id: "robot",
     name: "Bolt",
-    what: "a dancing robot",
     body: "rgb(120,200,220)",
     accent: "rgb(255,210,60)",
     belly: "rgb(225,240,245)",
-    move: "dances, arms swinging",
-    fx: "sparks",
-    sky: "deep teal",
   },
   {
     id: "dragon",
     name: "Ember",
-    what: "a tiny dragon",
     body: "rgb(90,200,110)",
     accent: "rgb(255,90,70)",
     belly: "rgb(240,230,150)",
-    move: "flies a loop",
-    fx: "fire",
-    sky: "volcano orange",
   },
   {
     id: "penguin",
     name: "Pip",
-    what: "a sliding penguin",
     body: "rgb(50,70,120)",
     accent: "rgb(255,160,40)",
     belly: "rgb(245,248,255)",
-    move: "belly slide in a circle",
-    fx: "snow",
-    sky: "winter blue",
   },
   {
     id: "alien",
     name: "Zib",
-    what: "a friendly alien",
     body: "rgb(170,240,80)",
     accent: "rgb(150,90,230)",
     belly: "rgb(220,255,190)",
-    move: "beams up and spins",
-    fx: "rings",
-    sky: "space purple",
   },
   {
     id: "cat",
     name: "Mochi",
-    what: "a cuddly cat",
     body: "rgb(255,160,200)",
     accent: "rgb(120,60,90)",
     belly: "rgb(255,235,245)",
-    move: "happy wiggle",
-    fx: "hearts",
-    sky: "candy pink",
   },
   {
     id: "frog",
     name: "Hopper",
-    what: "a bouncy frog",
     body: "rgb(60,180,90)",
     accent: "rgb(255,110,140)",
     belly: "rgb(200,240,150)",
-    move: "leaps high with a flip",
-    fx: "bubbles",
-    sky: "pond",
   },
   {
     id: "unicorn",
     name: "Luna",
-    what: "a magic unicorn",
     body: "rgb(245,235,255)",
     accent: "rgb(255,200,70)",
     belly: "rgb(190,150,255)",
-    move: "gallops side to side",
-    fx: "rainbow stars",
-    sky: "pastel",
   },
 ];
 

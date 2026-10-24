@@ -133,7 +133,8 @@
 .note {
   margin: 0;
   border-inline-start: 3px solid var(--line);
-  padding: 2px 0 2px 10px;
+  padding-block: 2px;
+  padding-inline: 10px 0;
 }
 .note figcaption {
   font: 600 11px var(--font-mono);
@@ -392,7 +393,7 @@
   content: "↓";
   position: absolute;
   top: -15px;
-  left: 22px;
+  inset-inline-start: 22px;
   color: var(--muted);
   font-size: 13px;
 }

@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, SCREEN_H, SCREEN_W, scopePalette } from "@/lib/canvas";
 import { prefersReducedMotion, useReducedMotion } from "@/lib/media";
@@ -17,17 +18,15 @@ import type { WidgetProps } from "@/widgets/types";
 import { useSimulation } from "@/labs/shared/simulation";
 import { BoardButton as BootButton } from "@/ui/board-button/BoardButton";
 import styles from "../display.module.css";
-import { SCENE_NAMES, ShowcaseRenderer, showcaseColors } from "./renderer";
+import { ShowcaseRenderer, showcaseColors } from "./renderer";
 import {
   AUTO_CYCLE_MS,
-  autoFlag,
   autoLines,
+  BUTTON_LABEL,
   clickLine,
-  COPY,
   DOUBLE_CLICK_MS,
   doubleClickLine,
   type LogLine,
-  PLACEHOLDER_NOTE,
   releaseGesture,
   type ShowcaseMode,
   showcaseMode,
@@ -45,7 +44,9 @@ interface ShowcaseState {
   downAt: number;
 }
 
-const SCENE_CHOICES = SCENE_NAMES.map((name, i) => ({ key: i, label: `${i + 1} ${name}` }));
+// The firmware's scene names stay English on the screen and the serial monitor; the chooser
+// and the screen's description use labs-display showcase.scenes.<index>.
+const SCENE_KEYS = ["torus", "plasma", "fireworks", "dashboard"] as const;
 
 /** Lesson 03b preview: the four showcase scenes, switched with BOOT (variation 1) or the push button (variation 2). */
 export function ShowcasePreview({ lesson }: WidgetProps) {
@@ -55,6 +56,7 @@ export function ShowcasePreview({ lesson }: WidgetProps) {
 }
 
 function Showcase({ mode }: { mode: ShowcaseMode }) {
+  const { t } = useTranslation("labs-display");
   const term = useTerminalLog();
   const reduce = useReducedMotion();
   const [sim, { state }] = useSimulation<ShowcaseState>(() => ({
@@ -68,7 +70,14 @@ function Showcase({ mode }: { mode: ShowcaseMode }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fps = useRef(0);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const copy = COPY[mode];
+  const sceneName = (i: number) => {
+    const key = SCENE_KEYS[i];
+    return key ? t(`showcase.scenes.${key}`) : "";
+  };
+  const sceneChoices = SCENE_KEYS.map((key, i) => ({
+    key: i,
+    label: t("showcase.choice", { n: i + 1, name: t(`showcase.scenes.${key}`) }),
+  }));
 
   const print = (lines: readonly LogLine[]) =>
     lines.forEach(([text, tone]) => term.line(text, tone));
@@ -178,32 +187,33 @@ function Showcase({ mode }: { mode: ShowcaseMode }) {
           width={SCREEN_W}
           height={SCREEN_H}
           role="img"
-          aria-label={`Simulated display showing scene ${state.scene + 1}: ${SCENE_NAMES[state.scene] ?? ""}`}
+          aria-label={t("showcase.aria", { n: state.scene + 1, name: sceneName(state.scene) })}
+          dir="ltr"
         />
       </ScreenFrame>
       <div className={styles.bootRow}>
         <BootButton
           down={state.down}
-          aria-label={copy.aria}
+          aria-label={t(`showcase.${mode}.aria`)}
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerCancel}
           onKeyDown={onKeyDown}
         >
-          {copy.label}
+          {BUTTON_LABEL[mode]}
         </BootButton>
         <ChoiceGroup
-          label="Scenes"
-          choices={SCENE_CHOICES}
+          label={t("showcase.scenesLabel")}
+          choices={sceneChoices}
           value={state.scene}
           onChange={(i) => show(i, `scene ${i + 1}`)}
         />
-        <span className={styles.autoFlag}>{autoFlag(state.auto)}</span>
+        <span className={styles.autoFlag}>
+          {state.auto ? t("showcase.autoOn") : t("showcase.autoOff")}
+        </span>
       </div>
-      <Caption>
-        {copy.caption} {PLACEHOLDER_NOTE}
-      </Caption>
-      <Terminal log={term} title="$ uv run pio device monitor   (expected output)" />
+      <Caption>{t(`showcase.${mode}.caption`)}</Caption>
+      <Terminal log={term} title={t("showcase.terminal")} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 // S5 panel: from a whistle to a note, step by step (samples, window, FFT, peak, parabola, note).
 import type { ScopePalette } from "@/lib/canvas";
-import { display, mono, textWriter } from "../../kit/draw";
+import { display, labelWriter, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import { type Fft, type FftPeak, hann } from "../../model/fft";
 import { noteOf } from "../../model/tune";
 
@@ -14,8 +15,10 @@ export function drawWhistleStep(
   s: Float32Array,
   ws: Float32Array,
   p: FftPeak,
+  tr: SoundT,
 ): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const rate = WHISTLE_RATE;
   g.fillStyle = C.paper;
   g.fillRect(0, 0, 680, 280);
@@ -43,7 +46,7 @@ export function drawWhistleStep(
       g.stroke();
       g.setLineDash([]);
     }
-    T(20, 262, at === 0 ? "0 ms" : "the hump: 0 at both ends", C.muted);
+    W(20, 262, at === 0 ? "0 ms" : tr("whistle.hump"), C.muted);
     T(660, 262, "32 ms", C.muted, undefined, "right");
     return;
   }
@@ -53,7 +56,7 @@ export function drawWhistleStep(
     g.fillStyle = Math.abs(k - p.k) <= 12 ? C.teal : C.dim;
     g.fillRect(20 + (k / 256) * 640, 60 - hh, 2, hh);
   }
-  T(20, 76, "all 256 bins, 0-8 kHz · below: the 25 around the peak", C.muted, mono(10));
+  W(20, 76, tr("whistle.allBins"), C.muted, mono(10));
   const k0 = p.k - 12;
   const bw = 24;
   const yb = 240;
@@ -88,10 +91,10 @@ export function drawWhistleStep(
     T(tx, 86, `${p.hz.toFixed(1)} Hz`, C.ink, mono(12, true), "center");
   }
   if (at === 3)
-    T(
+    W(
       660,
       100,
-      `bin ${p.k} = ${((p.k * rate) / 512).toFixed(1)} Hz · clarity ${p.clarity.toFixed(0)} dB`,
+      tr("whistle.peakBin", { k: p.k, hz: (p.k * rate) / 512, clarity: p.clarity }),
       C.pink,
       mono(12),
       "right",

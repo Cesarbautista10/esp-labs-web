@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { type KeyboardEvent, type PointerEvent, useEffect, useEffectEvent, useRef } from "react";
 import { Button, ButtonRow } from "@/ui/Button";
 import own from "./B8Decoder.module.css";
@@ -27,6 +28,7 @@ export function MousePad({
   onMove(m: MouseMove): void;
   onClickButton(buttons: number): void;
 }) {
+  const { t } = useTranslation("labs-ble");
   const padRef = useRef<HTMLDivElement>(null);
   const last = useRef<[number, number] | null>(null);
   const lastSent = useRef(0);
@@ -86,7 +88,7 @@ export function MousePad({
         ref={padRef}
         className={own.pad}
         role="application"
-        aria-label="Mouse pad: drag to move, press to click, scroll for the wheel, or use the arrow keys"
+        aria-label={t("pad.aria")}
         // eslint-disable-next-line jsx-a11y-x/no-noninteractive-tabindex
         tabIndex={0}
         onPointerDown={down}
@@ -96,16 +98,16 @@ export function MousePad({
         onContextMenu={(e) => e.preventDefault()}
         onKeyDown={key}
       >
-        drag here = move · press = left button · scroll = wheel
+        {t("pad.hint")}
       </div>
       <ButtonRow>
-        <Button onClick={() => onClickButton(1)}>left click</Button>
-        <Button onClick={() => onClickButton(2)}>right click</Button>
+        <Button onClick={() => onClickButton(1)}>{t("pad.left")}</Button>
+        <Button onClick={() => onClickButton(2)}>{t("pad.right")}</Button>
         <Button onClick={() => onMove({ dx: 0, dy: 0, buttons: 0, wheel: 1, animate: true })}>
-          wheel +1
+          {t("pad.wheelUp")}
         </Button>
         <Button onClick={() => onMove({ dx: 0, dy: 0, buttons: 0, wheel: -1, animate: true })}>
-          wheel −1
+          {t("pad.wheelDown")}
         </Button>
       </ButtonRow>
     </div>

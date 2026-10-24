@@ -15,7 +15,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--muted);
-  margin-left: auto;
+  margin-inline-start: auto;
   font-variant-numeric: tabular-nums;
 }
 
@@ -176,7 +176,7 @@
   color: var(--surface);
 }
 .acBits i.byte {
-  margin-left: 4px;
+  margin-inline-start: 4px;
 }
 .silent .acBits,
 .silent .acName {
@@ -222,7 +222,7 @@
 .abTable td {
   padding: 6px 8px;
   border-bottom: 1px solid var(--line);
-  text-align: left;
+  text-align: start;
   vertical-align: middle;
 }
 .abTable th {
@@ -293,11 +293,13 @@
   margin-top: 4px;
 }
 .warnBox {
-  border-left: 3px solid var(--danger);
+  border-inline-start: 3px solid var(--danger);
   padding: 6px 10px;
   font-size: 13.5px;
   background: var(--bg);
-  border-radius: 0 6px 6px 0;
+  border-radius: 0;
+  border-start-end-radius: 6px;
+  border-end-end-radius: 6px;
 }
 
 /* Value block */
@@ -351,7 +353,7 @@
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  margin-right: 5px;
+  margin-inline-end: 5px;
   vertical-align: -1px;
   background: var(--key);
 }
@@ -371,7 +373,7 @@
 .memRow > b {
   color: var(--muted);
   font-weight: 600;
-  text-align: right;
+  text-align: end;
 }
 .memBytes {
   display: grid;

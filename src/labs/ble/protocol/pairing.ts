@@ -42,11 +42,3 @@ export function b4Method(init: number, resp: number, sc: boolean, mitm: boolean)
   if (!sc && legacy) return legacy;
   return B4_SC[init]?.[resp] ?? "J";
 }
-
-export const B4_NAMES: Readonly<Record<PairMethod, string>> = {
-  J: "Just Works",
-  N: "Numeric Comparison",
-  PI: "Passkey Entry",
-  PR: "Passkey Entry",
-  PB: "Passkey Entry (both type)",
-};

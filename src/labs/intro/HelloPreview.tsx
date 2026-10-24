@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useBoardRgb } from "@/features/board/board-signals";
 import { useInterval } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
@@ -25,6 +26,7 @@ const IDENTITY_CARD: readonly (readonly [string, Tone])[] = [
 
 /** Lesson 01 preview: the identity card, a heartbeat, and the RGB LED cycling on the board. */
 export function HelloPreview(_: WidgetProps) {
+  const { t } = useTranslation("labs-intro");
   const term = useTerminalLog();
   const setRgb = useBoardRgb();
   const reduce = useReducedMotion();
@@ -68,7 +70,7 @@ export function HelloPreview(_: WidgetProps) {
       <Terminal log={term} title="$ uv run pio device monitor" />
       <div className={styles.ledLine}>
         <span ref={swatch} className={styles.swatch} aria-hidden="true" />
-        <Caption>The RGB LED on the board drawing cycles just like the real one.</Caption>
+        <Caption>{t("hello.caption")}</Caption>
       </div>
     </div>
   );

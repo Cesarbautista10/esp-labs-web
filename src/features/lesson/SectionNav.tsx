@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import type { LessonSection } from "@/domain/lesson-sections";
 import { goToSection } from "@/lib/active-section";
 import { Icon } from "@/ui/Icon";
 import { SECTION_ICON } from "./section-icons";
+import { sectionShort } from "./section-labels";
 import styles from "./SectionNav.module.css";
 
 /** Jump links to the parts of a long lesson; the one you are reading is lit. */
@@ -16,6 +18,7 @@ export function SectionNav({
   /** Ticked and total steps, shown on the Steps chip. */
   steps: { ticked: number; total: number };
 }) {
+  const { t } = useTranslation("lesson");
   const navRef = useRef<HTMLElement>(null);
 
   // On a phone the chips scroll sideways: keep the lit one in view as you read down the page.
@@ -23,13 +26,16 @@ export function SectionNav({
     const nav = navRef.current;
     const chip = nav?.querySelector<HTMLElement>('[aria-current="location"]');
     if (!nav || !chip) return;
-    const left = chip.offsetLeft; // the nav is the offset parent (position: relative)
-    if (left < nav.scrollLeft || left + chip.offsetWidth > nav.scrollLeft + nav.clientWidth)
-      nav.scrollTo({ left: Math.max(0, left - 24) });
+    // Measured on screen, not with scrollLeft, which runs backwards in a right-to-left page.
+    const box = nav.getBoundingClientRect();
+    const at = chip.getBoundingClientRect();
+    const shift =
+      at.left < box.left ? at.left - box.left - 24 : at.right > box.right ? at.right - box.right + 24 : 0;
+    if (shift) nav.scrollBy({ left: shift });
   }, [active]);
 
   return (
-    <nav ref={navRef} className={styles.nav} aria-label="On this page">
+    <nav ref={navRef} className={styles.nav} aria-label={t("nav.label")}>
       <ul>
         {sections.map((s) => (
           <li key={s.id}>
@@ -41,7 +47,7 @@ export function SectionNav({
               onClick={() => goToSection(s.id)}
             >
               <Icon name={SECTION_ICON[s.kind]} size={15} />
-              {s.short}
+              {sectionShort(t, s)}
               {s.kind === "steps" && steps.total ? (
                 <span
                   className={styles.count}
@@ -61,7 +67,7 @@ export function SectionNav({
             onClick={() => goToSection("sec-board")}
           >
             <Icon name={SECTION_ICON.board} size={15} />
-            Pinout
+            {t("sections.board.short")}
           </button>
         </li>
       </ul>

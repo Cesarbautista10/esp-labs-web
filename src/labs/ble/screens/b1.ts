@@ -52,10 +52,10 @@ const phone = (st: B1State): Device | undefined => st.devices[1];
 export const b1Screen: ScreenSpec<B1State> = {
   views: ["radar", "list", "inspect", "air"],
   captions: [
-    "Every device is a blip: the closer to the middle, the stronger its signal; the colour is its kind (blue phone, amber audio, teal keyboard, coral tag). On the right, the nearest six with a distance guess.",
-    "The strongest devices with their name or maker, address type (rpa = a phone hiding behind a private address), signal and how long ago it was heard. The picked one is highlighted.",
-    "The picked device's advertisement and scan response as 31 little cells, one per byte, coloured per AD structure, with each structure decoded underneath.",
-    "Packets per second over the last minute (bars) and devices in range (line), the scan mode and duty cycle, and the mix of address types.",
+    (t) => t("labs-ble:screens.b1.captions.0"),
+    (t) => t("labs-ble:screens.b1.captions.1"),
+    (t) => t("labs-ble:screens.b1.captions.2"),
+    (t) => t("labs-ble:screens.b1.captions.3"),
   ],
   boot: BOOT,
   init() {
@@ -93,7 +93,7 @@ export const b1Screen: ScreenSpec<B1State> = {
   },
   actions: [
     {
-      label: "phone: closer",
+      label: (_, t) => t("labs-ble:screens.b1.actions.phoneCloser"),
       run(st, term) {
         const d = phone(st);
         if (!d) return;
@@ -102,7 +102,7 @@ export const b1Screen: ScreenSpec<B1State> = {
       },
     },
     {
-      label: "phone: walk away",
+      label: (_, t) => t("labs-ble:screens.b1.actions.phoneWalkAway"),
       run(st, term) {
         const d = phone(st);
         if (!d) return;
@@ -111,13 +111,13 @@ export const b1Screen: ScreenSpec<B1State> = {
       },
     },
     {
-      label: "double-click: next",
+      label: (_, t) => t("labs-ble:screens.b1.actions.doubleClickNext"),
       run(st, term) {
         st.pick = (st.pick + 1) % st.devices.length;
         term.line(`  - picked ${st.pick + 1}: ${st.devices[st.pick]?.label ?? ""}`);
       },
     },
-    { label: "long press: scan", run: (st, term) => toggleScan(st, term) },
+    { label: (_, t) => t("labs-ble:screens.b1.actions.longPressScan"), run: (st, term) => toggleScan(st, term) },
   ],
   onCommand(line, st, term) {
     const words = line.split(/\s+/);

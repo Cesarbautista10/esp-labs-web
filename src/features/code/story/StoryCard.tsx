@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import type { Scene, Story } from "@/domain/code/story";
 import type { FunctionSymbol } from "@/domain/code/symbols";
 import { RichText } from "@/ui/RichText";
 import panel from "../panels.module.css";
-import { ACT_INFO, type SceneText } from "./narrate";
+import type { SceneText } from "./narrate";
 import styles from "./story.module.css";
 
 interface StoryCardProps {
@@ -33,17 +34,18 @@ export function StoryCard({
   onScene,
   children,
 }: StoryCardProps) {
+  const { t } = useTranslation("code");
   const sceneOf = (fn: FunctionSymbol) => story.scenes.find((s) => s.fn.id === fn.id);
   const lines = scene.fn.block.end - scene.fn.block.start + 1;
   return (
     <article className={panel.card} aria-labelledby={`scene-${index}`}>
       <p className={panel.eyebrow}>
-        Scene {index + 1} of {story.scenes.length}
-        <span className={panel.chapter}> · {ACT_INFO[scene.act].title}</span>
+        {t("story.scene.eyebrow", { index: index + 1, count: story.scenes.length })}
+        <span className={panel.chapter}> · {t(`story.acts.${scene.act}.title`)}</span>
       </p>
 
       {scene.trail.length ? (
-        <ol className={styles.trail} aria-label="How the program got here">
+        <ol className={styles.trail} aria-label={t("story.scene.trail")} dir="ltr">
           {scene.trail.map((fn) => {
             const at = sceneOf(fn);
             return (
@@ -72,8 +74,12 @@ export function StoryCard({
           {scene.fn.path.split("/").at(-1)}
         </span>
         <span>
-          {scene.fn.role === "shared" ? "shared code" : "this lab"} · lines{" "}
-          {scene.fn.block.start + 1}–{scene.fn.block.end + 1} ({lines})
+          {t("story.scene.lines", {
+            where: scene.fn.role === "shared" ? t("story.scene.shared") : t("story.scene.thisLab"),
+            start: scene.fn.block.start + 1,
+            end: scene.fn.block.end + 1,
+            size: lines,
+          })}
         </span>
       </p>
 
@@ -87,12 +93,12 @@ export function StoryCard({
       {text.note ? (
         simple ? (
           <details className={panel.more}>
-            <summary>The programmer's note</summary>
+            <summary>{t("story.scene.note")}</summary>
             <p className={styles.noteText}>{text.note}</p>
           </details>
         ) : (
           <figure className={panel.note}>
-            <figcaption>The programmer's note</figcaption>
+            <figcaption>{t("story.scene.note")}</figcaption>
             <blockquote>{text.note}</blockquote>
           </figure>
         )
@@ -104,7 +110,7 @@ export function StoryCard({
           </p>
         ) : (
           <details className={panel.more}>
-            <summary>The precise story</summary>
+            <summary>{t("story.scene.precise")}</summary>
             <p>
               <RichText text={text.deep} />
             </p>
@@ -114,7 +120,7 @@ export function StoryCard({
 
       {scene.next.length ? (
         <div className={styles.next}>
-          <p className={panel.freshLabel}>It hands work to</p>
+          <p className={panel.freshLabel}>{t("story.scene.next")}</p>
           <ul>
             {scene.next.map((id) => {
               const s = story.byId.get(id);
@@ -132,7 +138,7 @@ export function StoryCard({
       ) : null}
       {scene.seen.length && !simple ? (
         <p className={styles.small}>
-          Also calls, met earlier:{" "}
+          {t("story.scene.seen")}{" "}
           {scene.seen.map((fn, i) => {
             const at = sceneOf(fn);
             return (
@@ -152,14 +158,17 @@ export function StoryCard({
       ) : null}
       {scene.helpers.length && !simple ? (
         <p className={styles.small}>
-          Small helpers it uses:{" "}
+          {t("story.scene.helpers")}{" "}
           {scene.helpers.slice(0, 6).map((fn, i) => (
             <span key={fn.id}>
               {i ? ", " : ""}
               <code>{fn.qualified}()</code>
             </span>
           ))}
-          {scene.helpers.length > 6 ? ` and ${scene.helpers.length - 6} more` : ""}.
+          {scene.helpers.length > 6
+            ? ` ${t("story.scene.helpersMore", { count: scene.helpers.length - 6 })}`
+            : ""}
+          .
         </p>
       ) : null}
       {children}

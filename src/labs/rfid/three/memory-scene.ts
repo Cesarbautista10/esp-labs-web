@@ -46,10 +46,18 @@ interface Cabinet {
 /** Picks the sector under a point in normalised device coordinates. */
 export type SectorPicker = (ndcX: number, ndcY: number) => number | null;
 
+/** The scene's labels, translated by the component. */
+export interface MemoryLabels {
+  readonly maker: string;
+  readonly trailer: string;
+  readonly last: string;
+}
+
 export function buildMemoryScene(
   T: ThreeModule,
   S: Stage3d,
   sim: Simulation<MemoryState>,
+  labels: MemoryLabels,
 ): SectorPicker {
   const st = sim.state;
   const C = palette3d();
@@ -120,9 +128,9 @@ export function buildMemoryScene(
     const v = new T.Vector3(x, y, z);
     return cab(s)?.g.localToWorld(v) ?? v;
   };
-  S.label("sector 0 · block 0 = maker", () => at(0, 0, 0.2, 0.7));
-  S.label("trailer: keys + access bits", () => at(st.sector, 0, 1.3, 0));
-  S.label("sector 15", () => at(15, 0, 1.3, 0));
+  S.label(labels.maker, () => at(0, 0, 0.2, 0.7));
+  S.label(labels.trailer, () => at(st.sector, 0, 1.3, 0));
+  S.label(labels.last, () => at(15, 0, 1.3, 0));
 
   const black = new T.Color(0x000000);
   const lockAt = new T.Vector3();

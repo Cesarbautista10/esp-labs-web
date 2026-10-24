@@ -6,11 +6,9 @@ import type { ModeId } from "./reader-context";
 
 // The ways to read a lab's code. Adding one = a component that renders a ReaderFrame, plus an
 // entry here; the shell, toolbar and URL handling pick it up.
+// Each mode's label and hint (the mode switch's tooltip) live in the catalogue: modes.<id>.
 export interface ReaderModeInfo {
   readonly id: ModeId;
-  readonly label: string;
-  /** One line under the label in the mode switch's tooltip. */
-  readonly hint: string;
   /** Offered in the Simple view too. */
   readonly simple: boolean;
   readonly Component: ComponentType;
@@ -19,22 +17,16 @@ export interface ReaderModeInfo {
 export const READER_MODES: readonly ReaderModeInfo[] = [
   {
     id: "tour",
-    label: "Tour",
-    hint: "File by file, a few lines at a time",
     simple: true,
     Component: TourMode,
   },
   {
     id: "story",
-    label: "Story",
-    hint: "Follow the program as it runs, across files",
     simple: true,
     Component: StoryMode,
   },
   {
     id: "explore",
-    label: "Explore",
-    hint: "Tap any line or word",
     simple: false,
     Component: ExploreMode,
   },

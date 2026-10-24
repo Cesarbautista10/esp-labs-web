@@ -26,11 +26,11 @@ const PENTA = [0, 2, 4, 7, 9];
 export const b7Screen: ScreenSpec<B7State> = {
   views: ["keys", "sequencer", "roll", "link", "log"],
   captions: [
-    "Five touch keys and a two-octave piano: violet = notes this board plays, blue = notes from the synth.",
-    "The drum machine: 4 drums x 16 steps on channel 10, the playhead walking at the tempo.",
-    "A piano roll of the last 6 seconds, both directions, with how many notes shared a packet.",
-    "Why notes wait: each one leaves at the next connection event.",
-    "Everything that happened on the air.",
+    (t) => t("labs-ble:screens.b7.captions.0"),
+    (t) => t("labs-ble:screens.b7.captions.1"),
+    (t) => t("labs-ble:screens.b7.captions.2"),
+    (t) => t("labs-ble:screens.b7.captions.3"),
+    (t) => t("labs-ble:screens.b7.captions.4"),
   ],
   boot: [
     "ble-lab-b7: NimBLE 2.5.1 up, address 2C:4F:52:1A:9B:07, TX power 9 dBm",
@@ -51,7 +51,7 @@ export const b7Screen: ScreenSpec<B7State> = {
   }),
   actions: [
     {
-      label: "Mac: connect in Audio MIDI Setup",
+      label: (_, t) => t("labs-ble:screens.b7.actions.macConnectInAudioMidiSetup"),
       run(st, term) {
         st.radio = "connected";
         st.encrypted = true;
@@ -65,7 +65,7 @@ export const b7Screen: ScreenSpec<B7State> = {
       },
     },
     {
-      label: "button: click (a note)",
+      label: (_, t) => t("labs-ble:screens.b7.actions.buttonClickANote"),
       run(st, term) {
         const n = 60 + (PENTA[st.walk % 5] ?? 0) + 12 * Math.floor(st.walk / 5);
         st.walk = (st.walk + 1) % 10;
@@ -74,14 +74,14 @@ export const b7Screen: ScreenSpec<B7State> = {
       },
     },
     {
-      label: "synth: play E4",
+      label: (_, t) => t("labs-ble:screens.b7.actions.synthPlayE4"),
       run(st, term) {
         st.notes.push({ n: 64, out: false, at: performance.now() });
         term.line("  < note E4 vel 96 ch 1");
       },
     },
     {
-      label: "seq on/off",
+      label: (_, t) => t("labs-ble:screens.b7.actions.seqOnOff"),
       run(st, term) {
         st.seq = !st.seq;
         st.stepAt = performance.now();

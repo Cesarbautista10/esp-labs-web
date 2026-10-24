@@ -64,12 +64,12 @@ function startSpeed(st: B5State, term: TerminalPrinter) {
 export const b5Screen: ScreenSpec<B5State> = {
   views: ["sketch", "live", "speed", "gatt", "link", "log"],
   captions: [
-    "What the app draws, copied under the status bar every frame (the board keeps it in its own 320 × 128 buffer), and at the bottom how many commands, writes and bytes have arrived. DROPPED means the queue of 16 writes was full.",
-    "The four values the app charts, as sparklines over the last 12 s: temperature, touch on GPIO 1, free heap, link RSSI. Bottom right: whether the app subscribed, and how many notifications went out.",
-    "While a run goes: packets flying to the phone, a progress bar and the waits (the stack's buffers were full). Afterwards one bar per run with its kB/s, MTU, interval and PHY.",
-    "B3's Bench service, unchanged: the rows light when the app reads, writes or subscribes. B5's own four characteristics don't appear here; the other views show them.",
-    "The live connection: interval, MTU, PHY and RSSI. Watch them change when the Speed tab's Link buttons ask for a faster interval or the 2M PHY.",
-    "The activity log: < from the app, > to the app, + results such as each speed run.",
+    (t) => t("labs-ble:screens.b5.captions.0"),
+    (t) => t("labs-ble:screens.b5.captions.1"),
+    (t) => t("labs-ble:screens.b5.captions.2"),
+    (t) => t("labs-ble:screens.b5.captions.3"),
+    (t) => t("labs-ble:screens.b5.captions.4"),
+    (t) => t("labs-ble:screens.b5.captions.5"),
   ],
   boot: [
     "ble-lab-b5: NimBLE 2.5.1 up, address 7C:DF:A1:0B:5E:3C, TX power 9 dBm",
@@ -96,7 +96,7 @@ export const b5Screen: ScreenSpec<B5State> = {
   }),
   actions: [
     {
-      label: "app: connect",
+      label: (_, t) => t("labs-ble:screens.b5.actions.appConnect"),
       run(st, term) {
         if (st.radio === "connected") return;
         st.radio = "connected";
@@ -106,7 +106,7 @@ export const b5Screen: ScreenSpec<B5State> = {
       },
     },
     {
-      label: "app: draw a stroke",
+      label: (_, t) => t("labs-ble:screens.b5.actions.appDrawAStroke"),
       run(st, term) {
         if (!connected(st, term)) return;
         const y0 = 30 + Math.random() * 60;
@@ -124,7 +124,7 @@ export const b5Screen: ScreenSpec<B5State> = {
       },
     },
     {
-      label: "app: subscribe Sensors",
+      label: (_, t) => t("labs-ble:screens.b5.actions.appSubscribeSensors"),
       run(st, term) {
         if (!connected(st, term)) return;
         st.subSensors = true;
@@ -133,15 +133,15 @@ export const b5Screen: ScreenSpec<B5State> = {
       },
     },
     {
-      label: "touch the wire on GPIO 1",
+      label: (_, t) => t("labs-ble:screens.b5.actions.touchTheWireOnGpio1"),
       run(st) {
         st.touchAt = nowS();
         st.view = 1;
       },
     },
-    { label: "app: speed 50 kB", run: startSpeed },
+    { label: (_, t) => t("labs-ble:screens.b5.actions.appSpeed50Kb"), run: startSpeed },
     {
-      label: "app: fast + 2M",
+      label: (_, t) => t("labs-ble:screens.b5.actions.appFast2m"),
       run(st, term) {
         if (!connected(st, term)) return;
         bleSimLog(st, term, "<", "write Link: 1");

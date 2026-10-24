@@ -1,3 +1,5 @@
+/* eslint-disable i18next/no-literal-string -- literal text here is HID key names, not interface text. */
+import { useTranslation } from "react-i18next";
 import { Button, ButtonRow } from "@/ui/Button";
 import { hx } from "../../protocol/hex";
 import { b8Char } from "../../protocol/hid";
@@ -11,10 +13,11 @@ const ROWS: readonly (readonly number[])[] = [
   [0x1d, 0x1b, 0x06, 0x19, 0x05, 0x11, 0x10, 0x36, 0x37, 0x38],
 ];
 
-const MEDIA: readonly [number, string][] = [
-  [0xea, "vol − (EA)"],
-  [0xe9, "vol + (E9)"],
-  [0xcd, "play (CD)"],
+// Consumer usages; labels in the catalogue (decoder.mediaKey.<name>).
+const MEDIA: readonly [number, "down" | "up" | "play"][] = [
+  [0xea, "down"],
+  [0xe9, "up"],
+  [0xcd, "play"],
 ];
 
 interface Props {
@@ -28,8 +31,9 @@ interface Props {
 
 /** A little keyboard whose keys show what each code types with the chosen layout. */
 export function DecoderKeyboard({ mods, de, media, onKey, onMod, onMedia }: Props) {
+  const { t } = useTranslation("labs-ble");
   return (
-    <div className={own.kbd} role="group" aria-label="Keyboard">
+    <div className={own.kbd} role="group" aria-label={t("decoder.keyboard")}>
       {ROWS.map((row, r) => (
         <ButtonRow key={r}>
           {row.map((code) => {
@@ -38,7 +42,7 @@ export function DecoderKeyboard({ mods, de, media, onKey, onMod, onMedia }: Prop
               <Button
                 key={code}
                 className={own.key}
-                aria-label={`key code ${hx(code)}: ${c || "nothing"}`}
+                aria-label={t("decoder.keyAria", { code: hx(code), c: c || t("decoder.nothing") })}
                 onClick={() => onKey(code)}
               >
                 <b>{c === " " ? "␣" : c || "·"}</b>
@@ -58,13 +62,13 @@ export function DecoderKeyboard({ mods, de, media, onKey, onMod, onMedia }: Prop
             AltGr (E6)
           </Button>
         ) : null}
-        <Button onClick={() => onKey(0x2c)}>Space (2C)</Button>
+        <Button onClick={() => onKey(0x2c)}>{t("decoder.space")}</Button>
         <Button onClick={() => onKey(0x2a)}>⌫ (2A)</Button>
         <Button onClick={() => onKey(0x28)}>⏎ (28)</Button>
         {media
           ? MEDIA.map(([usage, label]) => (
               <Button key={usage} onClick={() => onMedia(usage)}>
-                {label}
+                {t(`decoder.mediaKey.${label}`)}
               </Button>
             ))
           : null}

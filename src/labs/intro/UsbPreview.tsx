@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Caption } from "@/ui/Caption";
 import { Terminal, useTerminalLog } from "@/ui/terminal/Terminal";
 import type { Tone } from "@/ui/terminal/terminal-log";
@@ -19,6 +20,7 @@ const PORTS: readonly (readonly [string, Tone])[] = [
 
 /** Lesson 00 preview: the serial ports your Mac lists, with the board's highlighted. */
 export function UsbPreview(_: WidgetProps) {
+  const { t } = useTranslation("labs-intro");
   const term = useTerminalLog();
 
   useEffect(() => {
@@ -32,10 +34,7 @@ export function UsbPreview(_: WidgetProps) {
   return (
     <div className={styles.sim}>
       <Terminal log={term} title="$ uv run pio device list" />
-      <Caption>
-        Your real result. esptool confirmed an ESP32-S3 rev v0.2 with 8 MB PSRAM and 16 MB flash
-        behind this port.
-      </Caption>
+      <Caption>{t("usb.caption")}</Caption>
     </div>
   );
 }

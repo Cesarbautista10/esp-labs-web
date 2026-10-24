@@ -1,5 +1,5 @@
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
-import type { Fold } from "@/domain/code/analyze";
+import { useTranslation } from "react-i18next";
 import type { Glossary } from "@/domain/code/glossary";
 import type { Settings } from "@/features/settings/settings";
 import { useReducedMotion } from "@/lib/media";
@@ -26,10 +26,6 @@ export interface CodeViewProps {
   termsIn?: { readonly start: number; readonly end: number } | null;
 }
 
-const FOLD_LABEL: Record<Fold["what"], string> = {
-  text: "lines of text (a web page or message)",
-  data: "lines of data",
-};
 
 /**
  * The code itself: coloured, numbered, every line a button that opens the line lens, every known
@@ -48,6 +44,7 @@ export function CodeView({
   label,
   termsIn,
 }: CodeViewProps) {
+  const { t } = useTranslation("code");
   const scrollRef = useRef<HTMLDivElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef(new Map<number, HTMLElement>());
@@ -118,6 +115,8 @@ export function CodeView({
       style={style}
       role="region"
       aria-label={label}
+      // Code reads left to right in every language.
+      dir="ltr"
       // The scroller holds focusable lines; it is keyboard-scrollable through them.
     >
       <div className={styles.content}>
@@ -137,9 +136,10 @@ export function CodeView({
                 <span className={styles.num} aria-hidden="true">
                   {i + 1}
                 </span>
-                <span>
-                  ⋯ {fold.end - fold.start + 1} {FOLD_LABEL[fold.what]} folded away.{" "}
-                  <u>Show them</u>
+                {/* The note about the folded lines follows the reader's language. */}
+                <span dir="auto">
+                  {t(`fold.${fold.what}`, { count: fold.end - fold.start + 1 })}{" "}
+                  <u>{t("fold.show")}</u>
                 </span>
               </button>
             );

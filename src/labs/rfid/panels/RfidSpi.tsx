@@ -1,4 +1,6 @@
+/* eslint-disable i18next/no-literal-string -- literal text here is register names, not interface text. */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/ui/Button";
 import type { WidgetProps } from "@/widgets/types";
 import { hx } from "../protocol/bytes";
@@ -47,6 +49,7 @@ const SCK = pts([
 
 /** R1 panel: one SPI register read or write, bit by bit, as a logic analyser shows it. */
 export function RfidSpi(_: WidgetProps) {
+  const { t: tr } = useTranslation("labs-rfid");
   const [reg, setReg] = useState(0);
   const [read, setRead] = useState(true);
   const [fault, setFault] = useState<Fault>("none");
@@ -54,7 +57,7 @@ export function RfidSpi(_: WidgetProps) {
   const r = REGS[reg] ?? REGS[0];
   if (!r) return null;
   const f = spiFrame(r, read, fault);
-  const [key, text] = bitCaption(f, bit);
+  const caption = bitCaption(f, bit);
   // SS: low during the 16 bits (unless its wire is loose).
   const ssY = f.fault !== "ss" ? lo(ROWS.SDA) : hi(ROWS.SDA);
   const end = X0 + 16 * BW + 8;
@@ -69,7 +72,7 @@ export function RfidSpi(_: WidgetProps) {
       <div className={styles.ctl}>
         <select
           className={styles.select}
-          aria-label="Register"
+          aria-label={tr("spi.register")}
           value={reg}
           onChange={(e) => setReg(Number(e.target.value))}
         >
@@ -81,41 +84,41 @@ export function RfidSpi(_: WidgetProps) {
         </select>
         <select
           className={styles.select}
-          aria-label="Read or write"
+          aria-label={tr("spi.readOrWrite")}
           value={read ? "r" : "w"}
           onChange={(e) => setRead(e.target.value === "r")}
         >
-          <option value="r">read</option>
-          <option value="w">write 03h</option>
+          <option value="r">{tr("spi.read")}</option>
+          <option value="w">{tr("spi.write")}</option>
         </select>
         <select
           className={styles.select}
-          aria-label="Fault to simulate"
+          aria-label={tr("spi.fault")}
           value={fault}
           onChange={(e) => setFault(e.target.value as Fault)}
         >
-          {Object.entries(FAULTS).map(([k, label]) => (
+          {FAULTS.map((k) => (
             <option key={k} value={k}>
-              {label}
+              {tr(`spi.faults.${k}`)}
             </option>
           ))}
         </select>
-        <Button onClick={back} aria-label="Previous bit">
+        <Button onClick={back} aria-label={tr("spi.prevBit")}>
           ◀
         </Button>
-        <Button onClick={togglePlay} aria-label={playing ? "Pause" : "Play"}>
-          {playing ? "❚❚" : "▶ Play"}
+        <Button onClick={togglePlay} aria-label={playing ? tr("spi.pause") : tr("spi.play")}>
+          {playing ? "❚❚" : tr("spi.playShort")}
         </Button>
-        <Button onClick={next} aria-label="Next bit">
+        <Button onClick={next} aria-label={tr("spi.nextBit")}>
           ▶
         </Button>
       </div>
       <div className={styles.la}>
-        <div className={styles.laScroll}>
+        <div className={styles.laScroll} dir="ltr">
           <svg
             viewBox="0 0 680 230"
             role="img"
-            aria-label="Logic analyser view of one SPI transfer: chip select, clock, MOSI and MISO over 16 clock cycles."
+            aria-label={tr("spi.diagram")}
           >
             {Object.entries(ROWS).map(([n, y]) => (
               <g key={n}>{t(8, y + 4, n === "SDA" ? "SDA (SS)" : n, DIM, 12)}</g>
@@ -149,7 +152,7 @@ export function RfidSpi(_: WidgetProps) {
               fill="var(--scope-dim)"
               opacity={0.7}
             />
-            {t(X0 + 4 * BW, ROWS.MISO + 4, "don't care", DIM, 11, "middle")}
+            {t(X0 + 4 * BW, ROWS.MISO + 4, tr("spi.dontCare"), DIM, 11, "middle")}
             {f.read ? (
               <polyline
                 points={dataLine(ROWS.MISO, f.miso, 8)}
@@ -158,7 +161,7 @@ export function RfidSpi(_: WidgetProps) {
                 strokeWidth={2}
               />
             ) : (
-              t(X0 + 12 * BW, ROWS.MISO + 4, "don't care (write)", DIM, 11, "middle")
+              t(X0 + 12 * BW, ROWS.MISO + 4, tr("spi.dontCareWrite"), DIM, 11, "middle")
             )}
             {BIT_NAMES.map((n, i) => {
               const x = X0 + i * BW + BW / 2;
@@ -188,11 +191,13 @@ export function RfidSpi(_: WidgetProps) {
               stroke={DIM}
               strokeDasharray="3 3"
             />
-            {t(X0 + 4 * BW, 222, `byte 0 · MOSI ${hx(f.addr)}h`, INK, 11, "middle")}
+            {t(X0 + 4 * BW, 222, tr("spi.byte0", { hex: hx(f.addr) }), INK, 11, "middle")}
             {t(
               X0 + 12 * BW,
               222,
-              f.read ? `byte 1 · MISO ${hx(f.answer)}h` : `byte 1 · MOSI ${hx(f.data)}h`,
+              f.read
+                ? tr("spi.byte1Miso", { hex: hx(f.answer) })
+                : tr("spi.byte1Mosi", { hex: hx(f.data) }),
               INK,
               11,
               "middle",
@@ -200,7 +205,8 @@ export function RfidSpi(_: WidgetProps) {
           </svg>
         </div>
         <p aria-live="polite">
-          <span className={styles.k}>{key}</span> {text}
+          <span className={styles.k}>{tr(`spi.bits.${caption.id}.key`)}</span>{" "}
+          {tr(`spi.bits.${caption.id}.text`, { ...caption.values, what: tr(`spi.regs.${r.name}`) })}
         </p>
       </div>
     </div>

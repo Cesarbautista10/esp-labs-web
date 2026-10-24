@@ -22,7 +22,7 @@ export interface Throughput {
   readonly notifUs: number;
   readonly perEvent: number;
   readonly kBps: number;
-  readonly limit: string;
+  readonly limit: "cap" | "time";
 }
 
 /** Air time of a packet with `n` payload bytes (preamble, address, header, CRC included), µs. */
@@ -51,7 +51,8 @@ export function throughput(s: LinkSettings): Throughput {
     notifUs,
     perEvent,
     kBps,
-    limit: byCap <= byTime ? "the central's packets per event" : "air time: the event is full",
+    /** What caps it: the central's packets per event, or air time (the event is full). */
+    limit: byCap <= byTime ? "cap" : "time",
   };
 }
 

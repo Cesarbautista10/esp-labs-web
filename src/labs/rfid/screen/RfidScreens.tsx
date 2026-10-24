@@ -7,7 +7,9 @@ import { ChoiceGroup } from "@/ui/ChoiceGroup";
 import { ScreenFrame } from "@/ui/ScreenFrame";
 import type { WidgetProps } from "@/widgets/types";
 import { drawRfidScreen, RFID_VIEWS } from "./rfid-screen";
-import { exampleScreen, SCREEN_DOCS } from "./screen-docs";
+import { overEnglish } from "../text/over-english";
+import { TREE, useRfidText } from "../text/use-rfid-text";
+import { exampleScreen, SCREEN_MARKS } from "./screen-docs";
 import styles from "./screen.module.css";
 
 /** R1-R6 panel: every view of the board's screen, with numbered marks explained below it. */
@@ -16,7 +18,10 @@ export function RfidScreens({ panel }: WidgetProps) {
   const [hl, setHl] = useState(-1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reduce = useReducedMotion();
-  const doc = SCREEN_DOCS[view] ?? SCREEN_DOCS[0];
+  const { t, en } = useRfidText();
+  const name = RFID_VIEWS[view] ?? "chip";
+  const doc = overEnglish(en("screens", TREE), t("screens", TREE))[name];
+  const marks = SCREEN_MARKS[view] ?? [];
 
   useFrameLoop(canvasRef, ({ now }) => {
     const canvas = canvasRef.current;
@@ -24,29 +29,31 @@ export function RfidScreens({ panel }: WidgetProps) {
     drawRfidScreen(context2d(canvas), scopePalette(), exampleScreen(view), now / 1000, reduce);
   });
 
-  if (!doc) return null;
   return (
     <div className={styles.gallery}>
       <ChoiceGroup
-        label="Screen view"
+        label={t("screen.tabs")}
         value={view}
         onChange={(v) => {
           setView(v);
           setHl(-1);
         }}
-        choices={RFID_VIEWS.map((v, i) => ({ key: i, label: `${i + 1} · ${v}` }))}
+        choices={RFID_VIEWS.map((v, i) => ({
+          key: i,
+          label: t("screen.tab", { n: i + 1, view: t(`views.${v}`) }),
+        }))}
       />
       <ScreenFrame>
-        <div className={styles.scr}>
+        <div className={styles.scr} dir="ltr">
           <canvas
             ref={canvasRef}
             width={SCREEN_W}
             height={SCREEN_H}
             role="img"
-            aria-label={`Example of the ${RFID_VIEWS[view]} view. The list below explains each numbered part.`}
+            aria-label={t("screen.example", { view: t(`views.${name}`) })}
           />
           <div className={styles.marks} aria-hidden="true">
-            {doc.parts.map(([x, y], i) => (
+            {marks.map(([x, y], i) => (
               <span
                 key={i}
                 className={i === hl ? styles.hl : undefined}
@@ -60,7 +67,7 @@ export function RfidScreens({ panel }: WidgetProps) {
       </ScreenFrame>
       <Caption live>{doc.when}</Caption>
       <ol className={styles.list}>
-        {doc.parts.map(([, , text], i) => (
+        {doc.parts.map((text, i) => (
           // Focusable so keyboard users can light up the matching mark on the screen.
           <li
             key={`${view}-${i}`}

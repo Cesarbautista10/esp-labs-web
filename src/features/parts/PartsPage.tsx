@@ -1,16 +1,22 @@
+import { Trans, useTranslation } from "react-i18next";
 import { PartIcon } from "@/ui/parts/PartIcon";
-import { PART_NAMES, PARTS } from "@/ui/parts/registry";
+import { PART_NAMES } from "@/ui/parts/registry";
 import styles from "./PartsPage.module.css";
 
 /** The parts library at a glance: every illustration, its name in code and what it shows. */
 export function PartsPage() {
+  const { t } = useTranslation("parts");
   return (
     <section className={styles.page} aria-labelledby="parts-title">
       <header>
-        <h2 id="parts-title">Parts library</h2>
+        <h2 id="parts-title">{t("page.title")}</h2>
         <p>
-          Every part the labs use, drawn once and reused everywhere:{" "}
-          <code>{'<PartIcon name="led" size={64} />'}</code>.
+          <Trans
+            t={t}
+            i18nKey="page.intro"
+            values={{ example: '<PartIcon name="led" size={64} />' }}
+            components={{ code: <code /> }}
+          />
         </p>
       </header>
       <ul className={styles.grid}>
@@ -18,7 +24,7 @@ export function PartsPage() {
           <li key={name}>
             <PartIcon name={name} size={96} />
             <code>{name}</code>
-            <span>{PARTS[name].label}</span>
+            <span>{t(`names.${name}`)}</span>
           </li>
         ))}
       </ul>

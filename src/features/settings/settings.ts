@@ -5,37 +5,10 @@ import * as z from "zod/mini";
 
 export const LEVELS = ["beginner", "explorer", "deep"] as const;
 export type Level = (typeof LEVELS)[number];
-
-export const LEVEL_INFO: Readonly<Record<Level, { label: string; blurb: string }>> = {
-  beginner: {
-    label: "Beginner",
-    blurb:
-      "The short tour of the lab's own files, plain words, new C++ words introduced one at a time.",
-  },
-  explorer: {
-    label: "Explorer",
-    blurb: "Every stop of every lab file, with the shared library code a tap away.",
-  },
-  deep: {
-    label: "Deep dive",
-    blurb:
-      "Everything, including the precise story behind each stop and word: types, timing, memory.",
-  },
-};
+// Labels and blurbs: settings.json, levels.<level> and views.<view>.
 
 export const VIEWS = ["simple", "full"] as const;
 export type ReaderView = (typeof VIEWS)[number];
-
-export const VIEW_INFO: Readonly<Record<ReaderView, { label: string; blurb: string }>> = {
-  simple: {
-    label: "Simple",
-    blurb: "One card, one button. The code, its explanation and Next: nothing else on screen.",
-  },
-  full: {
-    label: "Full",
-    blurb: "Every tool at hand: files, map, phrasebook, progress ring, word cards, focus mode.",
-  },
-};
 
 export const SettingsSchema = z.object({
   level: z.enum(LEVELS),

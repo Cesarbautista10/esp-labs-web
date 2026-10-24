@@ -54,7 +54,8 @@
   align-items: start;
   width: 100%;
   margin: 0;
-  padding: 0 14px 0 0;
+  padding-block: 0;
+  padding-inline: 0 14px;
   border: 0;
   background: none;
   color: var(--ink);
@@ -94,7 +95,8 @@
 .num {
   display: none;
   min-width: calc(var(--digits) * 1ch + 22px);
-  padding: 0 12px 0 10px;
+  padding-block: 0;
+  padding-inline: 10px 12px;
   color: var(--code-gutter);
   text-align: end;
   user-select: none;
@@ -185,7 +187,7 @@
   content: "";
   position: absolute;
   top: -2px;
-  right: -5px;
+  inset-inline-end: -5px;
   width: 6px;
   height: 6px;
   border-radius: 50%;

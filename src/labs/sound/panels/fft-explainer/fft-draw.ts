@@ -1,6 +1,7 @@
 // S5 panel: a sound of up to three sines plus noise, its samples and the FFT's bins.
 import type { ScopePalette } from "@/lib/canvas";
-import { mono, textWriter } from "../../kit/draw";
+import { labelWriter, mono, textWriter } from "../../kit/draw";
+import type { SoundT } from "../../kit/i18n";
 import { type Fft, hann } from "../../model/fft";
 import { noteOf } from "../../model/tune";
 
@@ -13,18 +14,16 @@ export function drawFftExplainer(
   s: Float32Array,
   windowed: boolean,
   anyTone: boolean,
+  tr: SoundT,
 ): void {
   const T = textWriter(g);
+  const W = labelWriter(g);
   const n = fft.n;
   const rate = FFT_RATE;
   g.fillStyle = C.paper;
   g.fillRect(0, 0, 680, 330);
-  T(
-    20,
-    16,
-    `${n} samples = ${((n / rate) * 1000).toFixed(0)} ms of sound${windowed ? " × the Hann window (dashed)" : ""}`,
-    C.muted,
-  );
+  const ms = Math.round((n / rate) * 1000);
+  W(20, 16, tr(windowed ? "fft.samplesWindowed" : "fft.samples", { n, ms }), C.muted);
   g.fillStyle = C.dim;
   g.fillRect(20, 70, 640, 1);
   g.strokeStyle = C.pink;
@@ -76,10 +75,11 @@ export function drawFftExplainer(
     g.fillRect(px, yOf(p.db) - 14, 1, 10);
     T(px, yOf(p.db) - 18, `${p.hz.toFixed(1)} Hz`, C.ink, mono(11), "center");
   }
-  T(
+  const cents = `${nt.cents >= 0 ? "+" : ""}${nt.cents.toFixed(0)}`;
+  W(
     20,
     326,
-    `bins ${(rate / n).toFixed(1)} Hz apart · ${bins} bins up to 8 kHz (Nyquist: half of 16 000) · strongest ${p.hz.toFixed(1)} Hz = ${nt.name} ${nt.cents >= 0 ? "+" : ""}${nt.cents.toFixed(0)} cents`,
+    tr("fft.bins", { apart: rate / n, bins, hz: p.hz, note: nt.name, cents }),
     C.ink,
   );
 }

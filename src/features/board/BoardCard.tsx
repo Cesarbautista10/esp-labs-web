@@ -1,48 +1,50 @@
+import { Trans, useTranslation } from "react-i18next";
 import type { ResolvedLesson } from "@/domain/lesson";
 import { BoardPinout } from "./BoardPinout";
 import styles from "./BoardCard.module.css";
 
 const LEGEND = [
-  ["--copper", "used in this lesson"],
-  ["--pad", "safe GPIO"],
+  ["--copper", "used"],
+  ["--pad", "safe"],
   ["--danger", "avoid"],
   ["--power", "power"],
   ["--gnd", "ground"],
-  ["--w-btn", "button input"],
-  ["--rfid", "RC522"],
+  ["--w-btn", "button"],
+  ["--rfid", "rfid"],
 ] as const;
+
+const BETWEEN = ["unplug", "rewire", "check", "flash"] as const;
 
 /** The left column: live pinout, legend and the between-lessons routine. */
 export function BoardCard({ lesson }: { lesson: ResolvedLesson | null }) {
+  const { t } = useTranslation();
   return (
-    <section id="sec-board" tabIndex={-1} className={styles.card} aria-label="Board pinout">
+    <section id="sec-board" tabIndex={-1} className={styles.card} aria-label={t("board.label")}>
       <BoardPinout
         pins={lesson?.pins ?? []}
         usb={Boolean(lesson?.usb || lesson?.preview)}
         boot={Boolean(lesson?.boot)}
       />
-      <ul className={styles.legend} aria-label="Legend">
-        {LEGEND.map(([color, label]) => (
-          <li key={label}>
+      <ul className={styles.legend} aria-label={t("board.legend.label")}>
+        {LEGEND.map(([color, key]) => (
+          <li key={key}>
             <i style={{ background: `var(${color})` }} aria-hidden="true" />
-            {label}
+            {t(`board.legend.${key}`)}
           </li>
         ))}
       </ul>
       <details className={styles.between} open>
-        <summary>Between lessons</summary>
+        <summary>{t("board.between.title")}</summary>
         <ol>
           <li>
-            <code>Ctrl+C</code> closes the monitor on the Mac only. The board keeps running.
+            <Trans t={t} i18nKey="board.between.close" components={{ code: <code /> }} />
           </li>
-          <li>Unplug USB: this is what stops the program and the screen</li>
-          <li>Rewire while off</li>
-          <li>Check VCC is on 3V3, no loose ends</li>
-          <li>Plug in, flash the next lesson</li>
+          {BETWEEN.map((step) => (
+            <li key={step}>{t(`board.between.${step}`)}</li>
+          ))}
         </ol>
         <p>
-          Never unplug during <code>Writing at 0x…</code>. Pin changing from output to input? Flash
-          first, then wire.
+          <Trans t={t} i18nKey="board.between.warning" components={{ code: <code /> }} />
         </p>
       </details>
     </section>

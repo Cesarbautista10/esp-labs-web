@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Caption } from "@/ui/Caption";
@@ -34,26 +35,28 @@ interface Sent {
   readonly quick: boolean;
 }
 
-const MEDIA_NAMES: Readonly<Record<number, string>> = {
-  0xe9: "volume up",
-  0xea: "volume down",
-  0xcd: "play/pause",
+// HID consumer usages the media keys send; their names live in the catalogue.
+const MEDIA_NAMES: Readonly<Record<number, "up" | "down" | "play">> = {
+  0xe9: "up",
+  0xea: "down",
+  0xcd: "play",
 };
-const keyboardScreen = (text: string) =>
-  `The board's keyboard view: ${text.replace(/\n/g, "⏎") || "(empty)"}▌`;
 const signed = (v: number) => `${v >= 0 ? "+" : ""}${v}`;
 const asMap = (v: string): MapKey => MAP_KEYS.find((k) => k === v) ?? "combo";
 
 /** B8: decode a report yourself, field by field, with the Report Map item that defined it. */
 export function B8Decoder(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
+  const keyboardScreen = (text: string) =>
+    t("decoder.keyboardScreen", { text: text.replace(/\n/g, "⏎") || t("decoder.empty") });
   const reduce = useReducedMotion();
   const [map, setMap] = useState<MapKey>("combo");
   const [de, setDe] = useState(false);
   const [mods, setMods] = useState(0);
   const [report, setReport] = useState<Sent | null>(null);
   const [litItem, setLitItem] = useState<number | undefined>(undefined);
-  const [what, setWhat] = useState("Press a key: one report on the way down, one on the way up.");
-  const [screen, setScreen] = useState(keyboardScreen(""));
+  const [what, setWhat] = useState(() => t("decoder.pressKey"));
+  const [screen, setScreen] = useState(() => keyboardScreen(""));
   const svgRef = useRef<SVGSVGElement>(null);
   // What the board would hold: typed text, cursor, brush. Only shown through `screen`.
   const board = useRef({ text: "", mx: 160, my: 94, brush: 3 });
@@ -69,7 +72,11 @@ export function B8Decoder(_: WidgetProps) {
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   const mouseScreen = () =>
-    `The board's mouse view: cursor at ${board.current.mx}, ${board.current.my}, brush ${board.current.brush}.`;
+    t("decoder.mouseScreen", {
+      x: board.current.mx,
+      y: board.current.my,
+      brush: board.current.brush,
+    });
 
   // One report: the packet flies in, then each field of it lights up, one after the other.
   function send(
@@ -115,14 +122,18 @@ export function B8Decoder(_: WidgetProps) {
       lit = r.order[Math.floor((elapsed - FLY_MS) / FIELD_MS)];
       done = lit === undefined;
     }
-    drawDecoder(new SvgPainter(svg), {
+    drawDecoder(
+      new SvgPainter(svg),
+      {
       device: isMouse ? "mouse" : "keyboard",
       id: r.id,
       data: r.data,
       fields,
       lit,
       flying,
-    });
+      },
+      t,
+    );
     const item = lit === undefined ? undefined : fields[lit]?.item;
     if (item !== undefined && item !== litItem) setLitItem(item);
     if (done) {
@@ -137,13 +148,18 @@ export function B8Decoder(_: WidgetProps) {
     const c = b8Char(code, mods, de);
     const b = board.current;
     b.text = code === 0x2a ? b.text.slice(0, -1) : code === 0x28 ? `${b.text}\n` : b.text + c;
-    const typed = code === 0x2a ? "backspace" : code === 0x28 ? "enter" : `“${c}”`;
+    const typed =
+      code === 0x2a
+        ? t("decoder.backspace")
+        : code === 0x28
+          ? t("decoder.enter")
+          : t("decoder.char", { c });
     const after = keyboardScreen(b.text);
     const up = keyReport(parsed, id, mods, []);
     send(
       id,
       keyReport(parsed, id, mods, [code]),
-      `key ${hx(code)} with mods ${hx(mods)} → ${typed} on a ${de ? "German" : "US"} layout`,
+      t(de ? "decoder.keyDe" : "decoder.keyUs", { code: hx(code), mods: hx(mods), typed }),
       after,
       false,
       mods,
@@ -151,7 +167,7 @@ export function B8Decoder(_: WidgetProps) {
     const held = mods;
     timers.current.push(
       setTimeout(
-        () => send(id, up, "release: every key slot is 00 again, nothing typed", after, true, held),
+        () => send(id, up, t("decoder.releaseKey"), after, true, held),
         reduce ? 400 : 2600,
       ),
     );
@@ -163,14 +179,17 @@ export function B8Decoder(_: WidgetProps) {
     send(
       3,
       mediaReport(parsed, usage),
-      `media key ${hx(usage)}: ${MEDIA_NAMES[usage] ?? ""}`,
+      t("decoder.media", {
+        usage: hx(usage),
+        name: t(`decoder.mediaName.${MEDIA_NAMES[usage] ?? "play"}`),
+      }),
       after,
       false,
       0,
     );
     timers.current.push(
       setTimeout(
-        () => send(3, mediaReport(parsed, 0), "release: 00 00", after, true, 0),
+        () => send(3, mediaReport(parsed, 0), t("decoder.releaseMedia"), after, true, 0),
         reduce ? 400 : 2200,
       ),
     );
@@ -184,7 +203,12 @@ export function B8Decoder(_: WidgetProps) {
     send(
       2,
       mouseReport(parsed, dx, dy, buttons, wheel),
-      `buttons ${hx(buttons)} · X ${signed(dx)} · Y ${signed(dy)} · wheel ${signed(wheel)}`,
+      t("decoder.mouse", {
+        buttons: hx(buttons),
+        dx: signed(dx),
+        dy: signed(dy),
+        wheel: signed(wheel),
+      }),
       mouseScreen(),
       !animate,
       0,
@@ -202,51 +226,43 @@ export function B8Decoder(_: WidgetProps) {
     setMap(k);
     setReport(null);
     setLitItem(undefined);
-    setWhat(
-      k === "mouse"
-        ? "Drag on the pad: every movement is one report."
-        : "Press a key: one report on the way down, one on the way up.",
-    );
+    setWhat(k === "mouse" ? t("decoder.drag") : t("decoder.pressKey"));
     setScreen(k === "mouse" ? mouseScreen() : keyboardScreen(board.current.text));
   }
 
   return (
     <div className={styles.wd}>
-      <div className={styles.ctl} role="group" aria-label="Report Map and layout">
+      <div className={styles.ctl} role="group" aria-label={t("decoder.group")}>
         <label>
-          Report Map
+          {t("decoder.map")}
           <select
             className={styles.select}
-            aria-label="Report Map"
+            aria-label={t("decoder.map")}
             value={map}
             onChange={(e) => chooseMap(asMap(e.target.value))}
           >
             {MAP_KEYS.map((k) => (
               <option key={k} value={k}>
-                {B8_MAPS[k].label}
+                {t(`decoder.maps.${k}`)}
               </option>
             ))}
           </select>
         </label>
         <label>
-          Layout
+          {t("decoder.layout")}
           <select
             className={styles.select}
-            aria-label="Keyboard layout"
+            aria-label={t("decoder.layoutAria")}
             value={de ? "de" : "us"}
             onChange={(e) => {
               const german = e.target.value === "de";
               setDe(german);
               setMods(0);
-              setWhat(
-                german
-                  ? "German layout: the key with code 1C now types z, and 2D types ß. The keyboard sends the same codes."
-                  : "US layout.",
-              );
+              setWhat(german ? t("decoder.german") : t("decoder.us"));
             }}
           >
-            <option value="us">US (QWERTY)</option>
-            <option value="de">German (QWERTZ)</option>
+            <option value="us">{t("decoder.usOption")}</option>
+            <option value="de">{t("decoder.deOption")}</option>
           </select>
         </label>
       </div>
@@ -267,8 +283,9 @@ export function B8Decoder(_: WidgetProps) {
           ref={svgRef}
           viewBox="0 0 680 150"
           className={styles.full}
+          direction="ltr"
           role="img"
-          aria-label="The report travelling from the device to the board, its bytes and bits, each field lit in turn"
+          aria-label={t("decoder.aria")}
         />
       </div>
       <Caption live>{what}</Caption>

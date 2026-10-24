@@ -135,6 +135,10 @@
   transform-origin: left;
   transform: scaleX(0);
 }
+/* It grows from where a line starts. */
+.progress:dir(rtl) {
+  transform-origin: right;
+}
 @supports (animation-timeline: scroll()) {
   .progress {
     animation: read linear both;

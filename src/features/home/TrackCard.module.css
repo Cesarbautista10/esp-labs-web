@@ -13,7 +13,8 @@
 .card::before {
   content: "";
   position: absolute;
-  inset: 0 auto 0 0;
+  inset-block: 0;
+  inset-inline: 0 auto;
   width: 4px;
   background: var(--track);
 }
@@ -154,7 +155,7 @@ a.lesson:hover .pad {
 }
 .mark {
   position: absolute;
-  right: -5px;
+  inset-inline-end: -5px;
   bottom: -5px;
   display: grid;
   place-items: center;
@@ -197,7 +198,8 @@ a.lesson:hover .name {
     grid-template-columns: 300px minmax(0, 1fr);
     align-items: center;
     gap: 12px 20px;
-    padding: 14px 18px 14px 20px;
+    padding-block: 14px;
+    padding-inline: 20px 18px;
   }
   .head {
     grid-template-columns: 58px minmax(0, 1fr);

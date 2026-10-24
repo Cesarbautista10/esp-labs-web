@@ -3,6 +3,7 @@ import { trackLessonsQuery } from "@/content/queries";
 import { TRACKS } from "@/content/tracks";
 import type { LessonEntry } from "@/domain/lesson";
 import type { Track } from "@/domain/track";
+import { useLocale } from "@/i18n/use-locale";
 
 export interface TrackContent {
   readonly track: Track;
@@ -15,6 +16,7 @@ export interface TrackContent {
  * load in the background, so a row fills in a moment after the page appears.
  */
 export function useTracks(): TrackContent[] {
-  const results = useQueries({ queries: TRACKS.map((t) => trackLessonsQuery(t.id)) });
+  const locale = useLocale();
+  const results = useQueries({ queries: TRACKS.map((t) => trackLessonsQuery(t.id, locale)) });
   return TRACKS.map((track, i) => ({ track, lessons: results[i]?.data }));
 }

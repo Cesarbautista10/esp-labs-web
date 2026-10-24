@@ -73,7 +73,7 @@
   transition: transform 0.2s ease;
 }
 .go:hover svg:last-child {
-  transform: translateX(4px);
+  transform: translateX(calc(4px * var(--dir)));
 }
 .code {
   border: 1px solid var(--line);
@@ -92,7 +92,7 @@
 
 .id {
   position: absolute;
-  right: -6px;
+  inset-inline-end: -6px;
   bottom: -6px;
   padding: 1px 7px;
   border-radius: 999px;

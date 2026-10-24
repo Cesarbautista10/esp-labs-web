@@ -91,7 +91,7 @@
 .bf b {
   font: 600 10px var(--font-mono);
   color: var(--muted);
-  margin-right: 4px;
+  margin-inline-end: 4px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -132,7 +132,7 @@
 }
 .table th,
 .table td {
-  text-align: left;
+  text-align: start;
   padding: 7px 10px;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;

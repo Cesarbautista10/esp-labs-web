@@ -1,5 +1,6 @@
+import { useTranslation } from "react-i18next";
 import type { LessonState } from "@/domain/progress";
-import { STATE_INFO, STATE_ORDER } from "./state-info";
+import { STATE_ORDER } from "./state-info";
 import styles from "./LessonState.module.css";
 
 /** The state as a shape: a tick (done), a solid pad (works), a ring (built), a dashed ring (planned). */
@@ -17,22 +18,24 @@ export function StateGlyph({ state }: { state: LessonState }) {
 
 /** Glyph plus words, for headers and cards. */
 export function StateBadge({ state }: { state: LessonState }) {
+  const { t } = useTranslation();
   return (
-    <span className={styles.badge} data-state={state} title={STATE_INFO[state].hint}>
+    <span className={styles.badge} data-state={state} title={t(`states.${state}.hint`)}>
       <StateGlyph state={state} />
-      {STATE_INFO[state].label}
+      {t(`states.${state}.label`)}
     </span>
   );
 }
 
 /** The key to the glyphs, shown once where many of them appear together. */
 export function StateLegend({ className }: { className?: string }) {
+  const { t } = useTranslation();
   return (
-    <ul className={`${styles.legend} ${className ?? ""}`} aria-label="What the marks mean">
+    <ul className={`${styles.legend} ${className ?? ""}`} aria-label={t("states.legend")}>
       {STATE_ORDER.map((s) => (
         <li key={s}>
           <StateGlyph state={s} />
-          {STATE_INFO[s].label}
+          {t(`states.${s}.label`)}
         </li>
       ))}
     </ul>

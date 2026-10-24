@@ -259,18 +259,18 @@ export const S6: SoundSpec<S6State> = {
   ],
   boot: ["  Clap Bird best: 0"],
   captions: [
-    "knock: the padlock, the secret's rhythm on top, your last knock under it with each gap coloured (teal close, amber nearly, coral off). Double-click, knock a rhythm, wait 1.5 s: that's the secret. Open lifts the shackle, lights the LED on GPIO 4 and the RGB LED green for 5 s.",
-    "bird: Clap Bird. Every clap is a flap; fly through the gaps. In this preview, press Space or click the screen to clap.",
-    "party: play music near the mic (the 🎵 button here). Every beat flashes a new colour, sends a ring out and lights the RGB LED; the tempo is the median gap of the last 8 beats.",
+    (t) => t("labs-sound:s6.captions.knock"),
+    (t) => t("labs-sound:s6.captions.bird"),
+    (t) => t("labs-sound:s6.captions.party"),
   ],
   actions: [
-    { label: "🎵 music 6 s", run: (st) => st.mic.say("music", 6) },
-    { label: "knock set", run: (st, term) => void onCommand("knock set", st, term) },
+    { label: (_, t) => t("labs-sound:s6.actions.music6S"), run: (st) => st.mic.say("music", 6) },
+    { label: (_, t) => t("labs-sound:s6.actions.knockSet"), run: (st, term) => void onCommand("knock set", st, term) },
     {
-      label: "knock the secret (✊ ✊ ✊ … ✊ ✊)",
+      label: (_, t) => t("labs-sound:s6.actions.knockTheSecret"),
       run: (st) => [0, 0.2, 0.4, 1.0, 1.2].forEach((d) => st.mic.clap(d)),
     },
-    { label: "knock play", run: (st, term) => void onCommand("knock play", st, term) },
+    { label: (_, t) => t("labs-sound:s6.actions.knockPlay"), run: (st, term) => void onCommand("knock play", st, term) },
   ],
   init() {
     const st: S6State = {

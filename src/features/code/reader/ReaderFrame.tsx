@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import type { Span } from "@/domain/code/analyze";
 import { codeProgress } from "../code-progress";
 import { CodeView } from "../CodeView";
@@ -40,6 +41,7 @@ export function ReaderFrame({
   map,
   onPickFile,
 }: ReaderFrameProps) {
+  const { t } = useTranslation("code");
   const reader = useReader();
   const { lab, settings, simple } = reader;
   const selected = reader.selected?.path === file.path ? reader.selected.line : null;
@@ -62,7 +64,7 @@ export function ReaderFrame({
               reader.pickWord(id);
               codeProgress.readLines(lab.env, file.path, [line]);
             }}
-            label={`${file.name}, ${file.analysis.lines.length} lines`}
+            label={t("reader.codeLabel", { name: file.name, count: file.analysis.lines.length })}
           />
           {pop}
         </div>

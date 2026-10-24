@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "@/app/App";
+import { initI18n } from "@/i18n/i18n";
 import { createLogger, errorData } from "@/lib/logger";
 import { initMotion } from "@/lib/motion";
 import { initTheme } from "@/lib/theme";
@@ -19,6 +20,8 @@ window.addEventListener("unhandledrejection", (e) =>
 
 initTheme();
 initMotion();
+// The reader's language, its direction and its interface text are in place before the first paint.
+await initI18n();
 
 const container = document.getElementById("root");
 if (!container) throw new Error("index.html is missing #root");

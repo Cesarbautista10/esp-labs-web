@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { Button, ButtonRow } from "@/ui/Button";
 import { Terminal, useTerminalLog } from "@/ui/terminal/Terminal";
@@ -10,6 +11,7 @@ const QUICK = ["fade", "blink 200", "sos", "level 30", "on", "off", "help"] as c
 
 /** Lesson 02 preview: the breadboard LED driven by the same logic as the firmware. */
 export function LedPreview(_: WidgetProps) {
+  const { t } = useTranslation("labs-intro");
   const term = useTerminalLog();
   // Read by the frame loop and changed by commands; nothing renders from it, so a ref.
   const led = useRef<LedState | null>(null);
@@ -41,17 +43,13 @@ export function LedPreview(_: WidgetProps) {
     const k = d / 255;
     body.current?.setAttribute("opacity", (0.25 + 0.75 * k).toFixed(3));
     glow.current?.setAttribute("opacity", (0.45 * k).toFixed(3));
-    if (dutyText.current) dutyText.current.textContent = `duty ${d} / 255`;
+    if (dutyText.current) dutyText.current.textContent = t("led.duty", { duty: d });
   });
 
   return (
     <div className={styles.sim}>
-      <div className={styles.breadboard}>
-        <svg
-          viewBox="0 0 520 170"
-          role="img"
-          aria-label="Breadboard: GPIO 4 to a resistor to the LED, LED to ground"
-        >
+      <div className={styles.breadboard} dir="ltr">
+        <svg viewBox="0 0 520 170" role="img" aria-label={t("led.diagram")}>
           <rect
             x="6"
             y="6"
@@ -91,7 +89,7 @@ export function LedPreview(_: WidgetProps) {
             )),
           )}
           <text x="22" y="164" className={styles.label}>
-            GND rail
+            {t("led.gndRail")}
           </text>
           <path
             d="M30 50 V20 H6"
@@ -138,13 +136,13 @@ export function LedPreview(_: WidgetProps) {
             strokeWidth="2"
           />
           <text x="200" y="62" className={styles.label}>
-            LED: long leg (+) left, short leg (−) to GND
+            {t("led.legs")}
           </text>
           <text ref={dutyText} x="200" y="80" className={styles.label} />
         </svg>
       </div>
-      <Terminal log={term} title="$ uv run pio device monitor   (try typing)" onCommand={run} />
-      <ButtonRow aria-label="Quick commands">
+      <Terminal log={term} title={t("led.terminal")} onCommand={run} />
+      <ButtonRow aria-label={t("led.quick")}>
         {QUICK.map((c) => (
           <Button key={c} onClick={() => run(c)}>
             {c}

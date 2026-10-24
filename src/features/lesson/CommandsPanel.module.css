@@ -61,7 +61,8 @@
   --cs-fill: transparent;
   font: 600 11px var(--font-mono);
   border-radius: 999px;
-  padding: 2px 9px 2px 7px;
+  padding-block: 2px;
+  padding-inline: 7px 9px;
   border: 1px solid var(--cs);
   color: var(--ink);
   display: inline-flex;

@@ -19,12 +19,12 @@ export interface B6State extends BleState {
 export const b6Screen: ScreenSpec<B6State> = {
   views: ["media", "slides", "typer", "keys", "link", "log"],
   captions: [
-    "Mode: the button is the remote. The icon you pressed ripples; the dot runs board → phone → speaker.",
-    "Mode: a slide deck. Click = right arrow, double = left arrow, hold = b (black screen).",
-    "What `type` is sending: the layout, progress, the snippet, and the computer's Caps/Num lights sent back to us.",
-    "The last reports as bytes: modifier bits, key numbers, what each press types, the all-zero release.",
-    "The connection: interval, MTU, security (a keyboard link is always encrypted).",
-    "Everything that happened on the air.",
+    (t) => t("labs-ble:screens.b6.captions.0"),
+    (t) => t("labs-ble:screens.b6.captions.1"),
+    (t) => t("labs-ble:screens.b6.captions.2"),
+    (t) => t("labs-ble:screens.b6.captions.3"),
+    (t) => t("labs-ble:screens.b6.captions.4"),
+    (t) => t("labs-ble:screens.b6.captions.5"),
   ],
   boot: [
     "ble-lab-b6: NimBLE 2.5.1 up, address 2C:4F:52:1A:9B:06, TX power 9 dBm",
@@ -48,7 +48,7 @@ export const b6Screen: ScreenSpec<B6State> = {
   }),
   actions: [
     {
-      label: "phone: pair Bench B6",
+      label: (_, t) => t("labs-ble:screens.b6.actions.phonePairBenchB6"),
       run(st, term) {
         st.radio = "connected";
         st.encrypted = true;
@@ -60,7 +60,7 @@ export const b6Screen: ScreenSpec<B6State> = {
       },
     },
     {
-      label: "button: click",
+      label: (_, t) => t("labs-ble:screens.b6.actions.buttonClick"),
       run(st, term) {
         if (!st.encrypted)
           return term.line(
@@ -81,7 +81,7 @@ export const b6Screen: ScreenSpec<B6State> = {
       },
     },
     {
-      label: "type yes",
+      label: (_, t) => t("labs-ble:screens.b6.actions.typeYes"),
       run(st, term) {
         if (!st.encrypted) return term.line("[W] not paired yet", "warn");
         st.typed = "yes";

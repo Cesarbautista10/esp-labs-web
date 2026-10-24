@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { type CSSProperties, type ReactNode, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router";
 import { findTrack } from "@/content/tracks";
@@ -32,6 +33,7 @@ export function LessonTabs({
   hideOnScroll?: boolean;
   children?: ReactNode;
 }) {
+  const { t } = useTranslation("lesson");
   const [params] = useSearchParams();
   const slotRef = useRef<HTMLDivElement>(null);
   const dockRef = useRef<HTMLDivElement>(null);
@@ -75,7 +77,7 @@ export function LessonTabs({
       data-hidden={(hideOnScroll && hidden) || undefined}
       data-extras={children ? "" : undefined}
     >
-      <nav className={styles.tabs} aria-label="Lesson views">
+      <nav className={styles.tabs} aria-label={t("tabs.label")}>
         <Link
           to={`/lessons/${lesson.id}${search}`}
           viewTransition
@@ -84,9 +86,9 @@ export function LessonTabs({
         >
           <span className={styles.label}>
             <Icon name="wire" size={16} />
-            Do the lab
+            {t("tabs.lab")}
           </span>
-          <span className={styles.sub}>wire · flash · check</span>
+          <span className={styles.sub}>{t("tabs.labSub")}</span>
         </Link>
         <Link
           to={`/lessons/${lesson.id}/code${search}`}
@@ -96,17 +98,15 @@ export function LessonTabs({
         >
           <span className={styles.label}>
             <Icon name="code" size={16} />
-            Read the code{" "}
+            {t("tabs.code")}{" "}
             {read ? (
-              <span className={styles.badge}>
-                {read} {read === 1 ? "stop" : "stops"} read
-              </span>
+              <span className={styles.badge}>{t("tabs.stopsRead", { count: read })}</span>
             ) : null}
           </span>
           <span className={styles.sub}>
             {own.length
-              ? `${own.length} ${own.length === 1 ? "file" : "files"} · ${lines} lines · guided tour`
-              : "guided tour · tap any line"}
+              ? t("tabs.codeSub", { count: own.length, lines })
+              : t("tabs.codeSubEmpty")}
           </span>
         </Link>
       </nav>

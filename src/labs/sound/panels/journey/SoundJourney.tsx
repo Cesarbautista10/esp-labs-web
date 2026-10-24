@@ -1,23 +1,25 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, scopePalette } from "@/lib/canvas";
 import { useReducedMotion } from "@/lib/media";
 import type { WidgetProps } from "@/widgets/types";
 import { drawJourney } from "./journey-draw";
-import { type JourneyLab, LABS, SND_PART } from "./journey-data";
+import { type JourneyLab, LABS } from "./journey-data";
 import styles from "./journey.module.css";
 
 function Parts({ lab }: { lab: JourneyLab }) {
+  const { t } = useTranslation("labs-sound");
   return (
     <span className={styles.parts}>
       {lab.need.map((k) => (
         <span key={k} className={styles.need}>
-          {SND_PART[k]}
+          {t(`journey.parts.${k}`)}
         </span>
       ))}
       {(lab.opt ?? []).map((k) => (
         <span key={k} className={styles.opt}>
-          {SND_PART[k]} (optional)
+          {t("journey.optional", { part: t(`journey.parts.${k}`) })}
         </span>
       ))}
     </span>
@@ -26,6 +28,7 @@ function Parts({ lab }: { lab: JourneyLab }) {
 
 /** S1 panel: the whole track at a glance, and the signal path of the lab you pick. */
 export function SoundJourney(_: WidgetProps) {
+  const { t } = useTranslation("labs-sound");
   const [pick, setPick] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reduce = useReducedMotion();
@@ -34,7 +37,15 @@ export function SoundJourney(_: WidgetProps) {
     const node = canvasRef.current;
     const lab = LABS[pick];
     if (!node || !lab) return;
-    drawJourney(context2d(node), scopePalette(), lab, reduce ? 0.4 : now / 1000);
+    const text = {
+      title: t(`journey.labs.${lab.id}.title`),
+      what: t(`journey.labs.${lab.id}.what`),
+      out: t(`journey.labs.${lab.id}.out`),
+      noMic: t("journey.path.noMic"),
+      adcOrI2s: t("journey.path.adcOrI2s"),
+      withSpeaker: t("journey.path.withSpeaker"),
+    };
+    drawJourney(context2d(node), scopePalette(), lab, text, reduce ? 0.4 : now / 1000);
   });
 
   return (
@@ -49,9 +60,9 @@ export function SoundJourney(_: WidgetProps) {
               onClick={() => setPick(i)}
             >
               <b>{l.id}</b>
-              <span className={styles.t}>{l.t}</span>
-              <span className={styles.w}>{l.what}</span>
-              <span className={styles.o}>→ {l.out}</span>
+              <span className={styles.t}>{t(`journey.labs.${l.id}.title`)}</span>
+              <span className={styles.w}>{t(`journey.labs.${l.id}.what`)}</span>
+              <span className={styles.o}>{t("journey.output", { out: t(`journey.labs.${l.id}.out`) })}</span>
               <Parts lab={l} />
             </button>
           </li>
@@ -62,8 +73,9 @@ export function SoundJourney(_: WidgetProps) {
         width={680}
         height={120}
         role="img"
+        dir="ltr"
         className={styles.canvas}
-        aria-label="The signal path: a sound reaches a microphone (the KY-037's voltage into the ADC, or the INMP441's numbers over I2S), the ESP32-S3 works on it, and the lab turns it into something else, often a sound on the speaker."
+        aria-label={t("journey.canvasLabel")}
       />
     </div>
   );

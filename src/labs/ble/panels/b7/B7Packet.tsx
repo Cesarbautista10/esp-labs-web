@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { useReducedMotion } from "@/lib/media";
 import { Button, ButtonRow } from "@/ui/Button";
@@ -11,7 +12,10 @@ import { Beeper } from "./beeper";
 import { drawPacket } from "./draw-packet";
 import own from "./B7Packet.module.css";
 
-const KEYS: readonly (readonly [name: string, note: number, key: string])[] = [
+type NoteName = "C" | "D" | "E" | "F" | "G" | "A" | "B";
+
+// Note names are shown through the catalogue (packet.notes.<name>): do, ré, mi... in some languages.
+const KEYS: readonly (readonly [name: NoteName, note: number, key: string])[] = [
   ["C", 60, "a"],
   ["D", 62, "s"],
   ["E", 64, "d"],
@@ -24,12 +28,14 @@ const KEYS: readonly (readonly [name: string, note: number, key: string])[] = [
 
 /** B7: BLE-MIDI packet anatomy, built live from a mini keyboard. */
 export function B7Packet(_: WidgetProps) {
+  const { t } = useTranslation("labs-ble");
   const reduce = useReducedMotion();
   const [running, setRunning] = useState(true);
   const [collect, setCollect] = useState(15);
   const [sound, setSound] = useState(false);
   const [packet, setPacket] = useState<MidiByte[] | null>(null);
-  const [cap, setCap] = useState("Play a note.");
+  // The last packet's summary for the caption (null until a note is played).
+  const [cap, setCap] = useState<{ n: number; real: number; saved: number } | null>(null);
   const [beeper] = useState(() => new Beeper());
   const svgRef = useRef<SVGSVGElement>(null);
   const pending = useRef<PendingNote[]>([]);
@@ -56,9 +62,7 @@ export function B7Packet(_: WidgetProps) {
     shownAt.current = performance.now();
     const real = bytes.filter((x) => x.b !== null).length;
     const n = msgs.length;
-    setCap(
-      `${n} note${n > 1 ? "s" : ""} in one packet, ${real} bytes${running && n > 1 ? `: running status saved ${n - 1}` : ""}. Each note keeps its own timestamp, so the synth can space them as you played them. A note off goes out 300 ms later the same way (status 80).`,
-    );
+    setCap({ n, real, saved: running && n > 1 ? n - 1 : 0 });
   }
 
   function press(note: number) {
@@ -86,12 +90,13 @@ export function B7Packet(_: WidgetProps) {
       new SvgPainter(svgRef.current),
       packet,
       reduce ? 1 : Math.min(1, (now - shownAt.current) / 900),
+      t,
     );
   });
 
   return (
     <div className={styles.wd}>
-      <div className={styles.ctl} role="group" aria-label="Packet options">
+      <div className={styles.ctl} role="group" aria-label={t("packet.options")}>
         <label htmlFor={rsId}>
           <input
             id={rsId}
@@ -99,19 +104,19 @@ export function B7Packet(_: WidgetProps) {
             checked={running}
             onChange={(e) => setRunning(e.target.checked)}
           />{" "}
-          running status
+          {t("packet.running")}
         </label>
         <label>
-          collect for
+          {t("packet.collect")}
           <select
             className={styles.select}
-            aria-label="Connection interval"
+            aria-label={t("packet.interval")}
             value={collect}
             onChange={(e) => setCollect(Number(e.target.value))}
           >
-            <option value={15}>15 ms</option>
-            <option value={60}>60 ms</option>
-            <option value={300}>300 ms (slow, to see batching)</option>
+            <option value={15}>{t("packet.ms", { value: 15 })}</option>
+            <option value={60}>{t("packet.ms", { value: 60 })}</option>
+            <option value={300}>{t("packet.slow")}</option>
           </select>
         </label>
         <label htmlFor={soundId}>
@@ -121,22 +126,22 @@ export function B7Packet(_: WidgetProps) {
             checked={sound}
             onChange={(e) => setSound(e.target.checked)}
           />{" "}
-          hear it
+          {t("packet.hear")}
         </label>
       </div>
-      <ButtonRow role="group" aria-label="Mini keyboard">
+      <ButtonRow role="group" aria-label={t("packet.keyboard")}>
         {KEYS.map(([name, note, key]) => (
           <Button
             key={note}
             className={own.key}
-            aria-label={`${name} (key ${key})`}
+            aria-label={t("packet.keyAria", { name: t(`packet.notes.${name}`), key })}
             onPointerDown={() => press(note)}
             // Keyboard activation (Enter/Space) arrives as a click without a pointer.
             onClick={(e) => {
               if (e.detail === 0) press(note);
             }}
           >
-            {name}
+            {t(`packet.notes.${name}`)}
             <small className={own.hint}> {key}</small>
           </Button>
         ))}
@@ -146,11 +151,20 @@ export function B7Packet(_: WidgetProps) {
           ref={svgRef}
           viewBox="0 0 680 210"
           className={styles.full}
+          direction="ltr"
           role="img"
-          aria-label="The bytes of the last BLE-MIDI packet, coloured by role"
+          aria-label={t("packet.aria")}
         />
       </div>
-      <Caption live>{cap}</Caption>
+      <Caption live>
+        {cap === null
+          ? t("packet.start")
+          : `${
+              cap.saved
+                ? t("packet.builtSaved", { count: cap.n, real: cap.real, saved: cap.saved })
+                : t("packet.built", { count: cap.n, real: cap.real })
+            } ${t("packet.timestamps")}`}
+      </Caption>
     </div>
   );
 }

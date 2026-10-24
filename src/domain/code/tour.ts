@@ -1,6 +1,6 @@
 import type { Rich } from "@/domain/lesson";
 import { type Block, type FileAnalysis, blockOpenedOn } from "./analyze";
-import { code, type ExplainContext, explainLine } from "./explain";
+import { code, type ExplainContext, type ExplainT, explainLine } from "./explain";
 import { lineText } from "./tokenize";
 import type { FileTourSpec, QuizSpec } from "./tour-spec";
 
@@ -183,6 +183,7 @@ const isContainer = (b: Block | undefined) =>
     ((b.kind === "class" || b.kind === "struct") && b.end - b.open > OPEN_CONTAINER_LINES));
 
 function titleFor(
+  t: ExplainT,
   file: FileAnalysis,
   codeItems: readonly Item[],
   note: string | undefined,
@@ -191,15 +192,16 @@ function titleFor(
   const b = first?.block;
   if (codeItems.length === 1 && b) {
     if (b.kind === "function") {
-      if (b.name === "setup" && b.depth === 0) return "setup(): getting ready";
-      if (b.name === "loop" && b.depth === 0) return "loop(): over and over";
-      if (/~/.test(b.header)) return `Tidying up: ~${b.name.split("::").at(-1)}()`;
+      if (b.name === "setup" && b.depth === 0) return t("autoTour.setup");
+      if (b.name === "loop" && b.depth === 0) return t("autoTour.loop");
+      if (/~/.test(b.header))
+        return t("autoTour.destructor", { name: b.name.split("::").at(-1) ?? "" });
       return `${b.name.split("::").at(-1)}()`;
     }
     if (b.kind === "struct" || b.kind === "class" || b.kind === "enum")
       return `${b.kind === "enum" ? "enum" : b.kind} ${b.name}`;
     if (b.kind === "namespace")
-      return b.name ? `namespace ${b.name}` : "The private part of the file";
+      return b.name ? `namespace ${b.name}` : t("autoTour.privatePart");
   }
   if (note) {
     const sentence = note.split(/[.:\n]/)[0]?.trim() ?? "";
@@ -208,10 +210,10 @@ function titleFor(
   const texts = codeItems.map(
     (it) => file.statements[file.statementOf[it.start] ?? -1]?.text ?? "",
   );
-  if (texts.every((t) => /^#\s*include/.test(t))) return "Libraries it uses";
-  if (texts.every((t) => /^#\s*(?:pragma|include)/.test(t))) return "Set-up lines";
+  if (texts.every((t) => /^#\s*include/.test(t))) return t("autoTour.libraries");
+  if (texts.every((t) => /^#\s*(?:pragma|include)/.test(t))) return t("autoTour.setupLines");
   if (texts.every((t) => /^(?:static\s+)?(?:constexpr|const)\b/.test(t) || /^#\s*define/.test(t)))
-    return "Fixed settings";
+    return t("autoTour.fixedSettings");
   if (note) {
     const sentence = note.split(/[.:\n]/)[0]?.trim() ?? "";
     const words = sentence.split(/\s+/);
@@ -222,24 +224,24 @@ function titleFor(
     lineText(file.lines[first?.start ?? 0] ?? [])
       .trim()
       .replace(/\s*[{;]\s*$/, "")
-      .slice(0, 40) || "More code"
+      .slice(0, 40) || t("autoTour.moreCode")
   );
 }
 
 function sayFor(ctx: ExplainContext, codeItems: readonly Item[]): Rich {
-  const { file } = ctx;
+  const { file, t } = ctx;
   const texts = codeItems.map(
     (it) => file.statements[file.statementOf[it.start] ?? -1]?.text ?? "",
   );
   if (codeItems.length > 1 && texts.every((t) => /^#\s*include/.test(t))) {
     const names = texts.map((t) => /[<"]([^>"]+)[>"]/.exec(t)?.[1] ?? t);
-    return `Brings in ${names.length} files of ready-made code: ${names.map(code).join(", ")}.`;
+    return t("autoTour.includes", { count: names.length, names: names.map(code).join(", ") });
   }
   if (codeItems.length > 2 && texts.every((t) => /^(?:static\s+)?(?:constexpr|const)\b/.test(t))) {
     const names = texts
       .map((t) => /(\w+)\s*(?:\[[^\]]*\])?\s*=/.exec(t)?.[1] ?? "")
       .filter(Boolean);
-    return `Names ${names.length} fixed values, so the code below reads in words instead of bare numbers: ${names.map(code).join(", ")}.`;
+    return t("autoTour.constants", { count: names.length, names: names.map(code).join(", ") });
   }
   const first = codeItems[0];
   if (!first) return "";
@@ -248,7 +250,10 @@ function sayFor(ctx: ExplainContext, codeItems: readonly Item[]): Rich {
   if (b?.kind === "function" && b.calls.length) {
     const ours = b.calls.filter((c) => ctx.defined.get(c)?.kind === "function").slice(0, 4);
     if (ours.length)
-      return `${said} Along the way it uses ${ours.map((c) => code(`${c}()`)).join(", ")}.`;
+      return t("autoTour.alongTheWay", {
+        said,
+        names: ours.map((c) => code(`${c}()`)).join(", "),
+      });
   }
   return said;
 }
@@ -259,7 +264,7 @@ export function autoStops(
   ctx: ExplainContext,
   options: { lab: boolean },
 ): TourStop[] {
-  const { file } = ctx;
+  const { file, t } = ctx;
   const stops: TourStop[] = [];
   const ids = new Set<string>();
   let chapter: string | undefined;
@@ -289,15 +294,8 @@ export function autoStops(
       path,
       start,
       end: absorbClosers(file, end),
-      title:
-        header && codeItems.length === 0
-          ? "About this file"
-          : header
-            ? "About this file"
-            : titleFor(file, codeItems, note),
-      say: codeItems.length
-        ? sayFor(ctx, codeItems)
-        : "What this file is for, in the programmer's own words.",
+      title: header ? t("autoTour.aboutFile") : titleFor(t, file, codeItems, note),
+      say: codeItems.length ? sayFor(ctx, codeItems) : t("autoTour.aboutSay"),
       ...(note ? { note } : {}),
       essential,
       ...(chapter ? { chapter } : {}),
@@ -441,7 +439,7 @@ export function autoStops(
     if (head)
       stops[stopIndex] = {
         ...head,
-        title: titleFor(file, [{ ...headItem, end: b.end }], head.note),
+        title: titleFor(t, file, [{ ...headItem, end: b.end }], head.note),
       };
   };
 

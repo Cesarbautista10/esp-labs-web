@@ -16,7 +16,7 @@
 .via {
   position: absolute;
   top: -4px;
-  left: calc(var(--spine-gap) * -1 - 16px);
+  inset-inline-start: calc(var(--spine-gap) * -1 - 16px);
   display: grid;
   place-items: center;
   width: 32px;

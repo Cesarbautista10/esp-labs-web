@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFrameLoop } from "@/lib/animation";
 import { context2d, SCREEN_H, SCREEN_W } from "@/lib/canvas";
 import { useReducedMotion } from "@/lib/media";
@@ -11,17 +12,16 @@ import { COLOUR_CHECK_MS, displayPalette, drawColourCheck, drawScope } from "./d
 
 const FPS_LOG_MS = 5000;
 
-const CAPTIONS = {
-  check: "Step 1: colour check (2.5 s). Left to right must read red, green, blue.",
-  scope: "Step 2: the bench scope. Your real screen runs it at 22 fps.",
-} as const;
+/** What the screen shows; each phase's caption is preview.captions.<phase> in labs-display. */
+type Phase = "check" | "scope";
 
 /** Lesson 03 preview: the ST7789's colour check, then the bench scope, plus its serial output. */
 export function DisplayPreview(_: WidgetProps) {
+  const { t } = useTranslation("labs-display");
   const term = useTerminalLog();
   const reduce = useReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [phase, setPhase] = useState<keyof typeof CAPTIONS>("check");
+  const [phase, setPhase] = useState<Phase>("check");
   // Frame-loop bookkeeping: when the board "powered on", a smoothed fps, the last fps log line.
   const clock = useRef({ t0: 0, fps: 0, lastLog: 0, scope: false });
 
@@ -67,10 +67,11 @@ export function DisplayPreview(_: WidgetProps) {
           width={SCREEN_W}
           height={SCREEN_H}
           role="img"
-          aria-label="Simulated 320 by 170 display: colour check, then a moving sine wave"
+          aria-label={t("preview.aria")}
+          dir="ltr"
         />
       </ScreenFrame>
-      <Caption live>{CAPTIONS[phase]}</Caption>
+      <Caption live>{t(`preview.captions.${phase}`)}</Caption>
       <Terminal log={term} title="$ uv run pio device monitor" />
     </div>
   );

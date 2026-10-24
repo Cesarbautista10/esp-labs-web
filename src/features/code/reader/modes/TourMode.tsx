@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { explainLine } from "@/domain/code/explain";
 import { settingsStore } from "@/features/settings/settings-store";
@@ -22,6 +23,7 @@ const log = createLogger("code");
 
 /** File by file, a few lines at a time: the band walks the code, each stop explained. */
 export function TourMode() {
+  const { t } = useTranslation("code");
   const reader = useReader();
   const { lab, settings, simple } = reader;
   const met = useMetWords();
@@ -96,13 +98,17 @@ export function TourMode() {
     </StopCard>
   ) : finished ? (
     <article className={panel.card}>
-      <p className={panel.eyebrow}>Tour done</p>
-      <h3 className={panel.title}>You read {file.name}</h3>
+      <p className={panel.eyebrow}>{t("tour.doneEyebrow")}</p>
+      <h3 className={panel.title}>{t("tour.doneTitle", { name: file.name })}</h3>
       <div className={styles.done}>
-        <UnderstandingRing ratio={reading.ratio} size={72} label="This lab's code you have read" />
+        <UnderstandingRing ratio={reading.ratio} size={72} label={t("toolbar.progress")} />
         <p>
-          You have walked through <b>{reading.read}</b> of the <b>{reading.total}</b> lines of this
-          lab's own code.
+          <Trans
+            t={t}
+            i18nKey="tour.doneRead"
+            values={{ read: reading.read, total: reading.total }}
+            components={{ b: <b /> }}
+          />
         </p>
       </div>
       <div className={styles.doneActions}>
@@ -112,7 +118,7 @@ export function TourMode() {
             className={styles.primary}
             onClick={() => reader.openFile(nextFile.path)}
           >
-            Next file: {nextFile.name} →
+            {t("tour.nextFile", { name: nextFile.name })}
           </button>
         ) : (
           <button
@@ -120,7 +126,7 @@ export function TourMode() {
             className={styles.primary}
             onClick={() => reader.switchMode("story")}
           >
-            Now follow the story →
+            {t("tour.followStory")}
           </button>
         )}
         {!simple && !nextFile && firstShared && file.role === "lab" ? (
@@ -129,7 +135,7 @@ export function TourMode() {
             className={styles.secondary}
             onClick={() => reader.openFile(firstShared.path)}
           >
-            Behind the scenes: {firstShared.name}
+            {t("tour.behind", { name: firstShared.name })}
           </button>
         ) : null}
         {settings.level === "beginner" && file.stops.length > stops.length ? (
@@ -141,18 +147,18 @@ export function TourMode() {
               go(0);
             }}
           >
-            See all {file.stops.length} stops
+            {t("tour.seeAll", { count: file.stops.length })}
           </button>
         ) : null}
         <Link className={styles.secondary} to={reader.lessonHref}>
-          Back to the lab
+          {t("tour.backToLab")}
         </Link>
       </div>
     </article>
   ) : (
     <article className={panel.card}>
-      <p className={panel.eyebrow}>Nothing to tour</p>
-      <h3 className={panel.title}>Tap any line</h3>
+      <p className={panel.eyebrow}>{t("tour.emptyEyebrow")}</p>
+      <h3 className={panel.title}>{t("tour.emptyTitle")}</h3>
       <p className={panel.say}>
         <RichText text={lab.bigPicture} />
       </p>
@@ -171,14 +177,14 @@ export function TourMode() {
   const pop = popWord ? (
     <div className={styles.pop} role="status">
       <p>
-        <span className={panel.badge}>New word</span> <code>{popWord.term}</code>
+        <span className={panel.badge}>{t("tour.newWord")}</span> <code>{popWord.term}</code>
       </p>
       <p className={styles.popText}>
         <RichText text={popWord.short} />
       </p>
       <div className={styles.popActions}>
         <button type="button" onClick={() => setPopGone(stop?.id ?? null)}>
-          Got it
+          {t("tour.gotIt")}
         </button>
         <button
           type="button"
@@ -187,7 +193,7 @@ export function TourMode() {
             reader.pickWord(popWord.id);
           }}
         >
-          Tell me more
+          {t("tour.tellMore")}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import type { PanelSpec, ResolvedLesson } from "@/domain/lesson";
 import { Caption } from "@/ui/Caption";
 import { ErrorBoundary } from "@/ui/ErrorBoundary";
@@ -17,10 +18,11 @@ interface WidgetSlotProps {
  * this slot shows the error (ErrorBoundary). Keyed per lesson/variant so state never leaks.
  */
 export function WidgetSlot({ widget, lesson, panel, name }: WidgetSlotProps) {
+  const { t } = useTranslation("lesson");
   const Widget = WIDGETS[widget];
   return (
     <ErrorBoundary name={name} resetKey={`${lesson.id}.${lesson.variantKey ?? ""}`}>
-      <Suspense fallback={<Caption>Loading…</Caption>}>
+      <Suspense fallback={<Caption>{t("widget.loading")}</Caption>}>
         <Widget key={`${lesson.id}.${lesson.variantKey ?? ""}`} lesson={lesson} panel={panel} />
       </Suspense>
     </ErrorBoundary>

@@ -5,7 +5,8 @@
   align-items: center;
   gap: 12px;
   max-width: 100%;
-  padding: 8px 12px 8px 8px;
+  padding-block: 8px;
+  padding-inline: 8px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-m);
   background: var(--surface);
@@ -55,7 +56,7 @@
   border-radius: 50%;
   background: var(--bg);
   color: var(--ink);
-  transform: rotate(-45deg);
+  transform: rotate(calc(-45deg * var(--dir)));
   transition:
     background 0.2s ease,
     color 0.2s ease,
@@ -64,10 +65,10 @@
 .card:hover .go {
   background: var(--copper);
   color: var(--surface);
-  transform: rotate(-45deg) translateX(2px);
+  transform: rotate(calc(-45deg * var(--dir))) translateX(calc(2px * var(--dir)));
 }
 @media (prefers-reduced-motion: reduce) {
   .card:hover .go {
-    transform: rotate(-45deg);
+    transform: rotate(calc(-45deg * var(--dir)));
   }
 }

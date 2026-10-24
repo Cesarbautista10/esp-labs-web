@@ -25,10 +25,10 @@ const click = (st: BenchState, term: TerminalPrinter) => {
 export const b3Screen: ScreenSpec<BenchState> = {
   views: ["gatt", "message", "link", "log"],
   captions: [
-    "The Bench service as a table: name, properties (R read, W write, N notify) and the current value. An operation lights its row: teal read, blue write, violet notify, amber subscribe. A dot travels to or from the phone on the right; a bell means subscribed.",
-    "The last message written from the phone, word-wrapped in 12 pt, and the LED's colour as a glowing disc.",
-    "The live connection: who is central, the connection events ticking (slowed down 20x), interval, MTU, latency, timeout, PHY, RSSI, security, and the traffic counters.",
-    "The activity log, newest at the bottom: < received from the phone, > sent to it, + good news, ! warnings.",
+    (t) => t("labs-ble:screens.b3.captions.0"),
+    (t) => t("labs-ble:screens.b3.captions.1"),
+    (t) => t("labs-ble:screens.b3.captions.2"),
+    (t) => t("labs-ble:screens.b3.captions.3"),
   ],
   boot: [
     "ble-lab-b3: NimBLE 2.5.1 up, address 7C:DF:A1:0B:5E:3C, TX power 9 dBm",
@@ -39,7 +39,7 @@ export const b3Screen: ScreenSpec<BenchState> = {
   init: benchInit,
   actions: [
     {
-      label: "phone: connect",
+      label: (_, t) => t("labs-ble:screens.b3.actions.phoneConnect"),
       run(st, term) {
         if (st.radio === "connected") return;
         st.radio = "connected";
@@ -48,7 +48,7 @@ export const b3Screen: ScreenSpec<BenchState> = {
       },
     },
     {
-      label: "phone: write LED FF5000",
+      label: (_, t) => t("labs-ble:screens.b3.actions.phoneWriteLedFf5000"),
       run(st, term) {
         if (!connected(st, term)) return;
         st.led = [255, 80, 0];
@@ -58,7 +58,7 @@ export const b3Screen: ScreenSpec<BenchState> = {
       },
     },
     {
-      label: "phone: write Message",
+      label: (_, t) => t("labs-ble:screens.b3.actions.phoneWriteMessage"),
       run(st, term) {
         if (!connected(st, term)) return;
         st.message = "hello bench";
@@ -68,7 +68,7 @@ export const b3Screen: ScreenSpec<BenchState> = {
       },
     },
     {
-      label: "phone: subscribe Button",
+      label: (_, t) => t("labs-ble:screens.b3.actions.phoneSubscribeButton"),
       run(st, term) {
         if (!connected(st, term)) return;
         st.sub[2] = true;
@@ -76,7 +76,7 @@ export const b3Screen: ScreenSpec<BenchState> = {
         bleSimLog(st, term, "<", "subscribe Button (CCCD = 1)");
       },
     },
-    { label: "board: click", run: click },
+    { label: (_, t) => t("labs-ble:screens.b3.actions.boardClick"), run: click },
   ],
   onCommand(line, st, term) {
     const [cmd, ...rest] = line.split(/\s+/);
