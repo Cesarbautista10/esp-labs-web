@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: The board or the firmware misbehaves
+    url: https://github.com/agharsallah/esp-labs/issues
+    about: Crashes, wrong pins, build or flash errors belong in the esp-labs repo.
+  - name: Open the live guide
+    url: https://esp-labs-web.vercel.app
+    about: Check whether the problem still happens on the latest version.
