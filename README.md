@@ -1,6 +1,6 @@
 # esp-labs-web: the bench guide as a React app
 
-The ESP32-S3 bench guide (once `hardware-diary/test-esp/guide/bench-guide.html`, one 11k-line HTML file) rebuilt as a modular React app: a labs map, a live pinout, the lessons of every track with their simulators, and the bench log. Same content, a PCB-flavoured look; lessons are data, simulators are lazily loaded widgets, and the bench log is JSON you can update without a rebuild.
+The ESP32-S3 bench guide (once `hardware-diary/test-esp/guide/bench-guide.html`, one 11k-line HTML file) rebuilt as a modular React app: a labs map, a live pinout, the lessons of every track with their simulators, and the bench log. Same content, a PCB-flavoured look; lessons are data, simulators are lazily loaded widgets, and the bench log is JSON you can update without a rebuild. It speaks English, French, Spanish, Italian, German, Chinese, Japanese and Arabic (right to left); add `?lang=fr` to a link to share it in a language.
 
 It is its own repo and pnpm project, next to [esp-labs](https://github.com/agharsallah/esp-labs) (the firmware it explains), with its own lint and test setup. Clone both side by side: `~/…/esp-labs` and `~/…/esp-labs-web`. Architecture, data flow and how to extend it: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
@@ -20,6 +20,7 @@ Run them from this folder.
 pnpm install          # once
 pnpm dev              # http://localhost:5180
 pnpm check            # typecheck + lint + tests
+pnpm i18n:extract     # regenerate the English content catalogues after editing lessons
 pnpm build            # static bundle in dist/ (relative paths: serve it from any folder)
 pnpm preview          # serve dist/ locally (browsers will not run module scripts from file://)
 ```
@@ -73,6 +74,7 @@ Copy `.env.example` to `.env` to override:
 | `src/ui/`                | Design-system pieces: Panel, Button, Terminal, SequenceDiagram, RichText…                                            |
 | `src/ui/parts/`          | The parts library: isometric illustrations of every component (`<PartIcon name="led" />`), gallery at `#/parts`      |
 | `src/ui/stage3d/`        | The shared 3D stage (three.js): orbit camera, toolbar, leaders, ink outlines, toon materials                         |
+| `src/i18n/`, `src/locales/` | Language setup and translations, one folder per language: see [docs/I18N.md](docs/I18N.md) |
 | `src/lib/`               | Logger, storage, theme, palette, animation loop, http, clipboard                                                     |
 | `src/styles/tokens.css`  | Every colour, font and radius; light and dark themes                                                                 |
 | `public/data/`           | Bench status and log (validated with zod when fetched)                                                               |
@@ -80,4 +82,4 @@ Copy `.env.example` to `.env` to override:
 
 ## Versions
 
-All dependencies are pinned exactly (`savePrefix: ""`). React 19.3, React Router 8.4, TanStack Query 5.104, Vite 8.3, React Compiler 1.0, zod 4.6, three 0.186. TypeScript stays on 6.0 because typescript-eslint does not support TypeScript 7 yet.
+All dependencies are pinned exactly (`savePrefix: ""`). React 19.3, React Router 8.4, TanStack Query 5.104, Vite 8.3, React Compiler 1.0, zod 4.6, three 0.186, i18next 26.4. TypeScript stays on 6.0 because typescript-eslint does not support TypeScript 7 yet.
