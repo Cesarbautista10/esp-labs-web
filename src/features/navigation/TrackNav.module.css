@@ -16,7 +16,15 @@
 .tracks::-webkit-scrollbar {
   display: none;
 }
-/* Wide: no sideways scrolling, the pills wrap if they must. */
+.tracks ul {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: max-content;
+}
+/* Wide: no sideways scrolling, the pills wrap if they must (after the base rule it overrides). */
 @media (min-width: 880px) {
   .tracks {
     overflow: visible;
@@ -28,14 +36,6 @@
     flex-wrap: wrap;
     width: auto;
   }
-}
-.tracks ul {
-  display: flex;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  width: max-content;
 }
 .track {
   --track: var(--copper);
