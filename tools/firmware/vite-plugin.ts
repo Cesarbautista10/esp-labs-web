@@ -20,7 +20,8 @@ const indexOf = (envs: readonly FirmwareEnv[]) => ({
   })),
 });
 
-export function firmwarePlugin(options: { root: string }): Plugin {
+// `required`: fail the build when no firmware is found, instead of shipping an empty code reader.
+export function firmwarePlugin(options: { root: string; required?: boolean }): Plugin {
   const root = resolve(options.root);
   const collect = () => {
     if (!detectLayout(root)) {
@@ -54,6 +55,12 @@ export function firmwarePlugin(options: { root: string }): Plugin {
     },
     generateBundle() {
       const envs = collect();
+      if (options.required && envs.length === 0) {
+        this.error(
+          `no firmware found in ${root}. The esp-labs checkout is not available here: build locally ` +
+            "and upload it with `pnpm deploy:prod` / `pnpm deploy:preview` (see README, Deploy to Vercel).",
+        );
+      }
       for (const [name, doc] of documents(envs)) {
         this.emitFile({ type: "asset", fileName: `${DIR}/${name}`, source: JSON.stringify(doc) });
       }

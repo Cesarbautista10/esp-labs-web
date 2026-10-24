@@ -7,3 +7,5 @@ dist/
 .DS_Store
 # Vendored framework docs (React, React Router, TanStack Query) for agents; fetched, not authored.
 docs-llm/
+.vercel
+.env*
