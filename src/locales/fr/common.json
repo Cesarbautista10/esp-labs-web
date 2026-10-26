@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Guide d'établi ESP32-S3",
+    "title": "Guide d'établi ESP32-C6",
     "loading": "Chargement du guide d'établi…",
     "loadingSettings": "Chargement des réglages…"
   },
@@ -13,23 +13,23 @@
   "layout": {
     "skip": "Aller au contenu",
     "loading": "Chargement",
-    "brand": "<part>Guide d'établi</part> ESP32-S3",
+    "brand": "<part>Guide d'établi</part> ESP32-C6",
     "sections": "Sections",
     "nav": {
       "labs": "Labos",
       "bench": "Établi",
       "settings": "Réglages"
     },
-    "footnote": "Le brochage suit l'Espressif DevKitC-1 v1.0. Les clones sont presque identiques, mais les étiquettes imprimées sur ta carte font toujours foi. Tes coches sont enregistrées dans ce navigateur uniquement.",
+    "footnote": "Le brochage suit la PULSAR C6 d'UNIT Electronics (format Arduino Nano). Les étiquettes imprimées sur ta carte font toujours foi. Tes coches sont enregistrées dans ce navigateur uniquement.",
     "partsLink": "La bibliothèque de pièces"
   },
   "titles": {
-    "labs": "Labos · Guide d'établi ESP32-S3",
-    "lesson": "{{id}} · {{title}} · Guide d'établi ESP32-S3",
-    "code": "Code {{id}} · {{title}} · Guide d'établi ESP32-S3",
-    "log": "Journal de l'établi · Guide d'établi ESP32-S3",
-    "parts": "Bibliothèque de pièces · Guide d'établi ESP32-S3",
-    "settings": "Réglages · Guide d'établi ESP32-S3"
+    "labs": "Labos · Guide d'établi ESP32-C6",
+    "lesson": "{{id}} · {{title}} · Guide d'établi ESP32-C6",
+    "code": "Code {{id}} · {{title}} · Guide d'établi ESP32-C6",
+    "log": "Journal de l'établi · Guide d'établi ESP32-C6",
+    "parts": "Bibliothèque de pièces · Guide d'établi ESP32-C6",
+    "settings": "Réglages · Guide d'établi ESP32-C6"
   },
   "routeError": {
     "code": "Erreur",
@@ -136,7 +136,7 @@
       "warning": "Ne débranche jamais pendant <code>Writing at 0x…</code>. Une broche passe de sortie à entrée ? Flashe d'abord, câble ensuite."
     },
     "pinout": {
-      "title": "Brochage de l'ESP32-S3 DevKitC",
+      "title": "Brochage de la PULSAR C6",
       "use": "{{role}} sur {{pin}}",
       "uses": "Cette leçon utilise : {{uses}}.",
       "none": "Cette leçon n'utilise aucune broche de la barrette."

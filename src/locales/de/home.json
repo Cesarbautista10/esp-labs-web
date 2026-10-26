@@ -1,6 +1,6 @@
 {
   "hero": {
-    "kicker": "ESP32-S3 · N16R8 · Bench-Guide",
+    "kicker": "PULSAR C6 · ESP32-C6 · Bench-Guide",
     "title": "ESP32 <part>Labs</part>",
     "motto": {
       "wire": "Verkabeln",
@@ -26,35 +26,35 @@
   "board": {
     "title": "Lern das Board kennen",
     "intro": "Sechs Teile, die du Lab für Lab brauchst. Zieh am Board, um es zu drehen; wähl ein Teil, um es leuchten zu lassen und zu sehen, welche Labs es nutzen.",
-    "model": "3D-Modell des ESP32-S3 DevKitC-1: das Modul mit Antenne, zwei USB-C-Ports, BOOT- und RST-Taster, die RGB-LED und zwei Reihen Header-Pins. Zieh, um es zu drehen.",
+    "model": "3D-Modell des PULSAR C6: der ESP32-C6-Chip mit Keramikantenne, ein USB-C-Port, BOOT- und RST-Taster, die RGB-LED, der microSD-Slot, der Qwiic-Stecker und zwei Reihen Header-Pins. Zieh, um es zu drehen.",
     "fallback": "Jedes Teil ist in den Karten beschrieben.",
     "usedIn": "Genutzt in ",
     "more_one": "+{{count}} Lab",
     "more_other": "+{{count}} Labs",
     "parts": {
       "usb": {
-        "title": "USB-C-Ports",
-        "text": "COM flasht das Board und trägt den seriellen Monitor. USB ist der eigene Port des S3."
+        "title": "USB-C-Port",
+        "text": "Ein einziger Port flasht das Board und trägt den seriellen Monitor: Der C6 spricht selbst USB, ohne Brückenchip."
       },
       "buttons": {
         "title": "BOOT und RST",
-        "text": "RST startet dein Programm neu. BOOT ist GPIO 0: ein freier Taster, sobald das Board läuft."
+        "text": "RST startet dein Programm neu. BOOT ist GPIO 9: ein freier Taster, sobald das Board läuft."
       },
       "rgb": {
         "title": "RGB-LED",
-        "text": "Eine WS2812 an GPIO 48: 16 Millionen Farben über einen einzigen Datenpin."
+        "text": "Eine WS2812B an GPIO 8: 16 Millionen Farben über einen einzigen Datenpin."
       },
       "module": {
-        "title": "ESP32-S3-Modul",
-        "text": "Zwei 240-MHz-Kerne, 16 MB Flash und 8 MB PSRAM unter dem Metallgehäuse."
+        "title": "ESP32-C6-Chip",
+        "text": "Ein RISC-V-Kern mit 160 MHz, ein Low-Power-Kern und 4 MB Flash im Chip. Kein PSRAM."
       },
       "antenna": {
-        "title": "Platinenantenne",
-        "text": "WLAN (Wi-Fi 4) und Bluetooth 5 gehen von diesem Kupferzickzack aus: halte ihn frei von Metall."
+        "title": "Chipantenne",
+        "text": "WLAN (Wi-Fi 6), Bluetooth 5 und Thread/Zigbee gehen von diesem kleinen Keramikbauteil aus: halte es frei von Metall."
       },
       "headers": {
         "title": "Stiftleisten",
-        "text": "44 Pins: 3V3, 5V, GND und die GPIO, an die du Bildschirme, Leser und Mikros verkabelst."
+        "text": "30 Pins im Arduino-Nano-Layout: 3V3, 5V, GND und die GPIO, an die du Bildschirme, Leser und Mikros verkabelst."
       }
     }
   },

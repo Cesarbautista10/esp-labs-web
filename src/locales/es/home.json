@@ -1,6 +1,6 @@
 {
   "hero": {
-    "kicker": "ESP32-S3 · N16R8 · guía de banco",
+    "kicker": "PULSAR C6 · ESP32-C6 · guía de banco",
     "title": "ESP32 <part>Labs</part>",
     "motto": {
       "wire": "Cablea",
@@ -26,7 +26,7 @@
   "board": {
     "title": "Conoce la placa",
     "intro": "Seis piezas que usarás laboratorio tras laboratorio. Arrastra la placa para girarla; elige una pieza para iluminarla y ver qué laboratorios la usan.",
-    "model": "Modelo 3D de la ESP32-S3 DevKitC-1: el módulo con su antena, dos puertos USB-C, los botones BOOT y RST, el LED RGB y dos filas de pines. Arrastra para girarlo.",
+    "model": "Modelo 3D de la PULSAR C6: el chip ESP32-C6 con su antena cerámica, un puerto USB-C, los botones BOOT y RST, el LED RGB, la ranura microSD, el conector Qwiic y dos filas de pines. Arrastra para girarlo.",
     "fallback": "Cada pieza se describe en las tarjetas.",
     "usedIn": "Se usa en ",
     "more_one": "+{{count}} laboratorio",
@@ -34,28 +34,28 @@
     "more_other": "+{{count}} laboratorios",
     "parts": {
       "usb": {
-        "title": "Puertos USB-C",
-        "text": "COM flashea la placa y lleva el monitor serie. USB es el puerto propio del S3."
+        "title": "Puerto USB-C",
+        "text": "Un solo puerto flashea la placa y lleva el monitor serie: el C6 habla USB por sí mismo, sin chip puente."
       },
       "buttons": {
         "title": "BOOT y RST",
-        "text": "RST reinicia tu programa. BOOT es el GPIO 0: un pulsador libre cuando la placa ya está en marcha."
+        "text": "RST reinicia tu programa. BOOT es el GPIO 9: un pulsador libre cuando la placa ya está en marcha."
       },
       "rgb": {
         "title": "LED RGB",
-        "text": "Un WS2812 en el GPIO 48: 16 millones de colores con un solo pin de datos."
+        "text": "Un WS2812B en el GPIO 8: 16 millones de colores con un solo pin de datos."
       },
       "module": {
-        "title": "Módulo ESP32-S3",
-        "text": "Dos núcleos a 240 MHz, 16 MB de flash y 8 MB de PSRAM bajo la tapa metálica."
+        "title": "Chip ESP32-C6",
+        "text": "Un núcleo RISC-V a 160 MHz, un núcleo de bajo consumo y 4 MB de flash dentro del chip. Sin PSRAM."
       },
       "antenna": {
-        "title": "Antena de PCB",
-        "text": "El Wi-Fi 4 y el Bluetooth 5 salen de este zigzag de cobre: mantenlo lejos de metales."
+        "title": "Antena de chip",
+        "text": "El Wi-Fi 6, el Bluetooth 5 y Thread/Zigbee salen de esta pequeña pieza cerámica: mantenla lejos de metales."
       },
       "headers": {
         "title": "Tiras de pines",
-        "text": "44 pines: 3V3, 5V, GND y los GPIO donde cableas pantallas, lectores y micrófonos."
+        "text": "30 pines con la distribución del Arduino Nano: 3V3, 5V, GND y los GPIO donde cableas pantallas, lectores y micrófonos."
       }
     }
   },

@@ -1,8 +1,8 @@
 import { Trans, useTranslation } from "react-i18next";
 import styles from "./BenchOverview.module.css";
 
-/** The board on the bench, in five numbers. */
-const SPECS = ["chip", "cores", "flash", "psram", "radio", "logic"] as const;
+/** The board on the bench, in six numbers. */
+const SPECS = ["chip", "cores", "flash", "radio", "mesh", "logic"] as const;
 
 export function BoardSpecs() {
   const { t } = useTranslation("bench");

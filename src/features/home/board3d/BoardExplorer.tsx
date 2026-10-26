@@ -7,13 +7,13 @@ import { PartIcon } from "@/ui/parts/PartIcon";
 import { StageBox } from "@/ui/stage3d/StageBox";
 import { useStage3d } from "@/ui/stage3d/use-stage";
 import styles from "./BoardExplorer.module.css";
-import { type BoardScene, buildBoardScene, PART_ANCHORS } from "./esp32-scene";
+import { type BoardScene, buildBoardScene, PART_ANCHORS } from "./board-scene";
 import { BOARD_PARTS, type PartId, partLessons } from "./parts";
 
 const SHOWN = 4;
 
 /**
- * Meet the board: the DevKitC in 3D with a callout per part, each tied to the model by a leader
+ * Meet the board: the PULSAR C6 in 3D with a callout per part, each tied to the model by a leader
  * line and listing the labs that use that part. Hover or pick a callout to light its part.
  */
 export function BoardExplorer({ lessons }: { lessons: readonly LessonEntry[] }) {
@@ -24,9 +24,9 @@ export function BoardExplorer({ lessons }: { lessons: readonly LessonEntry[] }) 
   const { t } = useTranslation("home");
   const { boxRef, canvasRef, labelsRef, stageRef, status } = useStage3d(
     {
-      target: { x: 0.1, y: -0.15, z: 0 },
+      target: { x: 0, y: -0.15, z: 0 },
       radius: 10,
-      fitWidth: 8.4,
+      fitWidth: 5.6,
       az: 1.22,
       el: 0.74,
       fov: 30,
@@ -34,7 +34,7 @@ export function BoardExplorer({ lessons }: { lessons: readonly LessonEntry[] }) 
       sway: 0.16,
       zoom: [0.55, 1.4],
       dragOn: "canvas",
-      ground: { w: 9.5, d: 4.6, y: -0.82 },
+      ground: { w: 6.6, d: 3.4, y: -0.82 },
     },
     (T, stage) => {
       scene.current = buildBoardScene(T, stage);

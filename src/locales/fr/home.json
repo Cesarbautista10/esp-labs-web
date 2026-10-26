@@ -1,6 +1,6 @@
 {
   "hero": {
-    "kicker": "ESP32-S3 · N16R8 · guide d'établi",
+    "kicker": "PULSAR C6 · ESP32-C6 · guide d'établi",
     "title": "ESP32 <part>Labs</part>",
     "motto": {
       "wire": "Câble",
@@ -26,7 +26,7 @@
   "board": {
     "title": "Découvre la carte",
     "intro": "Six pièces que tu retrouveras labo après labo. Fais glisser la carte pour la tourner ; choisis une pièce pour l'allumer et voir quels labos l'utilisent.",
-    "model": "Modèle 3D de l'ESP32-S3 DevKitC-1 : le module avec son antenne, deux ports USB-C, les boutons BOOT et RST, la LED RGB et deux rangées de broches. Fais glisser pour la tourner.",
+    "model": "Modèle 3D de la PULSAR C6 : la puce ESP32-C6 avec son antenne céramique, un port USB-C, les boutons BOOT et RST, la LED RGB, le lecteur microSD, le connecteur Qwiic et deux rangées de broches. Fais glisser pour la tourner.",
     "fallback": "Chaque pièce est décrite dans les cartes.",
     "usedIn": "Utilisée dans ",
     "more_one": "+{{count}} labo",
@@ -34,28 +34,28 @@
     "more_many": "+{{count}} labos",
     "parts": {
       "usb": {
-        "title": "Ports USB-C",
-        "text": "COM flashe la carte et transporte le moniteur série. USB est le port propre au S3."
+        "title": "Port USB-C",
+        "text": "Un seul port flashe la carte et transporte le moniteur série : la C6 parle USB elle-même, sans puce passerelle."
       },
       "buttons": {
         "title": "BOOT et RST",
-        "text": "RST relance ton programme. BOOT est le GPIO 0 : un bouton libre une fois la carte lancée."
+        "text": "RST relance ton programme. BOOT est le GPIO 9 : un bouton libre une fois la carte lancée."
       },
       "rgb": {
         "title": "LED RGB",
-        "text": "Une WS2812 sur le GPIO 48 : 16 millions de couleurs avec une seule broche de données."
+        "text": "Une WS2812B sur le GPIO 8 : 16 millions de couleurs avec une seule broche de données."
       },
       "module": {
-        "title": "Module ESP32-S3",
-        "text": "Deux cœurs à 240 MHz, 16 Mo de flash et 8 Mo de PSRAM sous le capot métallique."
+        "title": "Puce ESP32-C6",
+        "text": "Un cœur RISC-V à 160 MHz, un cœur basse consommation et 4 Mo de flash dans la puce. Pas de PSRAM."
       },
       "antenna": {
-        "title": "Antenne imprimée",
-        "text": "Le Wi-Fi 4 et le Bluetooth 5 partent de ce zigzag de cuivre : garde-le loin du métal."
+        "title": "Antenne céramique",
+        "text": "Le Wi-Fi 6, le Bluetooth 5 et Thread/Zigbee partent de cette petite pièce céramique : garde-la loin du métal."
       },
       "headers": {
         "title": "Barrettes de broches",
-        "text": "44 broches : 3V3, 5V, GND et les GPIO où tu câbles écrans, lecteurs et micros."
+        "text": "30 broches au format Arduino Nano : 3V3, 5V, GND et les GPIO où tu câbles écrans, lecteurs et micros."
       }
     }
   },

@@ -4,8 +4,8 @@
     "intro": "Todas las piezas que usan los laboratorios, dibujadas una vez y reutilizadas en todas partes: <code>{{example}}</code>."
   },
   "names": {
-    "devkit": "placa ESP32-S3 DevKitC",
-    "module": "módulo ESP32-S3 WROOM",
+    "devkit": "placa PULSAR C6",
+    "module": "chip ESP32-C6",
     "usbc": "puerto USB-C",
     "cable": "cable USB-C",
     "button": "pulsador",

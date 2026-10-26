@@ -4,8 +4,8 @@
     "intro": "实验用到的每个元件，只画一次，到处复用：<code>{{example}}</code>。"
   },
   "names": {
-    "devkit": "ESP32-S3 DevKitC 开发板",
-    "module": "ESP32-S3 WROOM 模组",
+    "devkit": "PULSAR C6 开发板",
+    "module": "ESP32-C6 芯片",
     "usbc": "USB-C 口",
     "cable": "USB-C 数据线",
     "button": "按键",

@@ -4,8 +4,8 @@
     "intro": "ラボで使うすべてのパーツを、一度だけ描いて、どこでも使い回しています：<code>{{example}}</code>。"
   },
   "names": {
-    "devkit": "ESP32-S3 DevKitCボード",
-    "module": "ESP32-S3 WROOMモジュール",
+    "devkit": "PULSAR C6ボード",
+    "module": "ESP32-C6チップ",
     "usbc": "USB-Cポート",
     "cable": "USB-Cケーブル",
     "button": "押しボタン",

@@ -5,11 +5,11 @@
   },
   "specs": {
     "label": "مواصفات اللوحة",
-    "chip": "ESP32-S3 <b>N16R8</b>",
-    "cores": "<b>2×</b> Xtensa LX7 بسرعة 240 MHz",
-    "flash": "ذاكرة فلاش <b>16 MB</b>",
-    "psram": "ذاكرة PSRAM ثمانية <b>8 MB</b>",
-    "radio": "<b>Wi-Fi 4</b> + BLE 5",
+    "chip": "ESP32-C6 <b>FH4</b>",
+    "cores": "<b>1×</b> RISC-V بسرعة 160 MHz",
+    "flash": "ذاكرة فلاش <b>4 MB</b>",
+    "radio": "<b>Wi-Fi 6</b> + BLE 5",
+    "mesh": "<b>802.15.4</b> Thread · Zigbee",
     "logic": "منطق <b>3.3 V</b>"
   },
   "log": {

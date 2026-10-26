@@ -4,8 +4,8 @@
     "intro": "Jedes Bauteil der Labs, einmal gezeichnet und überall wiederverwendet: <code>{{example}}</code>."
   },
   "names": {
-    "devkit": "ESP32-S3-DevKitC-Board",
-    "module": "ESP32-S3-WROOM-Modul",
+    "devkit": "PULSAR-C6-Board",
+    "module": "ESP32-C6-Chip",
     "usbc": "USB-C-Port",
     "cable": "USB-C-Kabel",
     "button": "Taster",

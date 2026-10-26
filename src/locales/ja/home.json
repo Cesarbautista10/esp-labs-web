@@ -1,6 +1,6 @@
 {
   "hero": {
-    "kicker": "ESP32-S3 · N16R8 · ベンチガイド",
+    "kicker": "PULSAR C6 · ESP32-C6 · ベンチガイド",
     "title": "ESP32 <part>Labs</part>",
     "motto": {
       "wire": "配線",
@@ -26,34 +26,34 @@
   "board": {
     "title": "ボードを知ろう",
     "intro": "ラボのたびに使う6つのパーツです。ボードをドラッグして回し、パーツを選ぶと光って、それを使うラボがわかります。",
-    "model": "ESP32-S3 DevKitC-1の3Dモデル：アンテナ付きのモジュール、2つのUSB-Cポート、BOOTボタンとRSTボタン、RGB LED、2列のヘッダーピン。ドラッグで回せます。",
+    "model": "PULSAR C6の3Dモデル：セラミックアンテナ付きのESP32-C6チップ、USB-Cポート1つ、BOOTボタンとRSTボタン、RGB LED、microSDスロット、Qwiicコネクタ、2列のヘッダーピン。ドラッグで回せます。",
     "fallback": "すべてのパーツはカードで説明しています。",
     "usedIn": "使うラボ：",
     "more_other": "+{{count}}ラボ",
     "parts": {
       "usb": {
         "title": "USB-Cポート",
-        "text": "COMはボードへの書き込みとシリアルモニタに使います。USBはS3自身のポートです。"
+        "text": "1つのポートでボードへの書き込みとシリアルモニタを行います。C6は自分でUSBを話すので、ブリッジチップは不要です。"
       },
       "buttons": {
         "title": "BOOTとRST",
-        "text": "RSTはプログラムを再起動します。BOOTはGPIO 0で、ボードが動き出せば自由に使える押しボタンです。"
+        "text": "RSTはプログラムを再起動します。BOOTはGPIO 9で、ボードが動き出せば自由に使える押しボタンです。"
       },
       "rgb": {
         "title": "RGB LED",
-        "text": "GPIO 48にWS2812が1個。データピン1本で1,600万色を出せます。"
+        "text": "GPIO 8にWS2812Bが1個。データピン1本で1,600万色を出せます。"
       },
       "module": {
-        "title": "ESP32-S3モジュール",
-        "text": "金属カバーの下に、240 MHzのコア2つ、16 MBのフラッシュ、8 MBのPSRAMがあります。"
+        "title": "ESP32-C6チップ",
+        "text": "チップの中に160 MHzのRISC-Vコア、低消費電力コア、4 MBのフラッシュがあります。PSRAMはありません。"
       },
       "antenna": {
-        "title": "基板アンテナ",
-        "text": "Wi-Fi 4とBluetooth 5は、この銅のジグザグから出ます。金属を近づけないでください。"
+        "title": "チップアンテナ",
+        "text": "Wi-Fi 6、Bluetooth 5、Thread/Zigbeeは、この小さなセラミック部品から出ます。金属を近づけないでください。"
       },
       "headers": {
         "title": "ピンヘッダー",
-        "text": "44本のピン：3V3、5V、GND、そして画面やリーダー、マイクをつなぐGPIO。"
+        "text": "Arduino Nano配置の30本のピン：3V3、5V、GND、そして画面やリーダー、マイクをつなぐGPIO。"
       }
     }
   },

@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "ESP32-S3 Bench Guide",
+    "title": "ESP32-C6 Bench Guide",
     "loading": "Loading the bench guide…",
     "loadingSettings": "Loading settings…"
   },
@@ -13,23 +13,23 @@
   "layout": {
     "skip": "Skip to content",
     "loading": "Loading",
-    "brand": "ESP32-S3 <part>bench guide</part>",
+    "brand": "ESP32-C6 <part>bench guide</part>",
     "sections": "Sections",
     "nav": {
       "labs": "Labs",
       "bench": "Bench",
       "settings": "Settings"
     },
-    "footnote": "Pin layout follows the Espressif DevKitC-1 v1.0. Clones are nearly identical, but the labels printed on your board always win. Your ticks are saved in this browser only.",
+    "footnote": "Pin layout follows the UNIT Electronics PULSAR C6 (Arduino Nano format). The labels printed on your board always win. Your ticks are saved in this browser only.",
     "partsLink": "The parts library"
   },
   "titles": {
-    "labs": "Labs · ESP32-S3 Bench Guide",
-    "lesson": "{{id}} · {{title}} · ESP32-S3 Bench Guide",
-    "code": "{{id}} code · {{title}} · ESP32-S3 Bench Guide",
-    "log": "Bench log · ESP32-S3 Bench Guide",
-    "parts": "Parts library · ESP32-S3 Bench Guide",
-    "settings": "Settings · ESP32-S3 Bench Guide"
+    "labs": "Labs · ESP32-C6 Bench Guide",
+    "lesson": "{{id}} · {{title}} · ESP32-C6 Bench Guide",
+    "code": "{{id}} code · {{title}} · ESP32-C6 Bench Guide",
+    "log": "Bench log · ESP32-C6 Bench Guide",
+    "parts": "Parts library · ESP32-C6 Bench Guide",
+    "settings": "Settings · ESP32-C6 Bench Guide"
   },
   "routeError": {
     "code": "Error",
@@ -136,7 +136,7 @@
       "warning": "Never unplug during <code>Writing at 0x…</code>. Pin changing from output to input? Flash first, then wire."
     },
     "pinout": {
-      "title": "ESP32-S3 DevKitC pinout",
+      "title": "PULSAR C6 pinout",
       "use": "{{role}} on {{pin}}",
       "uses": "This lesson uses: {{uses}}.",
       "none": "This lesson uses no header pins."

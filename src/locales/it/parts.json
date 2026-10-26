@@ -4,8 +4,8 @@
     "intro": "Ogni componente usato nei lab, disegnato una volta e riusato ovunque: <code>{{example}}</code>."
   },
   "names": {
-    "devkit": "scheda ESP32-S3 DevKitC",
-    "module": "modulo ESP32-S3 WROOM",
+    "devkit": "scheda PULSAR C6",
+    "module": "chip ESP32-C6",
     "usbc": "porta USB-C",
     "cable": "cavo USB-C",
     "button": "pulsante",

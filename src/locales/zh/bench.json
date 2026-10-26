@@ -5,11 +5,11 @@
   },
   "specs": {
     "label": "开发板规格",
-    "chip": "ESP32-S3 <b>N16R8</b>",
-    "cores": "<b>2 个</b> Xtensa LX7 内核，主频 240 MHz",
-    "flash": "<b>16 MB</b> flash",
-    "psram": "<b>8 MB</b> 八线 PSRAM",
-    "radio": "<b>Wi-Fi 4</b> + BLE 5",
+    "chip": "ESP32-C6 <b>FH4</b>",
+    "cores": "<b>1 个</b> RISC-V 内核，主频 160 MHz",
+    "flash": "<b>4 MB</b> flash",
+    "radio": "<b>Wi-Fi 6</b> + BLE 5",
+    "mesh": "<b>802.15.4</b> Thread · Zigbee",
     "logic": "<b>3.3 V</b> 逻辑电平"
   },
   "log": {

@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Guida da banco ESP32-S3",
+    "title": "Guida da banco ESP32-C6",
     "loading": "Caricamento della guida da banco…",
     "loadingSettings": "Caricamento delle impostazioni…"
   },
@@ -13,23 +13,23 @@
   "layout": {
     "skip": "Vai al contenuto",
     "loading": "Caricamento",
-    "brand": "ESP32-S3 <part>guida da banco</part>",
+    "brand": "ESP32-C6 <part>guida da banco</part>",
     "sections": "Sezioni",
     "nav": {
       "labs": "Lab",
       "bench": "Banco",
       "settings": "Impostazioni"
     },
-    "footnote": "La disposizione dei pin segue l'Espressif DevKitC-1 v1.0. I cloni sono quasi identici, ma contano sempre le etichette stampate sulla tua scheda. Le tue spunte sono salvate solo in questo browser.",
+    "footnote": "La disposizione dei pin segue la PULSAR C6 di UNIT Electronics (formato Arduino Nano). Contano sempre le etichette stampate sulla tua scheda. Le tue spunte sono salvate solo in questo browser.",
     "partsLink": "La libreria dei componenti"
   },
   "titles": {
-    "labs": "Lab · Guida da banco ESP32-S3",
-    "lesson": "{{id}} · {{title}} · Guida da banco ESP32-S3",
-    "code": "Codice {{id}} · {{title}} · Guida da banco ESP32-S3",
-    "log": "Registro del banco · Guida da banco ESP32-S3",
-    "parts": "Libreria dei componenti · Guida da banco ESP32-S3",
-    "settings": "Impostazioni · Guida da banco ESP32-S3"
+    "labs": "Lab · Guida da banco ESP32-C6",
+    "lesson": "{{id}} · {{title}} · Guida da banco ESP32-C6",
+    "code": "Codice {{id}} · {{title}} · Guida da banco ESP32-C6",
+    "log": "Registro del banco · Guida da banco ESP32-C6",
+    "parts": "Libreria dei componenti · Guida da banco ESP32-C6",
+    "settings": "Impostazioni · Guida da banco ESP32-C6"
   },
   "routeError": {
     "code": "Errore",
@@ -136,7 +136,7 @@
       "warning": "Non scollegare mai durante <code>Writing at 0x…</code>. Un pin passa da output a input? Prima flasha, poi collega."
     },
     "pinout": {
-      "title": "Pinout dell'ESP32-S3 DevKitC",
+      "title": "Pinout della PULSAR C6",
       "use": "{{role}} su {{pin}}",
       "uses": "Questa lezione usa: {{uses}}.",
       "none": "Questa lezione non usa pin del connettore."

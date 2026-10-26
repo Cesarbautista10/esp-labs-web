@@ -1,6 +1,6 @@
-// The ESP32-S3 DevKitC-1 as an illustrated 3D model: board, WROOM module with its can and
-// meander antenna, two USB-C ports, BOOT and RST, the RGB LED, the support chips and the 44
-// header pins, with the silkscreen drawn from the same pin list as the pinout.
+// The UNIT Electronics PULSAR C6 as an illustrated 3D model: board, the bare ESP32-C6 chip, the
+// ceramic antenna, one USB-C port, BOOT and RST, the RGB LED, the microSD slot, the Qwiic
+// connector and the 30 header pins, with the silkscreen drawn from the same pin list as the pinout.
 import type * as Three from "three";
 import { HEADER, pinLabel } from "@/domain/board";
 import { definePalette } from "@/lib/palette";
@@ -25,23 +25,27 @@ const colours = definePalette({
   mono: "--font-mono",
 });
 
-// 1 unit = 10 mm. The board is 69 × 25.4 mm; USB end at -x, antenna end at +x, top face at y = 0.
-const L = 6.9;
-const W = 2.54;
+// 1 unit = 10 mm. The board is 45 × 18 mm (Arduino Nano); USB end at -x, antenna end at +x,
+// top face at y = 0. The left header row (the pinout's left column) is at +z.
+const L = 4.5;
+const W = 1.8;
 const H = 0.16;
 const PITCH = 0.254;
-const PIN0_X = 2.95; // the first header pin, at the module end
-const ROW_Z = W / 2 - 0.13;
-const pinX = (i: number) => PIN0_X - i * PITCH;
+const PIN0_X = -1.778; // the first header pin, at the USB end
+const ROW_Z = 0.762; // the rows are 0.6" apart
+const pinX = (i: number) => PIN0_X + i * PITCH;
+const CHIP_X = 0.7;
+const LED: readonly [number, number] = [0.7, -0.4];
+const ANT: readonly [number, number] = [2.05, 0.44];
 
 /** Where each callout's leader lands on the model. */
 export const PART_ANCHORS: Record<PartId, readonly [number, number, number]> = {
-  usb: [-3.3, 0.33, -0.6],
-  buttons: [-2.78, 0.24, 0.86],
-  rgb: [0.3, 0.12, 0.62],
-  module: [1.6, 0.42, -0.2],
-  antenna: [3.18, 0.1, 0.1],
-  headers: [pinX(16), 0.06, ROW_Z],
+  usb: [-2.1, 0.3, 0],
+  buttons: [-1.4, 0.2, 0.3],
+  rgb: [LED[0], 0.1, LED[1]],
+  module: [CHIP_X, 0.12, 0],
+  antenna: [ANT[0], 0.1, ANT[1]],
+  headers: [pinX(7), 0.06, ROW_Z],
 };
 
 export interface BoardScene {
@@ -93,55 +97,37 @@ export function buildBoardScene(T: ThreeModule, S: Stage3d): BoardScene {
   const side = toon(T, C.edge);
   mesh(new T.BoxGeometry(L, H, W), [side, side, top, toon(T, C.pcb), side, side], 0, -H / 2, 0);
 
-  // The WROOM-1 module: its own small board, the metal can, the antenna end.
-  const modX0 = L / 2 - 2.55;
-  mesh(new T.BoxGeometry(2.55, 0.08, 1.8), mat("antenna", C.pcb), modX0 + 1.275, 0.04, 0);
-  const can = mat("module", C.metal);
-  const canTop = mat("module", C.metal, { map: canLabel(T, C) });
+  // The ESP32-C6FH4: a 5 × 5 mm QFN with the flash inside, straight on the board.
+  const chip = mat("module", C.plastic);
+  const chipTop = mat("module", C.plastic, { map: chipLabel(T, C) });
   mesh(
-    new T.BoxGeometry(1.9, 0.32, 1.66),
-    [can, can, canTop, can, can, can],
-    modX0 + 0.08 + 0.95,
-    0.08 + 0.16,
+    new T.BoxGeometry(0.5, 0.09, 0.5),
+    [chip, chip, chipTop, chip, chip, chip],
+    CHIP_X,
+    0.045,
     0,
   );
-  // The meander antenna: copper runs across, joined at alternate ends.
-  const trace = mat("antenna", C.gold);
-  const runs = 8;
-  for (let i = 0; i < runs; i++) {
-    const z = -0.7 + (i * 1.4) / (runs - 1);
-    mesh(new T.BoxGeometry(0.36, 0.012, 0.035), trace, 3.15, 0.086, z, false);
-    if (i < runs - 1)
-      mesh(
-        new T.BoxGeometry(0.035, 0.012, 1.4 / (runs - 1)),
-        trace,
-        i % 2 ? 2.97 : 3.33,
-        0.086,
-        z + 0.7 / (runs - 1),
-        false,
-      );
-  }
+  // The ceramic chip antenna at the far corner, keep-out copper around it.
+  mesh(new T.BoxGeometry(0.32, 0.1, 0.12), mat("antenna", C.white), ANT[0], 0.05, ANT[1]);
+  mesh(new T.BoxGeometry(0.06, 0.04, 0.1), mat("antenna", C.gold), ANT[0] - 0.19, 0.02, ANT[1], false);
+  mesh(new T.BoxGeometry(0.06, 0.04, 0.1), mat("antenna", C.gold), ANT[0] + 0.19, 0.02, ANT[1], false);
 
-  // Two USB-C receptacles at the USB end: COM (the UART bridge) at the back, USB in front.
+  // One USB-C receptacle at the USB end: the chip's own USB, for flashing and the serial monitor.
   const usbShape = roundedShape(T, 0.89, 0.32, 0.15);
   const usbGeo = new T.ExtrudeGeometry(usbShape, { depth: 0.73, bevelEnabled: false });
   usbGeo.rotateY(-Math.PI / 2);
-  const shell = mat("usb", C.metal);
-  const mouth = mat("usb", C.plastic);
-  for (const z of [-0.6, 0.6]) {
-    mesh(usbGeo, shell, -L / 2 + 0.65, 0.16, z);
-    mesh(new T.BoxGeometry(0.02, 0.2, 0.7), mouth, -L / 2 - 0.085, 0.16, z, false);
+  mesh(usbGeo, mat("usb", C.metal), -L / 2 + 0.65, 0.16, 0);
+  mesh(new T.BoxGeometry(0.02, 0.2, 0.7), mat("usb", C.plastic), -L / 2 - 0.085, 0.16, 0, false);
+
+  // BOOT (left row side) and RST (right row side): small tactile switches beside the port.
+  for (const z of [0.3, -0.3]) {
+    mesh(new T.BoxGeometry(0.28, 0.1, 0.28), mat("buttons", C.metal), -1.4, 0.05, z);
+    mesh(new T.CylinderGeometry(0.08, 0.08, 0.08, 20), mat("buttons", C.plastic), -1.4, 0.14, z);
   }
 
-  // BOOT (back) and RST (front): tactile switches.
-  for (const z of [-0.86, 0.86]) {
-    mesh(new T.BoxGeometry(0.36, 0.12, 0.36), mat("buttons", C.metal), -2.78, 0.06, z);
-    mesh(new T.CylinderGeometry(0.1, 0.1, 0.1, 20), mat("buttons", C.plastic), -2.78, 0.17, z);
-  }
-
-  // The RGB LED: a white 5050 package; its colour and glow are set every frame.
+  // The RGB LED: a white 2020 WS2812B; its colour and glow are set every frame.
   const ledMat = mat("rgb", C.white, { emissive: new T.Color(C.hotspot), emissiveIntensity: 0.6 });
-  mesh(new T.BoxGeometry(0.5, 0.1, 0.5), ledMat, 0.3, 0.05, 0.62);
+  mesh(new T.BoxGeometry(0.2, 0.08, 0.2), ledMat, LED[0], 0.04, LED[1]);
   const glowMat = new T.SpriteMaterial({
     map: glowTexture(T),
     color: new T.Color(C.hotspot),
@@ -150,19 +136,21 @@ export function buildBoardScene(T: ThreeModule, S: Stage3d): BoardScene {
     transparent: true,
   });
   const glow = new T.Sprite(glowMat);
-  glow.position.set(0.3, 0.2, 0.62);
-  glow.scale.setScalar(1.3);
+  glow.position.set(LED[0], 0.16, LED[1]);
+  glow.scale.setScalar(0.8);
   board.add(glow);
 
-  // Support parts: the USB-UART bridge, the 3.3 V regulator, the power LED, a few passives.
-  mesh(new T.BoxGeometry(0.42, 0.08, 0.42), toon(T, C.plastic), -2.0, 0.04, 0.25);
-  mesh(new T.BoxGeometry(0.66, 0.16, 0.36), toon(T, C.plastic), -1.45, 0.08, -0.5);
-  mesh(new T.BoxGeometry(0.32, 0.03, 0.18), toon(T, C.metal), -1.45, 0.015, -0.8, false);
+  // The microSD slot (a metal cage), the Qwiic connector, the 3.3 V regulator and charger, the
+  // power LED and a few passives.
+  mesh(new T.BoxGeometry(1.1, 0.16, 0.9), toon(T, C.metal), -0.3, 0.08, 0);
+  mesh(new T.BoxGeometry(0.3, 0.26, 0.56), toon(T, C.white), 2.05, 0.13, -0.12);
+  mesh(new T.BoxGeometry(0.3, 0.1, 0.16), toon(T, C.plastic), -1.0, 0.05, 0.36);
+  mesh(new T.BoxGeometry(0.2, 0.08, 0.2), toon(T, C.plastic), -1.0, 0.04, -0.36);
   const powerLed = toon(T, C.power, { emissive: new T.Color(C.power), emissiveIntensity: 0.8 });
-  mesh(new T.BoxGeometry(0.16, 0.06, 0.09), powerLed, -2.35, 0.03, -0.2, false);
+  mesh(new T.BoxGeometry(0.1, 0.05, 0.06), powerLed, -1.75, 0.025, 0.55, false);
   const passive = toon(T, C.metalDark);
   for (const [x, z, turn] of PASSIVES) {
-    const m = mesh(new T.BoxGeometry(0.16, 0.06, 0.08), passive, x, 0.03, z, false);
+    const m = mesh(new T.BoxGeometry(0.1, 0.05, 0.05), passive, x, 0.025, z, false);
     m.rotation.y = turn;
   }
 
@@ -190,9 +178,9 @@ export function buildBoardScene(T: ThreeModule, S: Stage3d): BoardScene {
       side: T.DoubleSide,
       depthWrite: false,
     });
-    const ring = new T.Mesh(new T.RingGeometry(0.95, 1, 40, 1, 0, Math.PI), m);
+    const ring = new T.Mesh(new T.RingGeometry(0.62, 0.66, 40, 1, 0, Math.PI), m);
     ring.rotation.y = Math.PI / 2;
-    ring.position.set(L / 2 + 0.05, 0.05, 0);
+    ring.position.set(L / 2 + 0.05, 0.05, ANT[1]);
     board.add(ring);
     return { ring, m };
   });
@@ -207,7 +195,7 @@ export function buildBoardScene(T: ThreeModule, S: Stage3d): BoardScene {
     led.setHSL(S.reduce ? 0.47 : (t * 0.08) % 1, 0.9, 0.55);
     ledMat.emissive.copy(led);
     glowMat.color.copy(led);
-    glow.scale.setScalar(lit === "rgb" ? 1.9 : 1.3);
+    glow.scale.setScalar(lit === "rgb" ? 1.2 : 0.8);
     waves.forEach(({ ring, m }, i) => {
       if (S.reduce) {
         m.opacity = lit === "antenna" ? 0.5 : 0;
@@ -237,14 +225,14 @@ export function buildBoardScene(T: ThreeModule, S: Stage3d): BoardScene {
 
 // Small parts scattered as on the real board: [x, z, rotation].
 const PASSIVES: readonly (readonly [number, number, number])[] = [
-  [-2.45, 0.3, 0],
-  [-2.45, 0.5, 0],
-  [-1.6, 0.35, Math.PI / 2],
-  [-1.0, 0.2, 0],
-  [-0.9, -0.45, Math.PI / 2],
-  [-0.5, 0.55, 0],
-  [-0.2, -0.3, 0],
-  [0.55, -0.6, Math.PI / 2],
+  [-1.0, 0.1, 0],
+  [-1.0, -0.1, 0],
+  [-0.85, 0.55, Math.PI / 2],
+  [0.35, 0.38, 0],
+  [0.35, -0.38, 0],
+  [1.05, 0.35, Math.PI / 2],
+  [1.05, -0.35, Math.PI / 2],
+  [1.7, 0.4, 0],
 ];
 
 /** A rounded rectangle centred on the origin (the face of a USB-C receptacle). */
@@ -280,20 +268,20 @@ function silkscreen(T: ThreeModule, C: Colours): Three.CanvasTexture {
   g.fillStyle = C.pcb;
   g.fillRect(0, 0, c.width, c.height);
 
-  // Traces: a few buses from the USB end towards the module, with vias.
+  // Traces: a few buses from the USB end towards the chip, with vias.
   g.strokeStyle = C.edge;
   g.lineWidth = 7;
   g.lineJoin = "round";
   for (const [z0, z1, bend] of TRACES) {
     g.beginPath();
-    g.moveTo(px(-2.6), pz(z0));
+    g.moveTo(px(-1.6), pz(z0));
     g.lineTo(px(bend), pz(z0));
-    g.lineTo(px(bend + 0.4), pz(z1));
-    g.lineTo(px(0.85), pz(z1));
+    g.lineTo(px(bend + 0.25), pz(z1));
+    g.lineTo(px(CHIP_X - 0.3), pz(z1));
     g.stroke();
     g.fillStyle = C.edge;
     g.beginPath();
-    g.arc(px(bend + 0.4), pz(z1), 11, 0, Math.PI * 2);
+    g.arc(px(bend + 0.25), pz(z1), 11, 0, Math.PI * 2);
     g.fill();
   }
 
@@ -302,8 +290,8 @@ function silkscreen(T: ThreeModule, C: Colours): Three.CanvasTexture {
   g.textAlign = "center";
   g.textBaseline = "middle";
   for (const [side, z, labelZ] of [
-    ["L", -ROW_Z, -ROW_Z + 0.2],
-    ["R", ROW_Z, ROW_Z - 0.2],
+    ["L", ROW_Z, ROW_Z - 0.2],
+    ["R", -ROW_Z, -ROW_Z + 0.2],
   ] as const) {
     HEADER[side].forEach((name, i) => {
       g.fillStyle = C.pad;
@@ -312,62 +300,57 @@ function silkscreen(T: ThreeModule, C: Colours): Three.CanvasTexture {
       g.fill();
       g.fillStyle = C.silk;
       g.font = `600 ${Math.round(0.07 * k)}px ${font}`;
-      g.fillText(pinLabel(name).replace(/^(TX|RX) /, ""), px(pinX(i)), pz(labelZ));
+      g.fillText(pinLabel(name).replace(/^(TX|RX) | OUT$/g, ""), px(pinX(i)), pz(labelZ));
     });
   }
 
   // Board markings.
   g.fillStyle = C.silk;
-  g.font = `700 ${Math.round(0.17 * k)}px ${font}`;
+  g.font = `700 ${Math.round(0.14 * k)}px ${font}`;
   g.textAlign = "left";
-  g.fillText("ESP32-S3-DevKitC-1", px(-1.9), pz(-0.12));
-  g.font = `500 ${Math.round(0.1 * k)}px ${font}`;
+  g.fillText("PULSAR C6", px(1.0), pz(-0.08));
+  g.font = `500 ${Math.round(0.07 * k)}px ${font}`;
   g.fillStyle = C.silkDim;
-  g.fillText("N16R8 · v1.0", px(-1.9), pz(0.16));
+  g.fillText("WiFi 6 · BLE 5 · 802.15.4", px(1.0), pz(0.14));
   g.fillStyle = C.silk;
-  g.font = `700 ${Math.round(0.09 * k)}px ${font}`;
+  g.font = `700 ${Math.round(0.06 * k)}px ${font}`;
   g.textAlign = "center";
-  g.fillText("COM", px(-2.55), pz(-0.6));
-  g.fillText("USB", px(-2.55), pz(0.6));
-  g.fillText("BOOT", px(-2.78), pz(-0.56));
-  g.fillText("RST", px(-2.78), pz(0.56));
-  g.fillText("RGB", px(0.3), pz(0.25));
+  g.fillText("BOOT", px(-1.4), pz(0.52));
+  g.fillText("RST", px(-1.4), pz(-0.52));
+  g.fillText("RGB", px(LED[0]), pz(LED[1] + 0.18));
   g.strokeStyle = C.silk;
-  g.lineWidth = 4;
-  g.strokeRect(px(0.3) - 0.3 * k, pz(0.62) - 0.3 * k, 0.6 * k, 0.6 * k);
+  g.lineWidth = 3;
+  g.strokeRect(px(LED[0]) - 0.13 * k, pz(LED[1]) - 0.13 * k, 0.26 * k, 0.26 * k);
   return tex;
 }
 
 // [from z, to z, where the bend is]
 const TRACES: readonly (readonly [number, number, number])[] = [
-  [0.25, 0.05, -1.2],
-  [0.35, 0.15, -1.0],
-  [-0.15, -0.35, -0.9],
-  [-0.25, -0.45, -0.6],
-  [0.45, 0.35, -0.4],
+  [0.15, 0.05, -1.3],
+  [-0.15, -0.05, -1.25],
+  [0.5, 0.15, 0.2],
+  [-0.5, -0.15, 0.25],
 ];
 
-/** The laser-etched top of the module's can. */
-function canLabel(T: ThreeModule, C: Colours): Three.CanvasTexture {
+/** The marking on top of the chip. */
+function chipLabel(T: ThreeModule, C: Colours): Three.CanvasTexture {
   const c = document.createElement("canvas");
-  c.width = 512;
-  c.height = 448;
+  c.width = 256;
+  c.height = 256;
   const g = c.getContext("2d");
   const tex = new T.CanvasTexture(c);
   if (!g) return tex;
-  g.fillStyle = C.metal;
+  g.fillStyle = C.plastic;
   g.fillRect(0, 0, c.width, c.height);
-  g.fillStyle = C.metalDark;
+  g.fillStyle = C.silkDim;
   const font = C.mono || "monospace";
   g.textAlign = "center";
-  g.font = `700 46px ${font}`;
-  g.fillText("ESPRESSIF", 256, 150);
-  g.font = `600 34px ${font}`;
-  g.fillText("ESP32-S3-WROOM-1", 256, 220);
-  g.font = `500 30px ${font}`;
-  g.fillText("N16R8", 256, 278);
-  g.strokeStyle = C.metalDark;
-  g.lineWidth = 4;
-  g.strokeRect(24, 24, 464, 400);
+  g.font = `700 34px ${font}`;
+  g.fillText("ESP32-C6", 128, 116);
+  g.font = `600 30px ${font}`;
+  g.fillText("FH4", 128, 160);
+  g.beginPath();
+  g.arc(36, 36, 12, 0, Math.PI * 2);
+  g.fill();
   return tex;
 }

@@ -203,4 +203,4 @@ All dependencies are pinned exactly (`savePrefix: ""`): React 19.3, React Router
 
 ---
 
-<sub>A learning project, not affiliated with Espressif. Pin layout follows the Espressif ESP32-S3-DevKitC-1 v1.0; the labels printed on your board always win.</sub>
+<sub>A learning project, not affiliated with Espressif. Pin layout follows the UNIT Electronics PULSAR C6 (ESP32-C6, Arduino Nano layout); the labels printed on your board always win.</sub>

@@ -5,11 +5,11 @@
   },
   "specs": {
     "label": "ボードの仕様",
-    "chip": "ESP32-S3 <b>N16R8</b>",
-    "cores": "<b>2基</b>のXtensa LX7 @ 240 MHz",
-    "flash": "<b>16 MB</b>フラッシュ",
-    "psram": "<b>8 MB</b>オクタルPSRAM",
-    "radio": "<b>Wi-Fi 4</b> + BLE 5",
+    "chip": "ESP32-C6 <b>FH4</b>",
+    "cores": "<b>1基</b>のRISC-V @ 160 MHz",
+    "flash": "<b>4 MB</b>フラッシュ",
+    "radio": "<b>Wi-Fi 6</b> + BLE 5",
+    "mesh": "<b>802.15.4</b> Thread · Zigbee",
     "logic": "<b>3.3 V</b>ロジック"
   },
   "log": {

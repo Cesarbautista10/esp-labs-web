@@ -4,8 +4,8 @@
     "intro": "Toutes les pièces utilisées dans les labos, dessinées une seule fois et réutilisées partout : <code>{{example}}</code>."
   },
   "names": {
-    "devkit": "carte ESP32-S3 DevKitC",
-    "module": "module ESP32-S3 WROOM",
+    "devkit": "carte PULSAR C6",
+    "module": "puce ESP32-C6",
     "usbc": "port USB-C",
     "cable": "câble USB-C",
     "button": "bouton poussoir",

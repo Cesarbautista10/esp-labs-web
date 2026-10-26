@@ -5,11 +5,11 @@
   },
   "specs": {
     "label": "Caractéristiques de la carte",
-    "chip": "ESP32-S3 <b>N16R8</b>",
-    "cores": "<b>2×</b> Xtensa LX7 @ 240 MHz",
-    "flash": "<b>16 Mo</b> de flash",
-    "psram": "<b>8 Mo</b> de PSRAM octale",
-    "radio": "<b>Wi-Fi 4</b> + BLE 5",
+    "chip": "ESP32-C6 <b>FH4</b>",
+    "cores": "<b>1×</b> RISC-V @ 160 MHz",
+    "flash": "<b>4 Mo</b> de flash",
+    "radio": "<b>Wi-Fi 6</b> + BLE 5",
+    "mesh": "<b>802.15.4</b> Thread · Zigbee",
     "logic": "Logique <b>3,3 V</b>"
   },
   "log": {

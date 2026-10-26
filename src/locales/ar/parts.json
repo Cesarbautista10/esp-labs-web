@@ -4,8 +4,8 @@
     "intro": "كل قطعة تستخدمها المختبرات، تُرسم مرة واحدة وتُستعمل في كل مكان: <code>{{example}}</code>."
   },
   "names": {
-    "devkit": "لوحة ESP32-S3 DevKitC",
-    "module": "وحدة ESP32-S3 WROOM",
+    "devkit": "لوحة PULSAR C6",
+    "module": "شريحة ESP32-C6",
     "usbc": "منفذ USB-C",
     "cable": "كبل USB-C",
     "button": "زر ضغط",

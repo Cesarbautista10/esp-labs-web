@@ -1,6 +1,6 @@
 # Bench guide (React): architecture
 
-The ESP32-S3 bench guide, rebuilt from the single 11k-line `hardware-diary/test-esp/guide/bench-guide.html` into a React 19 app. Same content, same look, now modular: lessons are data, simulators are lazily loaded widgets, bench state is fetched JSON.
+The ESP32 bench guide (board: UNIT Electronics PULSAR C6, an ESP32-C6 in the Arduino Nano layout), rebuilt from the single 11k-line `hardware-diary/test-esp/guide/bench-guide.html` into a React 19 app. Same content, same look, now modular: lessons are data, simulators are lazily loaded widgets, bench state is fetched JSON.
 
 ## Stack
 

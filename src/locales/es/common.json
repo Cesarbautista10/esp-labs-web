@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Guía de banco ESP32-S3",
+    "title": "Guía de banco ESP32-C6",
     "loading": "Cargando la guía de banco…",
     "loadingSettings": "Cargando ajustes…"
   },
@@ -13,23 +13,23 @@
   "layout": {
     "skip": "Saltar al contenido",
     "loading": "Cargando",
-    "brand": "ESP32-S3 <part>guía de banco</part>",
+    "brand": "ESP32-C6 <part>guía de banco</part>",
     "sections": "Secciones",
     "nav": {
       "labs": "Laboratorios",
       "bench": "Banco",
       "settings": "Ajustes"
     },
-    "footnote": "La distribución de pines sigue la Espressif DevKitC-1 v1.0. Los clones son casi idénticos, pero mandan siempre las etiquetas impresas en tu placa. Tus marcas se guardan solo en este navegador.",
+    "footnote": "La distribución de pines sigue la PULSAR C6 de UNIT Electronics (formato Arduino Nano). Mandan siempre las etiquetas impresas en tu placa. Tus marcas se guardan solo en este navegador.",
     "partsLink": "La biblioteca de piezas"
   },
   "titles": {
-    "labs": "Laboratorios · Guía de banco ESP32-S3",
-    "lesson": "{{id}} · {{title}} · Guía de banco ESP32-S3",
-    "code": "Código {{id}} · {{title}} · Guía de banco ESP32-S3",
-    "log": "Registro del banco · Guía de banco ESP32-S3",
-    "parts": "Biblioteca de piezas · Guía de banco ESP32-S3",
-    "settings": "Ajustes · Guía de banco ESP32-S3"
+    "labs": "Laboratorios · Guía de banco ESP32-C6",
+    "lesson": "{{id}} · {{title}} · Guía de banco ESP32-C6",
+    "code": "Código {{id}} · {{title}} · Guía de banco ESP32-C6",
+    "log": "Registro del banco · Guía de banco ESP32-C6",
+    "parts": "Biblioteca de piezas · Guía de banco ESP32-C6",
+    "settings": "Ajustes · Guía de banco ESP32-C6"
   },
   "routeError": {
     "code": "Error",
@@ -136,7 +136,7 @@
       "warning": "Nunca desconectes durante <code>Writing at 0x…</code>. ¿Un pin pasa de salida a entrada? Flashea primero y cablea después."
     },
     "pinout": {
-      "title": "Pinout de la ESP32-S3 DevKitC",
+      "title": "Pinout de la PULSAR C6",
       "use": "{{role}} en {{pin}}",
       "uses": "Esta lección usa: {{uses}}.",
       "none": "Esta lección no usa pines de la tira."

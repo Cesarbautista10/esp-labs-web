@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "ESP32-S3 工作台指南",
+    "title": "ESP32-C6 工作台指南",
     "loading": "正在加载工作台指南…",
     "loadingSettings": "正在加载设置…"
   },
@@ -13,23 +13,23 @@
   "layout": {
     "skip": "跳到正文",
     "loading": "加载中",
-    "brand": "ESP32-S3 <part>工作台指南</part>",
+    "brand": "ESP32-C6 <part>工作台指南</part>",
     "sections": "章节",
     "nav": {
       "labs": "实验",
       "bench": "工作台",
       "settings": "设置"
     },
-    "footnote": "引脚布局遵循乐鑫 DevKitC-1 v1.0。兼容板几乎一样，但以你开发板上印的标注为准。你的勾选只保存在这个浏览器里。",
+    "footnote": "引脚布局遵循 UNIT Electronics 的 PULSAR C6（Arduino Nano 尺寸）。以你开发板上印的标注为准。你的勾选只保存在这个浏览器里。",
     "partsLink": "元件库"
   },
   "titles": {
-    "labs": "实验 · ESP32-S3 工作台指南",
-    "lesson": "{{id}} · {{title}} · ESP32-S3 工作台指南",
-    "code": "{{id}} 代码 · {{title}} · ESP32-S3 工作台指南",
-    "log": "工作台日志 · ESP32-S3 工作台指南",
-    "parts": "元件库 · ESP32-S3 工作台指南",
-    "settings": "设置 · ESP32-S3 工作台指南"
+    "labs": "实验 · ESP32-C6 工作台指南",
+    "lesson": "{{id}} · {{title}} · ESP32-C6 工作台指南",
+    "code": "{{id}} 代码 · {{title}} · ESP32-C6 工作台指南",
+    "log": "工作台日志 · ESP32-C6 工作台指南",
+    "parts": "元件库 · ESP32-C6 工作台指南",
+    "settings": "设置 · ESP32-C6 工作台指南"
   },
   "routeError": {
     "code": "错误",
@@ -136,7 +136,7 @@
       "warning": "<code>Writing at 0x…</code> 期间千万别拔线。引脚要从输出改成输入？先烧录，再接线。"
     },
     "pinout": {
-      "title": "ESP32-S3 DevKitC 引脚图",
+      "title": "PULSAR C6 引脚图",
       "use": "{{pin}} 用作{{role}}",
       "uses": "本课用到：{{uses}}。",
       "none": "本课不使用排针上的引脚。"

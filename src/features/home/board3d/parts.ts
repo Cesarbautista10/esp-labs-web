@@ -1,7 +1,8 @@
+import { BOOT_PIN, RGB_PIN } from "@/domain/board";
 import type { ActiveLesson, LessonEntry, PinUse } from "@/domain/lesson";
 import type { PartName } from "@/ui/parts/registry";
 
-// The parts of the DevKitC the board explorer points at, and which lessons use each one. The
+// The parts of the PULSAR C6 the board explorer points at, and which lessons use each one. The
 // lessons are found from the content itself (pins, USB, BOOT, firmware, theme), so a new lesson
 // shows up under its parts without touching this file. Each callout's title and text live in the
 // "home" catalogue (board.parts.<id>).
@@ -56,11 +57,11 @@ const pinsOf = (l: ActiveLesson): readonly PinUse[] => [
 
 const USES: Record<PartId, (l: ActiveLesson) => boolean> = {
   usb: (l) => Boolean(l.usb),
-  buttons: (l) => Boolean(l.boot) || pinsOf(l).some((p) => p.pin === "0"),
-  rgb: (l) => pinsOf(l).some((p) => p.pin === "48"),
+  buttons: (l) => Boolean(l.boot) || pinsOf(l).some((p) => p.pin === BOOT_PIN),
+  rgb: (l) => pinsOf(l).some((p) => p.pin === RGB_PIN),
   module: (l) => /(?:^|\s)-e\s/.test(l.cmd ?? ""),
   antenna: (l) => l.track === "wifi" || l.track === "ble",
-  headers: (l) => pinsOf(l).some((p) => p.pin !== "48"),
+  headers: (l) => pinsOf(l).some((p) => p.pin !== RGB_PIN),
 };
 
 /** The open lessons that use a part, in table-of-contents order. */

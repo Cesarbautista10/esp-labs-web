@@ -18,12 +18,12 @@ describe("partLessons", () => {
     lesson("01", {
       usb: true,
       cmd: "pio run -e 01-hello",
-      pins: [{ pin: "48", role: "RGB", side: "R" }],
+      pins: [{ pin: "8", role: "RGB", side: "R" }],
     }),
     lesson("02", { cmd: "pio run -e 02-led", pins: [{ pin: "4", role: "LED +", side: "L" }] }),
     lesson("03b", {
       variants: [
-        { key: "v1", label: "BOOT", short: "", pins: [{ pin: "0", role: "BTN", side: "R" }] },
+        { key: "v1", label: "BOOT", short: "", pins: [{ pin: "9", role: "BTN", side: "R" }] },
       ],
     }),
     lesson("W1", { track: "wifi" }),
